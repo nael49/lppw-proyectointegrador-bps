@@ -20,6 +20,7 @@ const hbs=exphlb.create({
     extname: ".hbs",
 })
 app.set('view engine','.hbs');
+app.engine('.hbs',hbs.engine)
 
 app.set(express.urlencoded({extended: false}));
 app.use(methodoverride('_method'));
@@ -30,7 +31,7 @@ app.use(sesion({
 }))
 
 //RUTAS /LINKS
-    app.use(require('./rutas-links/home'));
+    app.use(require('./rutas-links/home.js'));
 
 
 
