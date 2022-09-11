@@ -33,7 +33,8 @@ app.use(sesion({
 //RUTAS /LINKS
     app.use(require('./rutas-links/home.js'));
 
-
+//archivos publicos para el front
+app.use(express.static(path.join(__dirname,'publico')))
 
 //Server lanzado
 app.listen(app.get('port'),()=>{
