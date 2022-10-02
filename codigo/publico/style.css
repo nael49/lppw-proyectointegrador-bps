@@ -1,4 +1,10 @@
 .login{
     margin-top: 250px;
     width: 400px;
+    
+}
+
+.titulos{
+    text-align: center;
+    font-weight: 600;
 }
