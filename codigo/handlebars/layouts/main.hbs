@@ -14,7 +14,7 @@
     <title></title>
 </head>
 <body class="bg-dark">
-
+    
    <div class=" bg-primary text-light ">   
         <nav class="navbar navbar-expand-lg ">
             <div class="container-fluid">
@@ -44,6 +44,10 @@
             </div>
         </nav>             
     </div>
+
+    {{#if session}}
+        <h1>hola la sesion existe</h1>
+    {{/if}}
 
     <div class="container">  
         {{{ body }}}
