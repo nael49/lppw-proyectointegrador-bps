@@ -1,5 +1,9 @@
 const express=require('express');
-const router=express.Router();
+const router = express.Router();
+
+const conect = require('../modelo_datos_bbdd/conexion_con_bbdd')
+
+
 
 router.get('/recepcionista',(req,res)=>{
     res.render('layouts/index-recepcionista')
