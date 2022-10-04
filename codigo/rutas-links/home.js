@@ -29,5 +29,8 @@ router.get('/admin',(req,res)=>{
     res.render('layouts/lista_usuario')
 })
 
+router.get('/admin/crear_usuario',(req,res)=>{
+    res.render('layouts/crear_usuario')
+})
 
 module.exports=router;

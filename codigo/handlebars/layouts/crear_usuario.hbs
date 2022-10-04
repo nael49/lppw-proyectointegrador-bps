@@ -13,40 +13,43 @@
                 <div class="feedback-invalid"></div>
             </div>
 
-            <div class="mb-3">
-                <label for="DNI" class="form-label">DNI</label>
-                <input type="number" name="DNI" class="form-control" id="DNI" required>
-            </div>
+            <div class="row g-3">
+                <div class="col mb-3">
+                    <label for="DNI" class="form-label">DNI</label>
+                    <input type="number" name="DNI" class="form-control" id="DNI" required>
+                </div>
 
-            <div class="mb-3">
-                <label for="puesto" class="form-label">PUESTO</label>
-                <select class="form-control" name="puesto" id="puesto">
-                    <option value="" selected disabled></option>
-                    <option value="ADMIN">ADMIN</option>
-                    <option value="RECEPCIONISTA">RECEPCIONISTA</option>
-                    <option value="TECNICO">TECNICO</option>
-                    <option value="GERENTE">GERENTE</option>
-                    <option value="ADMINISTRADOR DE DEPOSITO">ADMINISTRADOR DE DEPOSITO</option>
-                </select>
+                <div class="col mb-3">
+                    <label for="puesto" class="form-label">PUESTO</label>
+                    <select class="form-control" name="puesto" id="puesto">
+                        <option value="" selected disabled></option>
+                        <option value="ADMIN">ADMIN</option>
+                        <option value="RECEPCIONISTA">RECEPCIONISTA</option>
+                        <option value="TECNICO">TECNICO</option>
+                        <option value="GERENTE">GERENTE</option>
+                        <option value="ADMINISTRADOR DE DEPOSITO">ADMINISTRADOR DE DEPOSITO</option>
+                    </select>
+                </div>
             </div>
+             
+             <div class="row g-3">
+                <div class="mb-3 col">
+                    <label for="fecha_ingreso" class="form-label">FECHA DE INGRESO</label>
+                    <input type="date" name="fecha_ingreso" class="form-control" id="fecha_ingreso" required>
+                </div>
 
-
-            <div class="mb-3">
-                <label for="fecha_ingreso" class="form-label">FECHA DE INGRESO</label>
-                <input type="date" name="fecha_ingreso" class="form-control" id="fecha_ingreso" required>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label" for="numerocelular">Numero de Celular</label>
-                <input type="number" name="numerocelular" class="form-control" id="numerocelular" required>
-            </div>
+                <div class="mb-3 col">
+                    <label class="form-label" for="numerocelular">Numero de Celular</label>
+                    <input type="number" name="numerocelular" class="form-control" id="numerocelular" required>
+                </div>
+             </div>
 
             <div class="mb-3">
                 <label class="form-label" for="email">Email</label>
                 <input type="email" name="email" class="form-control" id="email" required>
             </div>
 
-            <button type="submit" class="btn btn-primary">Submit</button>
+            <button type="submit" class="btn btn-primary">Agregar</button>
 
         </form>
 
