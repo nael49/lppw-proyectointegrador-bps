@@ -33,4 +33,12 @@ router.get('/admin/crear_usuario',(req,res)=>{
     res.render('layouts/crear_usuario')
 })
 
+router.get('/stock',(req,res)=>{
+    res.render('layouts/lista_repuestos')
+})
+
+router.get('/stock/crear_repuesto',(req,res)=>{
+    res.render('layouts/crear_repuesto')
+})
+
 module.exports=router;
