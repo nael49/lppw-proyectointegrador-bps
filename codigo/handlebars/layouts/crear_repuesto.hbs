@@ -1,0 +1,50 @@
+
+<div class="card mx-auto col-7 m-3">
+    <div class="card-header titulos">
+        Crear nuevo repuesto
+    </div>
+    <div class="card-body">
+
+        <form action="" method="post" id="form_crear_orden">
+
+            <div class="mb-3">
+                <label for="nombre" class="form-label">Nombre del repuesto</label>
+                <input type="text" class="form-control" name="nombre" id="nombre" required>
+                <div class="feedback-invalid"></div>
+            </div>
+
+            
+
+            <div class="row g-3">
+                <div class="mb-3 col">
+                    <label for="localidad" class="form-label">Modelo</label>
+                    <input type="text" name="localidad" class="form-control" id="localidad" required>
+                </div>
+
+                <div class="mb-3 col">
+                    <label for="marca" class="form-label">Marca</label>
+                    <input type="text" name="marca" class="form-control" id="marca" required>
+                </div>
+
+                <div class="mb-3 col" >
+                    <label for="precio" class="form-label">Precio</label>
+                    <input type="number" name="precio" class="form-control" id="precio" required>
+                </div>
+                
+            </div>
+            
+
+            <div class="mb-3">
+                <label class="form-label" for="distribuidor">Nombre del Distribuidor</label>
+                <input type="text" name="distribuidor" class="form-control" id="distribuidor" required>
+            </div>
+
+
+            <textarea class="form-control" name="" id="" cols="80" rows="10" placeholder="Descripcion del repuesto (opcional) "></textarea><br>
+
+            <button type="submit" class="btn btn-primary">Crear repuesto</button>
+
+        </form>
+
+    </div>
+</div>
