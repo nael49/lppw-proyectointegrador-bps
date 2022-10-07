@@ -1,4 +1,4 @@
-<div class="card mx-auto col-8 m-3">
+<div class="card mx-auto col-12 mt-3">
     <div class="card-header titulos">
         Lista de todos los usuarios
     </div>
@@ -13,10 +13,11 @@
                     <th>FECHA INGRESO</th>
                     <th>CELULAR</th>
                     <th>EMAIL</th>
-                    <th>Modificar</th>    
+                    <th>MODIFICAR</th>    
+                    <th>ELIMINAR</th>
                 </tr>
             </thead>
-            <tbody id="tbody_ordenes_trabajo">
+            <tbody id="">
                 <tr>
                     <td >3</td>
                     <td >3</td>
@@ -25,7 +26,8 @@
                     <td >1</td>
                     <td >1</td>
                     <td >1</td>
-                    <td> <a href="">Modificar</a> </td>     <!-- BOTON MODIFICAR ORDEN-->
+                    <td><a data-bs-toggle="modal" data-bs-target="#modificar_user" href="">Modificar</a></td>     <!-- BOTON MODIFICAR REPUESTO-->
+                    <td><a data-bs-toggle="modal" data-bs-target="#eliminar" href="">eliminar</a></td>
 
                 </tr>
                 <tr>
@@ -36,7 +38,8 @@
                     <td >1</td>
                     <td >3</td>
                     <td >1</td>
-                    <td> <a href="">Modificar</a> </td>     <!-- BOTON MODIFICAR ORDEN-->
+                    <td><a data-bs-toggle="modal" data-bs-target="#modificar_user" href="">Modificar</a> </td>     <!-- BOTON MODIFICAR REPUESTO-->
+                    <td><a data-bs-toggle="modal" data-bs-target="#eliminar" href="">eliminar</a> </td>
 
                 </tr>
                 <tr>
@@ -47,14 +50,15 @@
                     <td >1</td>
                     <td >3</td>
                     <td >1</td>
-                    <td> <a href="">Modificar</a> </td>     <!-- BOTON MODIFICAR ORDEN-->
+                    <td><a data-bs-toggle="modal" data-bs-target="#modificar_user" href="">Modificar</a></td>     <!-- BOTON MODIFICAR REPUESTO-->
+                    <td><a data-bs-toggle="modal" data-bs-target="#eliminar" href="">eliminar</a></td>
                 </tr>
             </tbody>
         </table>
     </div>
 </div>
 
-<div class="modal" tabindex="-1">
+<div class="modal" id="modificar_user" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
@@ -63,16 +67,74 @@
       </div>
       <div class="modal-body">
         
-        <form action="" method="post">
+        <form action="" method="post" id="form_crear_usuario">
 
-            <!--formulario modificar usuario-->
+            <div class="mb-3">
+                <label for="nombreyapellido" class="form-label">Nombre y Apellido</label>
+                <input type="text" class="form-control" name="nombreyapellido" id="nombreyapellido" required>
+                <div class="feedback-invalid"></div>
+            </div>
+
+            <div class="row g-3">
+                <div class="col mb-3">
+                    <label for="DNI" class="form-label">DNI</label>
+                    <input type="number" name="DNI" class="form-control" id="DNI" required>
+                </div>
+
+                <div class="col mb-3">
+                    <label for="puesto" class="form-label">PUESTO</label>
+                    <select class="form-control" name="puesto" id="puesto">
+                        <option value="" selected disabled></option>
+                        <option value="ADMIN">ADMIN</option>
+                        <option value="RECEPCIONISTA">RECEPCIONISTA</option>
+                        <option value="TECNICO">TECNICO</option>
+                        <option value="GERENTE">GERENTE</option>
+                        <option value="ADMINISTRADOR DE DEPOSITO">ADMINISTRADOR DE DEPOSITO</option>
+                    </select>
+                </div>
+            </div>
+             
+             <div class="row g-3">
+                <div class="mb-3 col">
+                    <label for="fecha_ingreso" class="form-label">FECHA DE INGRESO</label>
+                    <input type="date" name="fecha_ingreso" class="form-control" id="fecha_ingreso" required>
+                </div>
+
+                <div class="mb-3 col">
+                    <label class="form-label" for="numerocelular">Numero de Celular</label>
+                    <input type="number" name="numerocelular" class="form-control" id="numerocelular" required>
+                </div>
+             </div>
+
+            <div class="mb-3">
+                <label class="form-label" for="email">Email</label>
+                <input type="email" name="email" class="form-control" id="email" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary">modificar</button>
+
         </form>
+      </div>
+    </div>
+  </div>
+</div>
 
 
+<!-- BOTON ELIMINAR USUARIO-->
+
+<div class="modal" id="eliminar" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">eliminar</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>¿Estas seguro de desabilitar este usuario?</p>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary">Save changes</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-primary">Eliminar</button>
       </div>
     </div>
   </div>

@@ -1,46 +1,103 @@
-<table class="table table-hover">
-  <thead>
-    <tr>
-      <th scope="col">ID</th>  
-      <th scope="col">Marca</th>
-      <th scope="col">Modelo</th>
-      <th scope="col">fecha de ingreso</th>
-      <th scope="col">estado</th>
-      <th scope="col">Tecnico Asignado</th>
-      <th scope="col">Datos del cliente</th>
-      <th scope="col"></th>    <!-- cargar = tomar orden / asignar tecnico-->
-    </tr>
-  </thead>
-  <tbody id="tbody_ordenes_trabajo">
-    <tr>
-        <td >3</td>
-        <td >3</td>
-        <td >3</td>
-        <td >1</td>
-        <td>Mark</td>
-        <td>Otto</td>
-        <td>@mdo</td>     <!-- BOTON DATOS DEL CLIENTE-->
-        <td>@mdo</td>     <!-- BOTON ASIGNAR/TOMAR-->
-    </tr>
-    <tr>
-        <td >3</td>
-        <td >3</td>
-        <td >3</td>
-        <td >1</td>
-        <td>Mark</td>
-        <td>Otto</td>
-        <td>@mdo</td>     <!-- BOTON DATOS DEL CLIENTE-->
-        <td>@mdo</td>     <!-- BOTON ASIGNAR/TOMAR-->
-    </tr>
-    <tr>
-        <td >3</td>
-        <td >3</td>
-        <td >3</td>
-        <td >1</td>
-        <td>Mark</td>
-        <td>Otto</td>
-        <td>@mdo</td>     <!-- BOTON DATOS DEL CLIENTE-->
-        <td>@mdo</td>     <!-- BOTON ASIGNAR/TOMAR-->
-    </tr>
-  </tbody>
-</table>
+<div class="card mx-auto col-12 mt-3">
+    <div class="card-header titulos">
+        Lista de todos los usuarios
+    </div>
+    <div class="card-body">
+
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th scope="col">ID</th>  
+            <th scope="col">Marca</th>
+            <th scope="col">Modelo</th>
+            <th scope="col">fecha de ingreso</th>
+            <th scope="col">estado</th>
+            <th scope="col">Tecnico Asignado</th>
+            <th scope="col">Datos del cliente</th>
+            <th scope="col">AGREGAR / TOMAR</th>    <!-- cargar = tomar orden / asignar tecnico-->
+          </tr>
+        </thead>
+        <tbody id="tbody_ordenes_trabajo">
+          <tr>
+              <td >3</td>
+              <td >3</td>
+              <td >3</td>
+              <td >1</td>
+              <td>Mark</td>
+              <td>Otto</td>
+              <td>@mdo</td>     <!-- BOTON DATOS DEL CLIENTE-->
+              <td><a data-bs-toggle="modal" data-bs-target="#agregar_tec" href="">Asignar</a></td>
+          </tr>
+          <tr>
+              <td >3</td>
+              <td >3</td>
+              <td >3</td>
+              <td >1</td>
+              <td>Mark</td>
+              <td>Otto</td>
+              <td>@mdo</td>     <!-- BOTON DATOS DEL CLIENTE-->
+              <td><a data-bs-toggle="modal" data-bs-target="#agregar_tec" href="">Asignar</a></td>
+          </tr>
+          <tr>
+              <td >3</td>
+              <td >3</td>
+              <td >3</td>
+              <td >1</td>
+              <td>Mark</td>
+              <td>Otto</td>
+              <td>@mdo</td>     <!-- BOTON DATOS DEL CLIENTE-->
+              <td><a data-bs-toggle="modal" data-bs-target="#agregar_tec" href="">Asignar</a></td>
+          </tr>
+        </tbody>
+      </table>
+  </div>
+</div>
+
+<!-- BOTON ASIGNAR TECNICO-->
+
+<div class="modal" id="agregar_tec" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Modificar Repuesto</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+
+        <form action="" method="post" id="form_crear_orden">
+
+          <div class="mb-3">
+            <label for="id_asignar" class="form-label">ID</label>
+            <input type="number" class="form-control" name="id_asignar" id="id_asignar" disabled>
+
+          </div>
+          
+          <div class="row g-3">
+            <div class="mb-3 col">
+                <label for="localidad" class="form-label">Modelo</label>
+                <input type="text" name="localidad" class="form-control" id="localidad" disabled>
+            </div>
+
+            <div class="mb-3 col">
+                <label for="marca" class="form-label">Marca</label>
+                <input type="text" name="marca" class="form-control" id="marca" disabled>
+            </div>
+          </div>
+            
+          <textarea class="form-control" name="" id="" cols="80" rows="10" placeholder="Descripcion del repuesto (opcional) " disabled></textarea><br>
+
+          <div class="mb-3">
+            <label for="id_asignar" class="form-label">TECNICO</label>   <!-- CARGAR CON LOS TECNICOS ACTIVOS-->
+            <select name="" id="">
+              <option value="" selected disabled></option>
+            </select>
+
+          </div>
+
+          <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

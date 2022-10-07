@@ -1,4 +1,4 @@
-<div class="card mx-auto col-8 m-3">
+<div class="card mx-auto col-12 mt-3">
     <div class="card-header titulos">
         Lista de todos los usuarios
     </div>
@@ -13,6 +13,7 @@
                     <th>DISTRIBUIDOR</th>
                     <th>DESCRIPCION</th>
                     <th>MODIFICAR</th>    
+                    <th>Eliminar</th>
                 </tr>
             </thead>
             <tbody id="tbody_ordenes_trabajo">
@@ -23,7 +24,8 @@
                     <td >1</td>
                     <td >1</td>
                     <td >1</td>
-                    <td> <a href="">Modificar</a> </td>     <!-- BOTON MODIFICAR REPUESTO-->
+                    <td> <a  data-bs-toggle="modal" data-bs-target="#modificar" href="">Modificar</a> </td>     <!-- BOTON MODIFICAR REPUESTO-->
+                    <td> <a  data-bs-toggle="modal" data-bs-target="#eliminar" href="">eliminar</a> </td>
 
                 </tr>
                 <tr>
@@ -33,7 +35,8 @@
                     <td >1</td>
                     <td >1</td>
                     <td >3</td>
-                    <td> <a href="">Modificar</a> </td>     <!-- BOTON MODIFICAR REPUESTO-->
+                    <td> <a  data-bs-toggle="modal" data-bs-target="#modificar" href="">Modificar</a> </td>     <!-- BOTON MODIFICAR REPUESTO-->
+                    <td> <a  data-bs-toggle="modal" data-bs-target="#eliminar" href="">eliminar</a> </td>
 
                 </tr>
                 <tr>
@@ -43,14 +46,17 @@
                     <td >1</td>
                     <td >1</td>
                     <td >3</td>
-                    <td> <a href="">Modificar</a> </td>     <!-- BOTON MODIFICAR REPUESTO-->
+                    <td> <a  data-bs-toggle="modal" data-bs-target="#modificar" href="">Modificar</a> </td>     <!-- BOTON MODIFICAR REPUESTO-->
+                    <td> <a  data-bs-toggle="modal" data-bs-target="#eliminar" href="">eliminar</a> </td>
                 </tr>
             </tbody>
         </table>
     </div>
 </div>
 
-<div class="modal" tabindex="-1">
+<!-- BOTON MOFIFICAR REPUESTO-->
+
+<div class="modal" id="modificar" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
@@ -58,17 +64,66 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        
-        <form action="" method="post">
 
-            <!--formulario modificar usuario-->
+        <form action="" method="post" id="form_crear_orden">
+
+            <div class="mb-3">
+                <label for="nombre" class="form-label">Nombre del repuesto</label>
+                <input type="text" class="form-control" name="nombre" id="nombre" required>
+                <div class="feedback-invalid"></div>
+            </div>
+
+          
+            <div class="row g-3">
+                <div class="mb-3 col">
+                    <label for="localidad" class="form-label">Modelo</label>
+                    <input type="text" name="localidad" class="form-control" id="localidad" required>
+                </div>
+
+                <div class="mb-3 col">
+                    <label for="marca" class="form-label">Marca</label>
+                    <input type="text" name="marca" class="form-control" id="marca" required>
+                </div>
+
+                <div class="mb-3 col" >
+                    <label for="precio" class="form-label">Precio</label>
+                    <input type="number" name="precio" class="form-control" id="precio" required>
+                </div>
+                
+            </div>
+            
+
+            <div class="mb-3">
+                <label class="form-label" for="distribuidor">Nombre del Distribuidor</label>
+                <input type="text" name="distribuidor" class="form-control" id="distribuidor" required>
+            </div>
+
+
+            <textarea class="form-control" name="" id="" cols="80" rows="10" placeholder="Descripcion del repuesto (opcional) "></textarea><br>
+
+            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+
         </form>
+      </div>
+    </div>
+  </div>
+</div>
 
+<!-- BOTON ELIMINAR REPUESTO-->
 
+<div class="modal" id="eliminar" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">eliminar</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>¿Estas seguro de eliminar este repuesto?</p>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-primary">Guarfar Cambios</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Eliminar</button>
       </div>
     </div>
   </div>
