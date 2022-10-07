@@ -1,4 +1,4 @@
-<div class="card col-4 p-2 mx-auto m-3">
+<div class="card col-10 p-2 mx-auto m-3">
 
   <form class="d-flex" role="search">
     <input class="form-control me-2" type="search" placeholder="Ingrese el ID" aria-label="Search">
@@ -6,7 +6,7 @@
   </form>
 </div>
 
-<div class="card mx-auto col-7 m-3">
+<div class="card mx-auto col-12 m-3">
 
     <div class="card-header titulos">
         Mis ordenes de trabajo sin Completar
@@ -33,7 +33,7 @@
             <td >1</td>
             <td>Mark</td>
             <td>Otto</td>
-            <td> <a href="">Modificar</a> </td>     <!-- BOTON MODIFICAR ORDEN-->
+            <td><a data-bs-toggle="modal" data-bs-target="#modificar_orden_tecnico" href="">Cambiar</a></td>     <!-- BOTON MODIFICAR ORDEN-->
 
         </tr>
         <tr>
@@ -43,7 +43,7 @@
             <td >1</td>
             <td>Mark</td>
             <td>Otto</td>
-            <td> <a href="">Modificar</a> </td>     <!-- BOTON MODIFICAR ORDEN-->
+            <td><a data-bs-toggle="modal" data-bs-target="#modificar_orden_tecnico" href="">Cambiar</a></td>     <!-- BOTON MODIFICAR ORDEN-->
 
         </tr>
         <tr>
@@ -53,11 +53,75 @@
             <td >1</td>
             <td>Mark</td>
             <td>Otto</td>
-            <td> <a href="">Modificar</a> </td>     <!-- BOTON MODIFICAR ORDEN-->
+            <td><a data-bs-toggle="modal" data-bs-target="#modificar_orden_tecnico" href="">Cambiar</a></td>     <!-- BOTON MODIFICAR ORDEN-->
 
         </tr>
       </tbody>
     </table>
 
     </div>
+</div>
+
+<!-- BOTON MOFIFICAR ORDEN-->
+
+<div class="modal" id="modificar_orden_tecnico" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Modificar Orden</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+
+        <form action="" method="post" id="form_crear_orden">
+
+            <div class="mb-3">
+                <label for="nombre" class="form-label">ID Equipo</label>
+                <input type="text" class="form-control" name="nombre" id="nombre" disabled>
+            </div>
+
+          
+            <div class="row g-3">
+                <div class="mb-3 col">
+                    <label for="localidad" class="form-label">Modelo</label>
+                    <input type="text" name="localidad" class="form-control" id="localidad" disabled>
+                </div>
+
+                <div class="mb-3 col">
+                    <label for="marca" class="form-label">Marca</label>
+                    <input type="text" name="marca" class="form-control" id="marca" disabled>
+                </div> 
+            </div>
+
+            <div class="row g-3">
+              <label for="repuesto" class="form-label">Elegir repuesto usado</label>
+              <select class="form-select" name="repuesto" id="repuesto">
+                <option value="" selected disabled ></option>
+              </select>
+            
+            <input type="button" id="agregar_repuesto" class="btn btn-primary" value="Agregar otro repuesto"></input>
+            </div>
+            
+            <div class="row g-3 mt-1">
+
+              <textarea class="form-control" name="" id="" cols="80" rows="10" placeholder="Datos importantes (opcional) "></textarea>
+                
+            </div>
+            
+
+            <div class="row g-3 mt-1">
+              <label for="marca" class="form-label">Cambiar estado de la orden</label>
+              <select class="form-select" name="repuesto" id="repuesto" required>
+                <option value="" selected disabled ></option>
+
+              </select>
+            
+            </div>
+
+            <button type="submit" class=" mt-2 btn btn-primary">Guardar Cambios</button>
+
+          </form>
+      </div>
+    </div>
+  </div>
 </div>

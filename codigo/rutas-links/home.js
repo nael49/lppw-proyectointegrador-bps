@@ -13,6 +13,7 @@ router.get('/crear_orden',(req,res)=>{
     res.render('layouts/crear_orden_trabajo')
 })
 
+
 router.get('/sigin',(req,res)=>{
     res.render('layouts/sigin')
 })
