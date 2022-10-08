@@ -9,31 +9,34 @@
 
             <div class="mb-3">
                 <label for="nombreyapellido" class="form-label">Nombre y Apellido</label>
-                <input type="text" class="form-control" name="nombreyapellido" id="nombreyapellido">
+                <input type="text" class="form-control" name="nombreyapellido" id="nombreyapellido" pattern="[A-Za-záéíóúÁÉÍÓÚ]{4,}( [A-Za-záéíóúÁÉÍÓÚ]{4,}){1,}" maxlength="50">
                 <div class="feedback-invalid"></div>
             </div>
 
             <div class="mb-3">
                 <label for="DNI" class="form-label">DNI</label>
-                <input type="number" name="DNI" class="form-control" id="DNI">
+                <input type="number" name="DNI" class="form-control" id="DNI" max="99999999" min="111111" pattern="">
+                <div class="feedback-invalid"></div>
             </div>
 
         <div class="row g-3">
             <div class="mb-3 col">
                 <label for="localidad" class="form-label">Domicilio</label>
-                <input type="text" name="localidad" class="form-control" id="localidad">
+                <input type="text" name="localidad" class="form-control" id="localidad" pattern="[A-Za-záéíóúÁÉÍÓÚ0-9]{4,}( [A-Za-záéíóúÁÉÍÓÚ0-9]{4,}){1,}">
+                <div class="feedback-invalid"></div>
             </div>
 
             <div class="mb-3 col" >
                 <label for="localidad" class="form-label">Localidad</label>
-                <input type="text" name="localidad" class="form-control" id="localidad">
+                <input type="text" name="localidad" class="form-control" id="localidad" pattern="[A-Za-záéíóúÁÉÍÓÚ0-9]{4,}( [A-Za-záéíóúÁÉÍÓÚ0-9]{4,}){1,}">
+                <div class="feedback-invalid"></div>
             </div>
         </div>
             
 
             <div class="mb-3">
                 <label class="form-label" for="numerocelular">Numero de Celular</label>
-                <input type="text" name="numerocelular" class="form-control" id="numerocelular">
+                <input type="text" name="numerocelular" class="form-control" id="numerocelular" pattern="[0-9]{6,13}">
             </div>
 
             <div class="mb-3">
@@ -44,18 +47,18 @@
             <div class="row g-3">
                 <div class="col mb-3">
                     <label class="form-label" for="marca">Marca</label>
-                    <input type="text" name="marca" class="form-control" id="marca">
+                    <input type="text" name="marca" class="form-control" id="marca" pattern="[A-Z a-záéíóúÁÉÍÓÚ0-9]{2,}">
                 </div>
 
                 <div class="col mb-3">
-                    <label class="form-label" for="modelo">modelo</label>
-                    <input type="text" name="modelo" class="form-control" id="modelo">
+                    <label class="form-label" for="modelo">Modelo</label>
+                    <input type="text" name="modelo" class="form-control" id="modelo" pattern="[A-Z a-záéíóúÁÉÍÓÚ0-9]{2,}">
                 </div>
             </div>
            
 
             <div class="mb-3 form-check">
-                <input type="checkbox" name="seña" class="form-check-input" id="seña">
+                <input type="checkbox" name="seña" class="form-check-input" id="seña" >
                 <label class="form-check-label" for="seña">¿Seña?</label>
             </div>
             

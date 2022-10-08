@@ -9,20 +9,20 @@
 
             <div class="mb-3">
                 <label for="nombre" class="form-label">Nombre del repuesto</label>
-                <input type="text" class="form-control" name="nombre" id="nombre" required pattern="">
+                <input type="text" class="form-control" name="nombre" id="nombre" required pattern="[A-Z a-záéíóúÁÉÍÓÚ0-9]{2,}">
                 <div class="feedback-invalid">llalala</div>
             </div>
 
             <div class="row g-3">
                 <div class="mb-3 col">
                     <label for="localidad" class="form-label">Modelo</label>
-                    <input type="text" name="localidad" class="form-control" id="localidad" required>
+                    <input type="text" name="localidad" class="form-control" id="localidad" required pattern="[A-Z a-záéíóúÁÉÍÓÚ0-9]{2,}">
                     <div class="feedback-invalid">llalalala</div>
                 </div>
 
                 <div class="mb-3 col">
                     <label for="marca" class="form-label">Marca</label>
-                    <input type="text" name="marca" class="form-control" id="marca" required>
+                    <input type="text" name="marca" class="form-control" id="marca" required pattern="[A-Z a-záéíóúÁÉÍÓÚ0-9]{2,}">
                     <div class="feedback-invalid">llalalala</div>
                 </div>
             </div>
@@ -30,12 +30,12 @@
             <div class="row g-3">
                 <div class="mb-3 col" >
                     <label for="precio" class="form-label">Precio</label>
-                    <input type="number" name="precio" class="form-control" id="precio" required>
+                    <input type="number" name="precio" class="form-control" id="precio" min="1"  required pattern="[0-9]+">
                     <div class="feedback-invalid">llalalala</div>
                 </div>
                 <div class="mb-3 col" >
                     <label for="cantidad" class="form-label">Cantidad</label>
-                    <input type="number" name="cantidad" class="form-control" id="cantidad" required>
+                    <input type="number" name="cantidad" class="form-control" id="cantidad" required min="1">
                     <div class="feedback-invalid">llalalala</div>
                 </div>
             </div>

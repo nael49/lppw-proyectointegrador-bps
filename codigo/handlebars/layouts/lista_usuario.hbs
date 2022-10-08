@@ -26,7 +26,7 @@
                     <td >1</td>
                     <td >1</td>
                     <td >1</td>
-                    <td><a data-bs-toggle="modal" data-bs-target="#modificar_user" href="">Modificar</a></td>     <!-- BOTON MODIFICAR REPUESTO-->
+                    <td><a data-bs-toggle="modal" data-bs-target="#modificar_user" href="">Modificar</a></td>     <!-- BOTON MODIFICAR USUARIO-->
                     <td><a data-bs-toggle="modal" data-bs-target="#eliminar" href="">eliminar</a></td>
 
                 </tr>
@@ -38,7 +38,7 @@
                     <td >1</td>
                     <td >3</td>
                     <td >1</td>
-                    <td><a data-bs-toggle="modal" data-bs-target="#modificar_user" href="">Modificar</a> </td>     <!-- BOTON MODIFICAR REPUESTO-->
+                    <td><a data-bs-toggle="modal" data-bs-target="#modificar_user" href="">Modificar</a> </td>     <!-- BOTON MODIFICAR USUARIO-->
                     <td><a data-bs-toggle="modal" data-bs-target="#eliminar" href="">eliminar</a> </td>
 
                 </tr>
@@ -50,13 +50,16 @@
                     <td >1</td>
                     <td >3</td>
                     <td >1</td>
-                    <td><a data-bs-toggle="modal" data-bs-target="#modificar_user" href="">Modificar</a></td>     <!-- BOTON MODIFICAR REPUESTO-->
+                    <td><a data-bs-toggle="modal" data-bs-target="#modificar_user" href="">Modificar</a></td>     <!-- BOTON MODIFICAR USUARIO-->
                     <td><a data-bs-toggle="modal" data-bs-target="#eliminar" href="">eliminar</a></td>
                 </tr>
             </tbody>
         </table>
     </div>
 </div>
+
+
+<!-- MODAL MODIFICAR USUARIO-->
 
 <div class="modal" id="modificar_user" tabindex="-1">
   <div class="modal-dialog">
@@ -71,19 +74,19 @@
 
             <div class="mb-3">
                 <label for="nombreyapellido" class="form-label">Nombre y Apellido</label>
-                <input type="text" class="form-control" name="nombreyapellido" id="nombreyapellido" required>
+                <input type="text" class="form-control" name="nombreyapellido" pattern="[A-Za-záéíóúÁÉÍÓÚ0-9]{4,}( [A-Za-záéíóúÁÉÍÓÚ0-9]{4,}){1,}" id="nombreyapellido" required>
                 <div class="feedback-invalid"></div>
             </div>
 
             <div class="row g-3">
                 <div class="col mb-3">
                     <label for="DNI" class="form-label">DNI</label>
-                    <input type="number" name="DNI" class="form-control" id="DNI" required>
+                    <input type="number" name="DNI" class="form-control" id="DNI" min="111111" max="999999999" required>
                 </div>
 
                 <div class="col mb-3">
                     <label for="puesto" class="form-label">PUESTO</label>
-                    <select class="form-control" name="puesto" id="puesto">
+                    <select class="form-control" name="puesto" id="puesto" required>
                         <option value="" selected disabled></option>
                         <option value="ADMIN">ADMIN</option>
                         <option value="RECEPCIONISTA">RECEPCIONISTA</option>
@@ -101,8 +104,8 @@
                 </div>
 
                 <div class="mb-3 col">
-                    <label class="form-label" for="numerocelular">Numero de Celular</label>
-                    <input type="number" name="numerocelular" class="form-control" id="numerocelular" required>
+                    <label class="form-label" for="numerocelular">Numero de Celular del usuario</label>
+                    <input type="number" name="numerocelular" class="form-control" id="numerocelular" min="1111111111" max="999999999" required>
                 </div>
              </div>
 
@@ -111,7 +114,7 @@
                 <input type="email" name="email" class="form-control" id="email" required>
             </div>
 
-            <button type="submit" class="btn btn-primary">modificar</button>
+            <button type="submit" class="btn btn-primary">Modificar</button>
 
         </form>
       </div>
