@@ -5,6 +5,10 @@ const conect = require('../modelo_datos_bbdd/conexion_con_bbdd')
 
 
 
+router.get('/gerente',(req,res)=>{
+    res.render('layouts/gerente_index')
+})
+
 router.get('/recepcionista',(req,res)=>{
     res.render('layouts/index-recepcionista')
 })
