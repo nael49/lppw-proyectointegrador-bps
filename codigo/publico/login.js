@@ -9,6 +9,7 @@ function validar(e){
     let usuario =document.getElementById('usuario')
     let contraseña =document.getElementById('contraseña')
     let error=[true,true]
+
     if(usuario.value.lenght<3 || usuario.value.lenght<20){
         usuario.classList.add('is-invalid')
         error[0]=false
