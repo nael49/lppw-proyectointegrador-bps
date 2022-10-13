@@ -8,6 +8,7 @@ const sesion=require('express-session')
 
 //inicializacion
 const app = express();
+require('./modelo_datos_bbdd/conexion_con_bbdd')
 
 
 //configuracion
@@ -22,7 +23,10 @@ const hbs=exphlb.create({
 app.set('view engine','.hbs');
 app.engine('.hbs',hbs.engine)
 
-app.set(express.urlencoded({extended: false}));
+app.use(express.urlencoded({extended: false}));
+app.use(express.text())
+app.use(express.json())
+
 app.use(methodoverride('_method'));
 app.use(sesion({
     secret:'secreto',
