@@ -16,7 +16,7 @@ router.get('/recepcionista',(req,res)=>{
 router.get('/crear_orden', (req,res)=>{
     res.render('layouts/crear_orden_trabajo')
 })
-router.post('/crear_orden_p',async(req,res)=>{
+router.post('/crear_orden_p',async(req,res)=>{  //ejemplo de crear un cliente en sql
     console.log(req.body)
     const { nombrecompleto , dni, localidad, direccion,celular,email,marca,modelo,descripcion_falla } = req.body;
     const error_orden=[]
@@ -75,9 +75,16 @@ router.post('/crear_orden_p',async(req,res)=>{
             email,
             localidad,
         }
+        const sql= `SELECT dni FROM clientes WHERE dni =${cliente.dni}` //hay q revisar si el dni ya existe
 
+        //console.log("datos de consulta"+revisar_dni)
+        //if(revisar_dni.RowDataPacket.length>0){
+        //    res.send('ya exisate')
+        //}
+        //else{
         await conect_sql.query('INSERT INTO clientes set ?',[cliente]);
-        res.send('guardado en la base de datos')
+        res.send('perfecto')
+
     }
 
 
