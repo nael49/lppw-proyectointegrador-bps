@@ -75,9 +75,10 @@ router.post('/crear_orden_p',async(req,res)=>{  //ejemplo de crear un cliente en
             email,
             localidad,
         }
-        const sql= `SELECT dni FROM clientes WHERE dni =${cliente.dni}` //hay q revisar si el dni ya existe
 
-        //console.log("datos de consulta"+revisar_dni)
+        conect_sql.query(`SELECT dni FROM clientes WHERE dni =${cliente.dni}`,function(err,data){
+            console.log(data)
+        })
         //if(revisar_dni.RowDataPacket.length>0){
         //    res.send('ya exisate')
         //}
