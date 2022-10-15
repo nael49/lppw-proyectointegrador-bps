@@ -20,5 +20,6 @@ var connection = mysql.createConnection({
     console.log('connected as id ' + connection.threadId);
   });
 
+  //connection.end()
   module.exports= connection
    

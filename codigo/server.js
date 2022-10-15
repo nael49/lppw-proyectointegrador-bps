@@ -8,7 +8,7 @@ const sesion=require('express-session')
 
 //inicializacion
 const app = express();
-require('./modelo_datos_bbdd/conexion_con_bbdd')
+
 
 
 //configuracion

@@ -1,3 +1,5 @@
+const bodyParser = require('body-parser');
+const { json } = require('body-parser');
 const express=require('express');
 const router = express.Router();
 
@@ -16,6 +18,7 @@ router.get('/recepcionista',(req,res)=>{
 router.get('/crear_orden', (req,res)=>{
     res.render('layouts/crear_orden_trabajo')
 })
+
 router.post('/crear_orden_p',async(req,res)=>{  //ejemplo de crear un cliente en sql
     console.log(req.body)
     const { nombrecompleto , dni, localidad, direccion,celular,email,marca,modelo,descripcion_falla } = req.body;
@@ -76,19 +79,36 @@ router.post('/crear_orden_p',async(req,res)=>{  //ejemplo de crear un cliente en
             localidad,
         }
 
-        conect_sql.query(`SELECT dni FROM clientes WHERE dni =${cliente.dni}`,function(err,data){
-            console.log(data)
-        })
-        //if(revisar_dni.RowDataPacket.length>0){
-        //    res.send('ya exisate')
-        //}
+        let datos_traidos //aca se guarda en 1 si ya existe el dni y en 0 sino
+
+        try {
+            conect_sql.query(`SELECT COUNT(dni) AS ID FROM clientes WHERE dni =${cliente.dni}`,function(err, rows){ //revisa si ya existe el dni
+                if(err)throw err;
+                datos_traidos=rows[0].ID
+                res.status(200).send('perfecto')
+            })
+        } catch (err) {
+            console.log("huno un error")
+            throw err;
+        }
+        
+        if(datos_traidos==1){ //si ya esiste
+
+        }
+        else{ //si el usuario no existe
+
+        }
+
         //else{
-        await conect_sql.query('INSERT INTO clientes set ?',[cliente]);
-        res.send('perfecto')
+          //  await conect_sql.query('INSERT INTO clientes set ?',[cliente]);
+           // res.status(200).send('perfecto')
+        //}
 
     }
+})
 
-
+router.get('/crear_orden_g',(req,res)=>{
+    res.render('layouts/crear_orden_trabajo_cliente_existe')
 })
 
 

@@ -1,0 +1,75 @@
+{{#each error_orden}}
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        {{text}}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+{{/each}} 
+
+
+<div class="card mx-auto col-7 m-3">
+    <div class="card-header titulos">
+        Crear nueva orden de trabajo
+    </div>
+    <div class="card-body">
+
+        <form action="/crear_orden_p" method="post" id="form_crear_orden">
+
+            <div class="mb-3">
+                <label for="dni" class="form-label">DNI</label>
+                <input type="number" name="dni" class="form-control" id="dni" max="99999999" min="111111" pattern="" required>
+                <div class="feedback-invalid"></div>
+            </div>
+
+            <div class="mb-3">
+                <label for="nombrecompleto" class="form-label">Nombre y Apellido</label>
+                <input type="text" class="form-control" name="nombrecompleto" id="nombrecompleto" pattern="[A-Za-záéíóúÁÉÍÓÚ ]{4,}" maxlength="50" required>
+                <div class="feedback-invalid"></div>
+            </div>
+
+            
+
+        <div class="row g-3">
+            <div class="mb-3 col">
+                <label for="direccionv" class="form-label">Domicilio</label>
+                <input type="text" name="direccion" class="form-control" id="direccion" pattern="[A-Za-záéíóúÁÉÍÓÚ0-9 ]{4,}" required>
+                <div class="feedback-invalid"></div>
+            </div>
+
+            <div class="mb-3 col" >
+                <label for="localidad" class="form-label">Localidad</label>
+                <input type="text" name="localidad" class="form-control" id="localidad" pattern="[A-Za-záéíóúÁÉÍÓÚ0-9 ]{4,}" required>
+                <div class="feedback-invalid"></div>
+            </div>
+        </div>
+            
+
+            <div class="mb-3">
+                <label class="form-label" for="celular">Numero de Celular</label>
+                <input type="text" name="celular" class="form-control" id="celular" pattern="[0-9]{6,13}" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label" for="email">Email</label>
+                <input type="email" name="email" class="form-control" id="email" required>
+            </div>
+
+            <div class="row g-3">
+                <div class="col mb-3">
+                    <label class="form-label" for="marca">Marca</label>
+                    <input type="text" name="marca" class="form-control" id="marca" pattern="[A-Z a-záéíóúÁÉÍÓÚ0-9]{2,}" required>
+                </div>
+
+                <div class="col mb-3">
+                    <label class="form-label" for="modelo">Modelo</label>
+                    <input type="text" name="modelo" class="form-control" id="modelo" pattern="[A-Z a-záéíóúÁÉÍÓÚ0-9-]{2,}" required>
+                </div>
+            </div> 
+
+            <textarea class="form-control" name="descripcion_falla" id="" cols="80" rows="10" placeholder="Descripcion de la falla"></textarea><br>
+
+            <button type="submit" class="btn btn-primary">Submit</button>
+
+        </form>
+
+    </div>
+</div>
