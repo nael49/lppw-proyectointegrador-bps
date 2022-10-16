@@ -93,10 +93,11 @@ router.post('/crear_orden_p',async(req,res)=>{  //ejemplo de crear un cliente en
         }
         
         if(datos_traidos==1){ //si ya esiste
-
+            res.redirect('/crear_orden_g')
         }
         else{ //si el usuario no existe
-
+            await conect_sql.query('INSERT INTO clientes set ?',[cliente]);
+            res.status(200).send('perfecto')
         }
 
         //else{
@@ -105,6 +106,32 @@ router.post('/crear_orden_p',async(req,res)=>{  //ejemplo de crear un cliente en
         //}
 
     }
+})
+
+
+router.post('/crear_orden_existe_usuario',(req,res)=>{
+    const{dni,marca,modelo,descripcion_falla}= req.body
+    const error_orden=[]
+
+    if(!dni){
+        error_orden.push({text:'Dni incorrecto'})
+    }
+    if(!marca){
+        error_orden.push({text:'marca incorrecta'})
+    }
+    if(!modelo){
+        error_orden.push({text:'modelo incorrecto'})
+    }
+    if(!descripcion_falla){
+        error_orden.push({text:'falta Descripcion'})
+    }
+
+    let orden_trabajo={ //completar
+
+
+    }
+
+    nueva_query=`INSERT INTO orden_trabajo set ?`,[] //completar
 })
 
 router.get('/crear_orden_g',(req,res)=>{
