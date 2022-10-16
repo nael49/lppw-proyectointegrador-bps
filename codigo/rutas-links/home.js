@@ -4,7 +4,7 @@ const express=require('express');
 const router = express.Router();
 
 const conect_sql = require('../modelo_datos_bbdd/conexion_con_bbdd')
-
+const {mostrar_repuesto , crear_repuesto} = require('../modelo_datos_bbdd/operaciones')
 
 
 router.get('/gerente',(req,res)=>{
@@ -109,7 +109,7 @@ router.post('/crear_orden_p',async(req,res)=>{  //ejemplo de crear un cliente en
 })
 
 
-router.post('/crear_orden_existe_usuario',(req,res)=>{
+router.post('/crear_orden_existe_usuario',async(req,res)=>{
     const{dni,marca,modelo,descripcion_falla}= req.body
     const error_orden=[]
 
@@ -125,13 +125,21 @@ router.post('/crear_orden_existe_usuario',(req,res)=>{
     if(!descripcion_falla){
         error_orden.push({text:'falta Descripcion'})
     }
+    let int_dni=parseInt(dni)
 
-    let orden_trabajo={ //completar
-
-
+    let orden_trabajo={ //esquema para enviar a la base de datos
+        estado: 2,
+        descripcion_falla: descripcion_falla,
+        fk_marca: marca,
+        fk_modelo: modelo,
+        fk_cliente: int_dni
     }
-
-    nueva_query=`INSERT INTO orden_trabajo set ?`,[] //completar
+    
+    try {
+        await conect_sql.query(`INSERT INTO orden_trabajo set ?`,[orden_trabajo])
+    } catch (err) {
+        if(err)throw err;
+    }
 })
 
 router.get('/crear_orden_g',(req,res)=>{
@@ -140,6 +148,9 @@ router.get('/crear_orden_g',(req,res)=>{
 
 
 router.get('/sigin',(req,res)=>{
+    res.render('layouts/sigin')
+})
+router.post('/sigin',(req,res)=>{ //completar
     res.render('layouts/sigin')
 })
 
@@ -159,12 +170,100 @@ router.get('/admin/crear_usuario',(req,res)=>{
     res.render('layouts/crear_usuario')
 })
 
-router.get('/stock',(req,res)=>{
-    res.render('layouts/lista_repuestos')
+router.post('/admin/crear_usuario', async(req,res)=>{
+    console.log(req.body)
+    const {puesto,DNI,nombreyapellido,fecha_ingreso,numerocelular,email}= req.body
+
+    const error_orden=[]
+
+    if(!DNI){
+        error_orden.push({text:'Dni incorrecto'})
+    }
+    if(!puesto){
+        error_orden.push({text:'Puesto incorrecto'})
+    }
+    if(!nombreyapellido){
+        error_orden.push({text:'Nombre Y Apellido incorrecto'})
+    }
+    if(!fecha_ingreso){
+        error_orden.push({text:'falta Fecha de Ingreso'})
+    }
+    if(!numerocelular){
+        error_orden.push({text:'Falta Numero de Celular'})
+    }
+    if(!email){
+        error_orden.push({text:'Email Incorrecto o no Ingresado'})
+    }
+    let dni_int =parseInt(DNI)
+    let numero_int=parseInt(numerocelular)
+
+    let nuevo_usuario_g={ //esquema para enviar a la base de datos (general)
+        dni: dni_int,
+        puesto: puesto,
+        nombreyapellido: nombreyapellido,
+        fecha_ingreso: fecha_ingreso,
+        numerocelular: numero_int,
+        email:email
+    }
+    let nuevo_usuario_t={ //esquema para enviar a la base de datos (tecnico)
+        dni: dni_int,
+        nombreyapellido: nombreyapellido,
+        fecha_ingreso: fecha_ingreso,
+        numerocelular: numero_int,
+        email:email
+    }
+    
+    console.log("puesto elegido: "+nuevo_usuario.puesto)
+    if(nuevo_usuario.puesto=="TECNICO"){
+        try {
+            
+            await conect_sql.query(`INSERT INTO usuarios_tecnicos set ?`,[nuevo_usuario_t])
+        } catch (err) {
+            if(err)throw err;
+        }
+    }
+    else{
+        try {
+            await conect_sql.query(`INSERT INTO usuarios_general set ?`,[nuevo_usuario_g])
+        } catch (err) {
+            if(err)throw err;
+        }
+    }
+    res.send(200,"usuario creado") //completar con redirect
+    
+
+})
+
+router.get('/stock', async(req,res)=>{
+
+    await mostrar_repuesto(conect_sql,(resultado)=>{ //busca los repuestos y los envia al front
+        console.log(resultado[0])
+        res.render('layouts/lista_repuestos',{resultado})  //completar el front (hbs)
+
+    }) 
 })
 
 router.get('/stock/crear_repuesto',(req,res)=>{
     res.render('layouts/crear_repuesto')
 })
+
+router.post('/stock/crear_repuesto',async (req,res)=>{
+    let error_orden={text:'Repuesto creado con exito'}
+    const{ nombre,distribuidor,cantidad,precio,descripcion }=req.body
+
+    let esquema={
+        nombre:nombre,
+        distribuidor:distribuidor,
+        cantidad:cantidad,
+        precio:precio,
+        descripcion:descripcion
+    }
+
+    await crear_repuesto(conect_sql,datos_res,esquema =>{
+        console.log(datos_res)
+    })
+    res.render('layouts/crear_repuesto',{error_orden})
+})
+
 
 module.exports=router;
