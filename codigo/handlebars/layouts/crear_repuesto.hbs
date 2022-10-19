@@ -9,20 +9,20 @@
 
             <div class="mb-3">
                 <label for="nombre" class="form-label">Nombre del repuesto</label>
-                <input type="text" class="form-control" name="nombre" id="nombre" required pattern="[A-Z a-záéíóúÁÉÍÓÚ0-9]{2,}">
+                <input type="text" class="form-control" name="nombre" id="nombre" required pattern="[A-Z a-záéíóúÁÉÍÓÚñÑ0-9]{2,}">
                 <div class="feedback-invalid">llalala</div>
             </div>
 
             <div class="row g-3">
                 <div class="mb-3 col">
                     <label for="localidad" class="form-label">Modelo</label>
-                    <input type="text" name="localidad" class="form-control" id="localidad" required pattern="[A-Z a-záéíóúÁÉÍÓÚ0-9]{2,}">
+                    <input type="text" name="localidad" class="form-control" id="localidad" required pattern="[0-9a-z A-ZÑñÁÉÍÓÚáéíóú]{3,}">
                     <div class="feedback-invalid">llalalala</div>
                 </div>
 
                 <div class="mb-3 col">
                     <label for="marca" class="form-label">Marca</label>
-                    <input type="text" name="marca" class="form-control" id="marca" required pattern="[A-Z a-záéíóúÁÉÍÓÚ0-9]{2,}">
+                    <input type="text" name="marca" class="form-control" id="marca" required pattern="[0-9a-z A-ZÑñÁÉÍÓÚáéíóú]{3,}">
                     <div class="feedback-invalid">llalalala</div>
                 </div>
             </div>
@@ -35,19 +35,19 @@
                 </div>
                 <div class="mb-3 col" >
                     <label for="cantidad" class="form-label">Cantidad</label>
-                    <input type="number" name="cantidad" class="form-control" id="cantidad" required min="1">
+                    <input type="number" name="cantidad" class="form-control" id="cantidad" required min="0">
                     <div class="feedback-invalid">llalalala</div>
                 </div>
             </div>
 
             <div class="mb-3">
                 <label class="form-label" for="distribuidor">Nombre del Distribuidor</label>
-                <input type="text" name="distribuidor" class="form-control" id="distribuidor" required>
+                <input type="text" name="distribuidor" class="form-control" id="distribuidor" required pattern="[0-9a-z A-ZÑñÁÉÍÓÚáéíóú.]{3,}">
                 <div class="feedback-invalid">llalalala</div>
             </div>
 
             <div class="mb-3">
-                <textarea class="form-control" name="" id="descripcion" cols="80" rows="10" placeholder="Descripcion del repuesto (opcional) "></textarea><br>
+                <textarea class="form-control" name="descripcion" id="descripcion" cols="80" rows="10" placeholder="Descripcion del repuesto (opcional) "></textarea><br>
                 <div class="feedback-invalid">llalalala</div>
             </div>
 

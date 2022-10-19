@@ -4,7 +4,7 @@ const express=require('express');
 const router = express.Router();
 
 const conect_sql = require('../modelo_datos_bbdd/conexion_con_bbdd')
-const {mostrar_repuesto , crear_repuesto} = require('../modelo_datos_bbdd/operaciones')
+const {mostrar_repuesto , crear_repuesto, ingresar_stock, validar_repuerto_id} = require('../modelo_datos_bbdd/operaciones')
 
 
 router.get('/gerente',(req,res)=>{
@@ -94,6 +94,7 @@ router.post('/crear_orden_p',async(req,res)=>{  //ejemplo de crear un cliente en
         
         if(datos_traidos==1){ //si ya esiste
             res.redirect('/crear_orden_g')
+            return
         }
         else{ //si el usuario no existe
             await conect_sql.query('INSERT INTO clientes set ?',[cliente]);
@@ -250,20 +251,67 @@ router.get('/stock/crear_repuesto',(req,res)=>{
 router.post('/stock/crear_repuesto',async (req,res)=>{
     let error_orden={text:'Repuesto creado con exito'}
     const{ nombre,distribuidor,cantidad,precio,descripcion }=req.body
+    let cantidad_int= parseInt(cantidad)
+    let precio_int= parseInt(precio)
 
     let esquema={
         nombre:nombre,
         distribuidor:distribuidor,
-        cantidad:cantidad,
-        precio:precio,
+        cantidad:cantidad_int,
+        precio:precio_int,
         descripcion:descripcion
     }
-
-    await crear_repuesto(conect_sql,datos_res,esquema =>{
-        console.log(datos_res)
-    })
-    res.render('layouts/crear_repuesto',{error_orden})
+    try {
+        await crear_repuesto(conect_sql,esquema,(datos_res) =>{
+            console.log(datos_res)
+        })
+    } catch (error) {
+        console.log(error)
+    }
+    
+    res.redirect('/stock/crear_repuesto')
+    return;
 })
+
+router.get('/stock/ingresar_stock',(req,res)=>{  //carga los repuestos y los manda al front
+    mostrar_repuesto(conect_sql ,(respuesta)=>{
+        console.log(respuesta)
+        res.render('layouts/sumar_repuesto',{repuestos_de_bbdd:respuesta})
+    })
+    
+})
+
+router.post('/stock/ingresar_stock',(req,res)=>{
+    const{repuesto,cantidad}=req.body
+    const error_orden=[]
+
+    if(!repuesto && !isNaN(parseInt(repuesto)) ){
+        error_orden.push({text:'Error al ingresar Repuesto'})
+    }
+    if(!cantidad && !isNaN(parseInt(cantidad)) ){
+        error_orden.push({text:'Error al ingresar Cantidad'})
+    }
+
+    if(error_orden>0){
+        res.redirect('/stock/ingresar_stock',{error_orden})
+        return
+    }
+    else{
+
+    }
+
+    let datos={
+        id_repuesto:parseInt(repuesto),
+        cantidad:parseInt(cantidad)
+    }
+    validar_repuerto_id
+
+    ingresar_stock(conect_sql,datos,(respuesta)=>{
+        console.log(respuesta)
+    })
+    //res.render('layouts/sumar_repuesto')
+})
+
 
 
 module.exports=router;

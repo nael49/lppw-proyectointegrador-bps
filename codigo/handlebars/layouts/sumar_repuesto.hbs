@@ -1,0 +1,36 @@
+
+<div class="card mx-auto col-7 m-3">
+    <div class="card-header titulos">
+        Ingresar stock de Repuesto
+    </div>
+    <div class="card-body">
+
+        <form action="" method="post" id="ingresar_stock_repuesto">
+
+            <div class="mb-3">
+                <label for="nombre" class="form-label">Elegir Repuesto</label>
+                <div class="col mb-3">
+                    <label for="repuesto" class="form-label">Repuesto</label>
+                    <select class="form-control" name="repuesto" id="repuesto" required>
+                        <option value="" selected disabled></option>
+                        {{#each repuestos_de_bbdd}}
+                            <option value="{{id_repuesto}}">{{nombre}}</option>
+                        {{/each}}
+                    </select>
+                    <div class="feedback-invalid"></div>
+                </div>
+            </div>
+
+            <div class="mb-3 " >
+                <label for="cantidad" class="form-label">Cantidad</label>
+                <input type="number" name="cantidad" class="form-control" id="cantidad" required min="1">
+                <div class="feedback-invalid">llalalala</div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Ingresar stock</button>
+
+        </form>
+
+    </div>
+</div>
+<script src="../../crear_repuesto.js"></script>
