@@ -283,35 +283,57 @@ router.get('/stock/ingresar_stock',(req,res)=>{  //carga los repuestos y los man
 
 router.post('/stock/ingresar_stock',(req,res)=>{
     const{repuesto,cantidad}=req.body
+
+    console.log("repuesto "+typeof repuesto+"   cantidad"+typeof cantidad)
     const error_orden=[]
 
-    if(!repuesto && !isNaN(parseInt(repuesto)) ){
+    if(!repuesto) {
         error_orden.push({text:'Error al ingresar Repuesto'})
     }
-    if(!cantidad && !isNaN(parseInt(cantidad)) ){
+    if(!cantidad ){
         error_orden.push({text:'Error al ingresar Cantidad'})
     }
 
-    if(error_orden>0){
+    if(error_orden.length>0){
         res.redirect('/stock/ingresar_stock',{error_orden})
         return
     }
     else{
+        let id_int=parseInt(repuesto)
+        let cantidad_int=parseInt(cantidad)
 
+        let datos={
+            id_repuesto: id_int,
+            cantidad: cantidad_int
+        };
+
+        console.log("datos del front: "+datos.cantidad+"  id"+datos.id_repuesto)
+
+        if(validar_repuerto_id(conect_sql,datos.id_repuesto)){ //el repuesto existe?
+            try {
+                ingresar_stock(conect_sql,datos,(respuesta)=>{
+                    console.log(respuesta)
+                    error_orden.push({text:"stock agregado"})
+                    console.log("antes del loca")
+
+                    mostrar_repuesto(conect_sql ,(respuesta)=>{
+                        res.render('layouts/sumar_repuesto',{repuestos_de_bbdd:respuesta,error_orden})
+                    })
+                    console.log("despues del loca")
+
+                })
+            } catch (error) {
+                console.log("si existe error: "+error)
+            }
+            
+        }
+        else{
+            error_orden.push({text:'El repuesto no existe '})
+            mostrar_repuesto(conect_sql ,(respuesta)=>{
+                res.render('layouts/sumar_repuesto',{repuestos_de_bbdd:respuesta,error_orden})
+            })
+        }
     }
-
-    let datos={
-        id_repuesto:parseInt(repuesto),
-        cantidad:parseInt(cantidad)
-    }
-    validar_repuerto_id
-
-    ingresar_stock(conect_sql,datos,(respuesta)=>{
-        console.log(respuesta)
-    })
-    //res.render('layouts/sumar_repuesto')
 })
-
-
 
 module.exports=router;

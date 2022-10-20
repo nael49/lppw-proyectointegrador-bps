@@ -1,3 +1,9 @@
+{{#each error_orden}}
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        {{text}}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+{{/each}} 
 
 <div class="card mx-auto col-7 m-3">
     <div class="card-header titulos">
@@ -11,7 +17,7 @@
                 <label for="nombre" class="form-label">Elegir Repuesto</label>
                 <div class="col mb-3">
                     <label for="repuesto" class="form-label">Repuesto</label>
-                    <select class="form-control" name="repuesto" id="repuesto" required>
+                    <select class="form-select" name="repuesto" id="repuesto" required>
                         <option value="" selected disabled></option>
                         {{#each repuestos_de_bbdd}}
                             <option value="{{id_repuesto}}">{{nombre}}</option>
