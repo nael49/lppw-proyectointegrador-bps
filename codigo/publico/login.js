@@ -10,11 +10,11 @@ function validar(e){
     let contraseña =document.getElementById('contraseña')
     let error=[true,true]
 
-    if(usuario.value.lenght<3 || usuario.value.lenght<20){
+    if(usuario.value.lenght<3 || usuario.value.lenght>20){
         usuario.classList.add('is-invalid')
         error[0]=false
     }
-    if(contraseña.value.lenght<3 || contraseña.value.lenght<20){
+    if(contraseña.value.lenght<3 || contraseña.value.lenght>20){
         contraseña.classList.add('is-invalid')
         error[1]=false
     }

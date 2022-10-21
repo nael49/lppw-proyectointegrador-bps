@@ -1,5 +1,21 @@
 const mysql=require('mysql')
 
+function mostrar_usuarios_t(coneccion,callback){
+  let query="SELECT * FROM usuarios_tecnicos";
+  coneccion.query(query, function(err,data){
+    if(err) throw err;
+    callback(data)
+  })
+}
+
+function mostrar_usuarios_g(coneccion,callback){
+  let query="SELECT * FROM usuarios_general";
+  coneccion.query(query, function(err,data){
+    if(err) throw err;
+    callback(data)
+  })
+}
+
 function mostrar_repuesto(coneccion,callback){
     let query="SELECT * FROM repuestos";
     coneccion.query(query, function(err,data){
@@ -50,6 +66,32 @@ function validar_repuerto_id(coneccion,id){ //revisa por id (int) si el repuesto
     })
 
   if(datos_validar==0){ //retorna true/false
+    return false
+  }
+  else{
+    return true
+  }
+}
+
+function validar_usuario_id(coneccion,id,tipo){ //revisa por id (int) si el repuesto existe
+  let datos_validar
+  let query_validar
+  if(tipo=1){
+    query_validar=`SELECT COUNT(dni) AS dni FROM 'usuarios_tecnicos' WHERE dni = ${id}`; 
+  }
+  else{
+    query_validar=`SELECT COUNT(dni) AS dni FROM 'usuarios_general' WHERE dni = ${id}`; 
+  }
+   
+  
+  coneccion.query(query_validar, function(err,rows){
+    if(err) throw err;
+    datos_validar=rows[0].cantidad
+    console.log("datos de validar si existe: "+ datos_validar)
+
+  })
+
+  if(datos_validar==0){ //retorna true si ya existe la pk/ false si no existe la pk
     return false
   }
   else{

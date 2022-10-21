@@ -8,48 +8,26 @@
             <thead>
                 <tr>
                     <th>Nombre</th>  
-                    <th>marca</th>
-                    <th>Modelo</th>
+                    <th>Cantidad</th>
                     <th>Precio</th>
-                    <th>Distribuidos</th>
+                    <th>Distribuidor</th>
                     <th>Descripcion</th>
                     <th>Modificar</th>    
                     <th>Eliminar</th>
                 </tr>
             </thead>
             <tbody id="tbody_ordenes_trabajo">
-                <tr>
-                    <td >3</td>
-                    <td >3</td>
-                    <td >3</td>
-                    <td >1</td>
-                    <td >1</td>
-                    <td >1</td>
-                    <td> <a  data-bs-toggle="modal" data-bs-target="#modificar" href="">Modificar</a> </td>     <!-- BOTON MODIFICAR REPUESTO-->
-                    <td> <a  data-bs-toggle="modal" data-bs-target="#eliminar" href="">eliminar</a> </td>
-
-                </tr>
-                <tr>
-                    <td >3</td>
-                    <td >3</td>
-                    <td >1</td>
-                    <td >1</td>
-                    <td >1</td>
-                    <td >3</td>
-                    <td> <a  data-bs-toggle="modal" data-bs-target="#modificar" href="">Modificar</a> </td>     <!-- BOTON MODIFICAR REPUESTO-->
-                    <td> <a  data-bs-toggle="modal" data-bs-target="#eliminar" href="">eliminar</a> </td>
-
-                </tr>
-                <tr>
-                    <td >3</td>
-                    <td >3</td>
-                    <td >1</td>
-                    <td >1</td>
-                    <td >1</td>
-                    <td >3</td>
-                    <td> <a  data-bs-toggle="modal" data-bs-target="#modificar" href="">Modificar</a> </td>     <!-- BOTON MODIFICAR REPUESTO-->
-                    <td> <a  data-bs-toggle="modal" data-bs-target="#eliminar" href="">eliminar</a> </td>
-                </tr>
+                  {{#each resultado}}
+                  <tr>
+                    <td >{{nombre}}</td>
+                    <td >{{cantidad}}</td>
+                    <td >{{precio}}</td>
+                    <td >{{distribuidor}}</td>
+                    <td >{{descripcion}}</td>
+                    <td id="{{id_repuesto}}" dato="{{id_repuesto}}"><a  data-bs-toggle="modal" data-bs-target="#modificar" href="">Modificar</a> </td>     <!-- BOTON MODIFICAR REPUESTO-->
+                    <td id="{{id_repuesto}}" dato="{{id_repuesto}}"><a  data-bs-toggle="modal" data-bs-target="#eliminar" href="">eliminar</a> </td>
+                  </tr>
+                  {{/each}}
             </tbody>
         </table>
 </div>

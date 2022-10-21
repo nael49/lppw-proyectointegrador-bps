@@ -1,3 +1,9 @@
+{{#if datos_enviar}}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        {{text}}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+{{/if}}
 
 <div class="card mx-auto col-7 m-3">
     <div class="card-header titulos">
@@ -9,7 +15,7 @@
 
             <div class="mb-3">
                 <label for="nombreyapellido" class="form-label">Nombre y Apellido</label>
-                <input type="text" class="form-control" name="nombreyapellido" id="nombreyapellido" pattern="[A-Za-záéíóúÁÉÍÓÚ0-9]{4,}( [A-Za-záéíóúÁÉÍÓÚ0-9]{4,}){1,}" required >
+                <input type="text" class="form-control" name="nombreyapellido" id="nombreyapellido" pattern="[A-Za-záéíóúÁÉÍÓÚñÑ0-9]{4,}( [A-Za-záéíóúÁÉÍÓÚÑñ0-9]{4,}){1,}" required >
                 <div class="feedback-invalid"></div>
             </div>
 
@@ -42,20 +48,36 @@
 
                 <div class="mb-3 col">
                     <label class="form-label" for="numerocelular">Numero de Celular</label>
-                    <input type="number" name="numerocelular" class="form-control" id="numerocelular" min="111111" max="999999999999" required>
+                    <input type="number" name="numerocelular" class="form-control" id="numerocelular" min="11111111" max="999999999999" required>
+                    <div class="feedback-invalid"></div>
+                </div>
+             </div>
+
+             <div class="row g-3">
+                <div class="mb-3 col">
+                    <label for="direccion" class="form-label">Direccion</label>
+                    <input type="text" name="direccion" class="form-control" id="direccion" required maxlength="50" pattern="[A-Za-z áéíóúÁÉÍÓÚñÑ0-9]{4,}">
+                    <div class="feedback-invalid"></div>
+                </div>
+
+                <div class="mb-3 col">
+                    <label class="form-label" for="localidad">Localidad</label>
+                    <input type="text" name="localidad" class="form-control" id="localidad" required maxlength="50" pattern="[A-Za-z áéíóúÁÉÍÓÚñÑ0-9]{4,}">
                     <div class="feedback-invalid"></div>
                 </div>
              </div>
 
             <div class="mb-3">
                 <label class="form-label" for="email">Email</label>
-                <input type="email" name="email" class="form-control" id="email" required>
+                <input type="email" name="email" class="form-control" id="email" required pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$">
                 <div class="feedback-invalid"></div>
             </div>
 
-            <button type="submit" class="btn btn-primary">Agregar</button>
+            <button type="submit" class="btn btn-primary">Agregar Usuario</button>
 
         </form>
 
     </div>
 </div>
+
+<script src="../../crear_usuario.js"></script>

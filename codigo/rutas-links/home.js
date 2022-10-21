@@ -173,10 +173,16 @@ router.get('/admin/crear_usuario',(req,res)=>{
 
 router.post('/admin/crear_usuario', async(req,res)=>{
     console.log(req.body)
-    const {puesto,DNI,nombreyapellido,fecha_ingreso,numerocelular,email}= req.body
+    const {puesto,direccion,localidad,DNI,nombreyapellido,fecha_ingreso,numerocelular,email}= req.body
 
     const error_orden=[]
 
+    if(!direccion){
+        error_orden.push({text:'Dni incorrecto'})
+    }
+    if(!localidad){
+        error_orden.push({text:'Dni incorrecto'})
+    }
     if(!DNI){
         error_orden.push({text:'Dni incorrecto'})
     }
@@ -195,30 +201,40 @@ router.post('/admin/crear_usuario', async(req,res)=>{
     if(!email){
         error_orden.push({text:'Email Incorrecto o no Ingresado'})
     }
+
+    if(error_orden.length>0){
+        res.render('/admin/crear_usuario',{error_orden})
+    }
+
     let dni_int =parseInt(DNI)
     let numero_int=parseInt(numerocelular)
 
     let nuevo_usuario_g={ //esquema para enviar a la base de datos (general)
         dni: dni_int,
+        direccion:direccion,
+        localidad:localidad,
         puesto: puesto,
-        nombreyapellido: nombreyapellido,
-        fecha_ingreso: fecha_ingreso,
-        numerocelular: numero_int,
-        email:email
+        nombrecompleto: nombreyapellido,
+        fecha_inicio: fecha_ingreso,
+        celular: numero_int,
+        email:email,
+        estado:1
     }
     let nuevo_usuario_t={ //esquema para enviar a la base de datos (tecnico)
         dni: dni_int,
-        nombreyapellido: nombreyapellido,
-        fecha_ingreso: fecha_ingreso,
-        numerocelular: numero_int,
-        email:email
+        nombrecompleto: nombreyapellido,
+        fecha_inicio: fecha_ingreso,
+        celular: numero_int,
+        email:email,
+        estado:1
     }
     
-    console.log("puesto elegido: "+nuevo_usuario.puesto)
-    if(nuevo_usuario.puesto=="TECNICO"){
+    console.log("puesto elegido: "+puesto)
+    if(puesto=="TECNICO"){
         try {
             
             await conect_sql.query(`INSERT INTO usuarios_tecnicos set ?`,[nuevo_usuario_t])
+            
         } catch (err) {
             if(err)throw err;
         }
@@ -226,6 +242,10 @@ router.post('/admin/crear_usuario', async(req,res)=>{
     else{
         try {
             await conect_sql.query(`INSERT INTO usuarios_general set ?`,[nuevo_usuario_g])
+
+            let datos_enviar={text:'usuario creado'}
+            res.redirect('/admin/crear_usuario',datos_enviar) //se envia a la misma pagina con una alerta de creado
+            return
         } catch (err) {
             if(err)throw err;
         }
