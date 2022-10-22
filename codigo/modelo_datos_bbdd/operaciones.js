@@ -108,7 +108,7 @@ function mostrar_mis_ordenes(coneccion,datos,callback){
 function validar_orden_id(coneccion,datos){  //si existe la orden retorna true 
   let datos_validar
 
-  let query_validar=`SELECT COUNT(id_orden) AS id_orden FROM orden_trabajo WHERE id_orden = ${datos.id}`; 
+  let query_validar=`SELECT COUNT(id_orden) AS id_orden FROM orden_trabajo WHERE id_orden = ${datos}`; 
   
   coneccion.query(query_validar, function(err,rows){
     if(err) throw err;
@@ -123,6 +123,14 @@ function validar_orden_id(coneccion,datos){  //si existe la orden retorna true
   else{
     return true
   }
+}
+
+function traer_orden_id(coneccion,datos,callback){
+  let query=`SELECT  id_orden,descripcion_falla,fk_marca, marca.marca, modelo.modelo,estado,estados.nombre FROM orden_trabajo JOIN marca ON orden_trabajo.fk_marca = marca.id_marca JOIN modelo ON orden_trabajo.fk_modelo= modelo.id_modelo JOIN estados ON orden_trabajo.estado =estados.id_estados WHERE id_orden=${datos}` ; 
+  coneccion.query(query, function(err,data){
+    if(err) throw err;
+    callback(data)
+  })
 }
  // ------------------------    STOCK
 
@@ -143,11 +151,23 @@ function ingresar_stock (coneccion,datos,callback){
   })
 }
 
+//-------------------------------ESTADOS
 
-
-
+function mostrar_estados(coneccion,selector,callback){
+  let query
+  if(selector==1){
+    query="SELECT * FROM estados WHERE id_estados!=6";
+  }
+  else{
+    query="SELECT * FROM estados ";
+  }
+  coneccion.query(query, function(err,data){
+    if(err) throw err;
+    callback(data)
+  })
+}
 
 
 module.exports={mostrar_repuesto,crear_repuesto,ingresar_stock,validar_repuerto_id,validar_usuario_id,mostrar_ordenes_espera,mostrar_mis_ordenes,
-validar_orden_id
+validar_orden_id,traer_orden_id,mostrar_estados
 }

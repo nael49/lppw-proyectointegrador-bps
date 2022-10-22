@@ -4,7 +4,7 @@ const express=require('express');
 const router = express.Router();
 
 const conect_sql = require('../modelo_datos_bbdd/conexion_con_bbdd')
-const {mostrar_repuesto , crear_repuesto, ingresar_stock, validar_repuerto_id, mostrar_ordenes_espera, mostrar_mis_ordenes} = require('../modelo_datos_bbdd/operaciones')
+const {mostrar_repuesto , crear_repuesto, ingresar_stock, validar_repuerto_id, mostrar_ordenes_espera, mostrar_mis_ordenes, validar_usuario_id, validar_orden_id, traer_orden_id, mostrar_estados} = require('../modelo_datos_bbdd/operaciones')
 
 
 router.get('/gerente',(req,res)=>{
@@ -101,11 +101,6 @@ router.post('/crear_orden_p',async(req,res)=>{  //ejemplo de crear un cliente en
             res.status(200).send('perfecto')
         }
 
-        //else{
-          //  await conect_sql.query('INSERT INTO clientes set ?',[cliente]);
-           // res.status(200).send('perfecto')
-        //}
-
     }
 })
 
@@ -177,9 +172,35 @@ router.get('/tecnico/misordenes',async(req,res)=>{
     }
 })
 
-router.get('/tecnico/orden/:id',(req,res)=>{
-    console.log(req.params)
-    res.render('layouts/modificar_orden')
+router.get('/tecnico/orden/:id',async(req,res)=>{
+    console.log(req.params.id)
+    let id_int=parseInt(req.params.id)
+
+    if(await validar_orden_id(conect_sql,id_int)){
+
+        await mostrar_estados(conect_sql,1,(estados)=>{
+
+            mostrar_repuesto (conect_sql,(datos)=>{
+            
+                traer_orden_id(conect_sql,id_int,(respuesta)=>{
+    
+                    respuesta[0].id_orden=(respuesta[0].id_orden).toString()
+                    respuesta[0].fk_marca=(respuesta[0].fk_marca).toString()
+                    respuesta[0].estado=(respuesta[0].estado).toString()
+        
+                    console.log("orden de la bbdd: ",respuesta)
+                    //let para_mandar=respuesta[0]
+        
+                    res.render('layouts/modificar_orden',{respuesta,datos,estados})
+                })
+            })
+        })
+        
+    }
+    else{
+
+    }
+
 })
 
 router.get('/admin',(req,res)=>{
@@ -223,6 +244,7 @@ router.post('/admin/crear_usuario', async(req,res)=>{
 
     if(error_orden.length>0){
         res.render('/admin/crear_usuario',{error_orden})
+        return
     }
 
     let dni_int =parseInt(DNI)
@@ -251,8 +273,10 @@ router.post('/admin/crear_usuario', async(req,res)=>{
     console.log("puesto elegido: "+puesto)
     if(puesto=="TECNICO"){
         try {
-            
             await conect_sql.query(`INSERT INTO usuarios_tecnicos set ?`,[nuevo_usuario_t])
+            let datos_enviar={text:'usuario creado'}
+            res.render('layouts/crear_usuario',{datos_enviar}) //se envia a la misma pagina con una alerta de creado
+            return
             
         } catch (err) {
             if(err)throw err;
@@ -263,7 +287,7 @@ router.post('/admin/crear_usuario', async(req,res)=>{
             await conect_sql.query(`INSERT INTO usuarios_general set ?`,[nuevo_usuario_g])
 
             let datos_enviar={text:'usuario creado'}
-            res.redirect('/admin/crear_usuario',datos_enviar) //se envia a la misma pagina con una alerta de creado
+            res.render('layouts/crear_usuario',{datos_enviar}) //se envia a la misma pagina con una alerta de creado
             return
         } catch (err) {
             if(err)throw err;

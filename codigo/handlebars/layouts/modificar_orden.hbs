@@ -1,27 +1,52 @@
-<form action="" method="post" id="form_crear_orden">
+{{#each errores}}
+
+{{/each}}
+
+
+<div class="card mx-auto col-7 m-3">
+    <div class="card-header titulos">
+        Modificar Orden
+    </div>
+    <div class="card-body">
+        <form  action="" method="post" id="form_modificar_orden">
 
             <div class="mb-3">
-                <label for="nombre" class="form-label">ID Equipo</label>
-                <input type="text" class="form-control" name="nombre" id="nombre" disabled>
+                <label for="nombre" class="form-label">ORDEN N°</label>
+                {{#each respuesta}}
+                    <input type="text" class="form-control" name="{{id_orden}}" id="nombre" disabled value="{{id_orden}}">
+                {{/each}}
             </div>
 
           
             <div class="row g-3">
                 <div class="mb-3 col">
                     <label for="localidad" class="form-label">Modelo</label>
-                    <input type="text" name="localidad" class="form-control" id="localidad" disabled>
+                    <input type="text" name="localidad" class="form-control" id="localidad" disabled value="{{#each respuesta}}
+                {{modelo}}
+                {{/each}}">
                 </div>
 
                 <div class="mb-3 col">
                     <label for="marca" class="form-label">Marca</label>
-                    <input type="text" name="marca" class="form-control" id="marca" disabled>
+                    <input type="text" name="marca" class="form-control" id="marca" disabled value="{{#each respuesta}}
+                {{marca}}
+                {{/each}}">
                 </div> 
+            </div>
+            <div class="mb-3">
+                <label for="nombre" class="form-label">Descripcion Falla</label>
+                {{#each respuesta}}
+                    <textarea class="form-control" name="" id="" cols="80" rows="5" placeholder="Datos importantes (opcional) " disabled>{{descripcion_falla}}</textarea>
+                {{/each}}
             </div>
 
             <div class="row g-3">
               <label for="repuesto" class="form-label">Elegir repuesto usado</label>
               <select class="form-select" name="repuesto" id="repuesto">
                 <option value="" selected disabled ></option>
+                {{#each datos}}
+                     <option value="{{id_repuesto}}">{{nombre}}</option>
+                {{/each}}
               </select>
             
             <input type="button" id="agregar_repuesto" class="btn btn-primary" value="Agregar otro repuesto"></input>
@@ -38,11 +63,17 @@
               <label for="marca" class="form-label">Cambiar estado de la orden</label>
               <select class="form-select" name="repuesto" id="repuesto" required>
                 <option value="" selected disabled ></option>
-
+                {{#each estados}}
+                     <option value="{{id_estados}}">{{nombre}}</option>
+                {{/each}}
               </select>
             
             </div>
 
             <button type="submit" class=" mt-2 btn btn-primary">Guardar Cambios</button>
 
-          </form>
+        </form>
+    </div>
+</div>
+
+<script src="../../modificar_orden.js"></script>
