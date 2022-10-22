@@ -1,0 +1,48 @@
+<form action="" method="post" id="form_crear_orden">
+
+            <div class="mb-3">
+                <label for="nombre" class="form-label">ID Equipo</label>
+                <input type="text" class="form-control" name="nombre" id="nombre" disabled>
+            </div>
+
+          
+            <div class="row g-3">
+                <div class="mb-3 col">
+                    <label for="localidad" class="form-label">Modelo</label>
+                    <input type="text" name="localidad" class="form-control" id="localidad" disabled>
+                </div>
+
+                <div class="mb-3 col">
+                    <label for="marca" class="form-label">Marca</label>
+                    <input type="text" name="marca" class="form-control" id="marca" disabled>
+                </div> 
+            </div>
+
+            <div class="row g-3">
+              <label for="repuesto" class="form-label">Elegir repuesto usado</label>
+              <select class="form-select" name="repuesto" id="repuesto">
+                <option value="" selected disabled ></option>
+              </select>
+            
+            <input type="button" id="agregar_repuesto" class="btn btn-primary" value="Agregar otro repuesto"></input>
+            </div>
+            
+            <div class="row g-3 mt-1">
+
+              <textarea class="form-control" name="" id="" cols="80" rows="10" placeholder="Datos importantes (opcional) "></textarea>
+                
+            </div>
+            
+
+            <div class="row g-3 mt-1">
+              <label for="marca" class="form-label">Cambiar estado de la orden</label>
+              <select class="form-select" name="repuesto" id="repuesto" required>
+                <option value="" selected disabled ></option>
+
+              </select>
+            
+            </div>
+
+            <button type="submit" class=" mt-2 btn btn-primary">Guardar Cambios</button>
+
+          </form>

@@ -4,7 +4,7 @@ const express=require('express');
 const router = express.Router();
 
 const conect_sql = require('../modelo_datos_bbdd/conexion_con_bbdd')
-const {mostrar_repuesto , crear_repuesto, ingresar_stock, validar_repuerto_id} = require('../modelo_datos_bbdd/operaciones')
+const {mostrar_repuesto , crear_repuesto, ingresar_stock, validar_repuerto_id, mostrar_ordenes_espera, mostrar_mis_ordenes} = require('../modelo_datos_bbdd/operaciones')
 
 
 router.get('/gerente',(req,res)=>{
@@ -155,12 +155,31 @@ router.post('/sigin',(req,res)=>{ //completar
     res.render('layouts/sigin')
 })
 
-router.get('/tecnico',(req,res)=>{
-    res.render('layouts/mis_ordenes_trabajo')
+router.get('/tecnico', async(req,res)=>{
+
+    await mostrar_ordenes_espera(conect_sql,(respuesta)=>{
+        respuesta[0].fecha_creacion=(respuesta[0].fecha_creacion).toString().substring(0,10) //convierte la fehca y hora en solo fecha para mostrar
+        console.log(respuesta)
+        res.render('layouts/ordenes_trabajo_lista',{respuesta})
+    })
+
 })
 
-router.get('/tecnico/ordenes',(req,res)=>{
-    res.render('layouts/ordenes_trabajo_lista')
+router.get('/tecnico/misordenes',async(req,res)=>{
+    try {
+        await mostrar_mis_ordenes(conect_sql,35122299,(respuesta)=>{
+            respuesta[0].fecha_creacion=(respuesta[0].fecha_creacion).toString().substring(0,10) //convierte la fehca y hora en solo fecha para mostrar
+            console.log(respuesta)
+            res.render('layouts/mis_ordenes_trabajo',{respuesta})
+        })
+    } catch (error) {
+        res.send('Error en la BBDD')
+    }
+})
+
+router.get('/tecnico/orden/:id',(req,res)=>{
+    console.log(req.params)
+    res.render('layouts/modificar_orden')
 })
 
 router.get('/admin',(req,res)=>{

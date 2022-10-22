@@ -16,53 +16,42 @@
     <table class="table table-hover">
       <thead>
         <tr>
-          <th>ID</th>  
-          <th >Marca</th>
+          <th>Fecha de Ingreso</th>
+          <th>fecha de Inicio</th>
+          <th>Cliente</th>
+          <th>Recepcionista</th>  
+          <th>Marca</th>
           <th>Modelo</th>
-          <th>fecha de ingreso</th>
-          <th>estado</th>
+          <th>Estado</th>
+          <th>Descripcion de la Falla</th>
           <th>Repuestos usados</th>
           <th>Modificar</th>    
         </tr>
       </thead>
       <tbody id="tbody_ordenes_trabajo">
-        <tr>
-            <td >3</td>
-            <td >3</td>
-            <td >3</td>
-            <td >1</td>
-            <td>Mark</td>
-            <td>Otto</td>
-            <td><a data-bs-toggle="modal" data-bs-target="#modificar_orden_tecnico" href="">Cambiar</a></td>     <!-- BOTON MODIFICAR ORDEN-->
+        {{#each respuesta}}
+        <tr >
+            <td>{{fecha_creacion}}</td>
+            <td>{{fecha_inicio}}</td>
+            <td>{{fk_cliente}}</td>
+            <td>{{fk_recepcionista}}</td>
+            <td>{{marca}}</td>
+            <td>{{modelo}}</td>
+            <td>{{nombre}}</td>
+            <td>{{descripcion_falla}}</td>
+            <th>{{repuestos}}</th>
+            <td><a href="orden/{{id_orden}}">Modificar</a></td>     <!-- BOTON MODIFICAR ORDEN-->
 
         </tr>
-        <tr>
-            <td >3</td>
-            <td >3</td>
-            <td >3</td>
-            <td >1</td>
-            <td>Mark</td>
-            <td>Otto</td>
-            <td><a data-bs-toggle="modal" data-bs-target="#modificar_orden_tecnico" href="">Cambiar</a></td>     <!-- BOTON MODIFICAR ORDEN-->
+        {{/each}}
 
-        </tr>
-        <tr>
-            <td >3</td>
-            <td >3</td>
-            <td >3</td>
-            <td >1</td>
-            <td>Mark</td>
-            <td>Otto</td>
-            <td><a data-bs-toggle="modal" data-bs-target="#modificar_orden_tecnico" href="">Cambiar</a></td>     <!-- BOTON MODIFICAR ORDEN-->
-
-        </tr>
       </tbody>
     </table>
 
     </div>
 </div>
 
-<!-- BOTON MOFIFICAR ORDEN-->
+
 
 <div class="modal" id="modificar_orden_tecnico" tabindex="-1">
   <div class="modal-dialog">

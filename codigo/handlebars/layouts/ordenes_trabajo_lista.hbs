@@ -1,53 +1,34 @@
 <div class="card mx-auto col-12 mt-3">
     <div class="card-header titulos">
-        Lista de todos los usuarios
+        Lista de todos las Ordenes sin Asignar
     </div>
     <div class="card-body">
 
       <table class="table table-hover">
         <thead>
           <tr>
-            <th scope="col">ID</th>  
+            <th scope="col">fecha de ingreso</th>
+            <th scope="col">Recepcionista </th>
             <th scope="col">Marca</th>
             <th scope="col">Modelo</th>
-            <th scope="col">fecha de ingreso</th>
-            <th scope="col">estado</th>
-            <th scope="col">Tecnico Asignado</th>
+            <th scope="col">Descripcion de Falla</th>
             <th scope="col">Datos del cliente</th>
             <th scope="col">AGREGAR / TOMAR</th>    <!-- cargar = tomar orden / asignar tecnico-->
           </tr>
         </thead>
         <tbody id="tbody_ordenes_trabajo">
-          <tr>
-              <td >3</td>
-              <td >3</td>
-              <td >3</td>
-              <td >1</td>
-              <td>Mark</td>
-              <td>Otto</td>
-              <td>@mdo</td>     <!-- BOTON DATOS DEL CLIENTE-->
-              <td><a data-bs-toggle="modal" data-bs-target="#agregar_tec" href="">Asignar</a></td>
-          </tr>
-          <tr>
-              <td >3</td>
-              <td >3</td>
-              <td >3</td>
-              <td >1</td>
-              <td>Mark</td>
-              <td>Otto</td>
-              <td>@mdo</td>     <!-- BOTON DATOS DEL CLIENTE-->
-              <td><a data-bs-toggle="modal" data-bs-target="#agregar_tec" href="">Asignar</a></td>
-          </tr>
-          <tr>
-              <td >3</td>
-              <td >3</td>
-              <td >3</td>
-              <td >1</td>
-              <td>Mark</td>
-              <td>Otto</td>
-              <td>@mdo</td>     <!-- BOTON DATOS DEL CLIENTE-->
-              <td><a data-bs-toggle="modal" data-bs-target="#agregar_tec" href="">Asignar</a></td>
-          </tr>
+          {{#each respuesta}}
+            <tr>
+                <td >{{fecha_creacion}}</td>
+                <td >{{fk_recepcionista}}</td>
+                <td>{{marca}}</td>
+                <td>{{modelo}}</td> 
+                <td>{{descripcion_falla}}</td>
+                <td >{{fk_cliente}}</td>         
+                <td><a data-bs-toggle="modal" data-bs-target="#agregar_tec" href="">Asignar/Tomar</a></td> <!-- cargar = tomar orden / asignar tecnico (se requiere sesion) -->
+            </tr>
+          {{/each}}
+          
         </tbody>
       </table>
   </div>
