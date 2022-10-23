@@ -10,20 +10,30 @@
             <div class="mb-3">
                 <label for="nombre" class="form-label">Nombre del repuesto</label>
                 <input type="text" class="form-control" name="nombre" id="nombre" required pattern="[A-Z a-záéíóúÁÉÍÓÚñÑ0-9]{2,}">
-                <div class="feedback-invalid">llalala</div>
+                <div class="invalid-feedback">llalala</div>
             </div>
 
             <div class="row g-3">
                 <div class="mb-3 col">
-                    <label for="localidad" class="form-label">Modelo</label>
-                    <input type="text" name="localidad" class="form-control" id="localidad" required pattern="[0-9a-z A-ZÑñÁÉÍÓÚáéíóú]{3,}">
-                    <div class="feedback-invalid">llalalala</div>
+                    <label for="modelo" class="form-label">Modelo</label>
+                    <select class="form-select" name="modelo" id="modelo" required>
+                        <option value="" selected disabled ></option>
+                        {{#each respuesta1}}
+                            <option value="{{id_modelo}}">{{nombre}}</option>
+                        {{/each}}
+                    </select>
+            
+
                 </div>
 
                 <div class="mb-3 col">
                     <label for="marca" class="form-label">Marca</label>
-                    <input type="text" name="marca" class="form-control" id="marca" required pattern="[0-9a-z A-ZÑñÁÉÍÓÚáéíóú]{3,}">
-                    <div class="feedback-invalid">llalalala</div>
+                    <select class="form-select" name="marca" id="marca" required>
+                        <option value="" selected disabled ></option>
+                        {{#each respuesta2}}
+                            <option value="{{id_marca}}">{{nombre}}</option>
+                        {{/each}}
+                    </select>
                 </div>
             </div>
 
@@ -31,24 +41,24 @@
                 <div class="mb-3 col" >
                     <label for="precio" class="form-label">Precio</label>
                     <input type="number" name="precio" class="form-control" id="precio" min="1"  required pattern="[0-9]+">
-                    <div class="feedback-invalid">llalalala</div>
+                    <div class="invalid-feedback">llalalala</div>
                 </div>
                 <div class="mb-3 col" >
                     <label for="cantidad" class="form-label">Cantidad</label>
                     <input type="number" name="cantidad" class="form-control" id="cantidad" required min="0">
-                    <div class="feedback-invalid">llalalala</div>
+                    <div class="invalid-feedback">llalalala</div>
                 </div>
             </div>
 
             <div class="mb-3">
                 <label class="form-label" for="distribuidor">Nombre del Distribuidor</label>
                 <input type="text" name="distribuidor" class="form-control" id="distribuidor" required pattern="[0-9a-z A-ZÑñÁÉÍÓÚáéíóú.]{3,}">
-                <div class="feedback-invalid">llalalala</div>
+                <div class="invalid-feedback">llalalala</div>
             </div>
 
             <div class="mb-3">
                 <textarea class="form-control" name="descripcion" id="descripcion" cols="80" rows="10" placeholder="Descripcion del repuesto (opcional) "></textarea><br>
-                <div class="feedback-invalid">llalalala</div>
+                <div class="invalid-feedback">llalalala</div>
             </div>
 
             <button type="submit" class="btn btn-primary">Crear repuesto</button>

@@ -38,7 +38,7 @@ function validar(e){
 
 
     if(error[1]==true && error[0]==true  && error[2]==true  && error[3]==true  && error[4]==true){
-        this.submit()
+        //this.submit()
     }
 
 }

@@ -1,0 +1,56 @@
+<div class="card mx-auto col-7 m-3">
+    <div class="card-header titulos">
+        Modificar Orden
+    </div>
+    <div class="card-body">
+        
+        <form action="" method="post" id="form_crear_orden">
+            {{#if respuesta}}  {{/if}}
+            <input type="hidden" name="id" value="{{#each respuesta}} {{id_repuesto}} {{/each}}">
+            <div class="mb-3">
+                <label for="nombre" class="form-label">Nombre del repuesto</label>
+                <input type="text" class="form-control" name="nombre" id="nombre" value="{{#each respuesta}} {{nombre}} {{/each}}" pattern="[A-Z a-záéíóúÁÉÍÓÚÑñ.0-9]{2,}" required>
+                <div class="feedback-invalid"></div>
+            </div>
+
+          
+            <div class="row g-3">
+                <div class="mb-3 col">
+                    <label for="modelo" class="form-label">Modelo</label>
+                    <input type="text" name="modelo" value="{{#each respuesta}} {{fk_modelo}} {{/each}}" class="form-control" id="modelo" pattern="[A-Z a-záéíóúÁÉÍÓÚ0Ññ_0-9]{2,}" required>
+                </div>
+
+                <div class="mb-3 col">
+                    <label for="marca" class="form-label">Marca</label>
+                    <input type="text" name="marca" class="form-control" value="{{#each respuesta}} {{fk_marca}} {{/each}}" pattern="[A-Z a-záéíóúÁÉÍÓÚÑñ.0-9]{2,}" id="marca" required>
+                </div>
+
+                <div class="mb-3 col" >
+                    <label for="precio" class="form-label">Precio</label>
+                    <input type="number" name="precio" value={{#each respuesta}}{{precio}}{{/each}} class="form-control" min="1" id="precio" required>
+                </div>
+                
+            </div>
+            
+
+            <div class="mb-3">
+                <label class="form-label" for="distribuidor">Nombre del Distribuidor</label>
+                <input type="text" name="distribuidor" class="form-control" id="distribuidor" value="{{#each respuesta}} {{distribuidor}} {{/each}}" pattern="[A-Z a-záéíóúÁÉÍÓÚÑñ.0-9]{2,}" required>
+            </div>
+
+
+            <textarea class="form-control" name="" id="" cols="80" rows="10" placeholder="Descripcion del repuesto (opcional) ">{{#each respuesta}} {{descripcion}} {{/each}}</textarea><br>
+            <div class="row  g-3">
+                <div class="col mb-3">
+                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                </div>
+                <div class="col mb-3">
+                    <a href="http://localhost:3000/stock" class="btn btn-secondary">Cancelar</a>
+                    
+                </div>
+            </div>
+            
+
+        </form>
+    </div>
+</div>

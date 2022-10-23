@@ -49,6 +49,44 @@ function validar_usuario_id(coneccion,id,tipo){ //revisa por id (int) si el repu
 
 // ------------------------   REPUESTOS
 
+function ingresar_stock (coneccion,datos,operacion,callback){ //trae la cantidad y suma o resta dependiento la "operacion"
+  console.log(datos)
+
+  //consultar cuanto hay en stock
+  let query_contar=`SELECT cantidad FROM repuestos WHERE id_repuesto =${datos.id_repuesto}`; //traigo la cantidad
+  coneccion.query(query_contar, function(err,data){
+    if(err) throw err;
+
+    let cantidad_traida=data[0].cantidad
+    callback(data) 
+
+    if(operacion=="suma"){
+      let query_sumar=`UPDATE repuestos SET cantidad=${cantidad_traida+datos.cantidad} WHERE id_repuesto=${datos.id_repuesto}`; 
+      coneccion.query(query_sumar, function(err,data){
+        if(err) throw err;
+        callback(data)
+      })
+    }
+    if(operacion=="resta"){
+      let query_sumar=`UPDATE repuestos SET cantidad=${cantidad_traida-datos.cantidad} WHERE id_repuesto=${datos.id_repuesto}`; 
+      coneccion.query(query_sumar, function(err,data){
+        if(err) throw err;
+        callback(data)
+      })
+    }
+  })
+}
+
+function modificar_repuesto_id(coneccion,datos,callback){ //trae la cantidad y suma o resta dependiento la "operacion"
+  console.log(datos)
+
+  let query_sumar=`UPDATE repuestos SET nombre=${datos.nombre},modelo=${datos.modelo},precio=${datos.precio},marca=${datos.marca},distribuidor=${datos.distribuidor} WHERE id_repuesto=${datos.id_repuesto}`; 
+  coneccion.query(query_sumar, function(err,data){
+    if(err) throw err;
+    callback(data)
+  })
+}
+
 function mostrar_repuesto(coneccion,callback){
     let query="SELECT * FROM repuestos";
     coneccion.query(query, function(err,data){
@@ -78,12 +116,39 @@ function validar_repuerto_id(coneccion,id){ //revisa por id (int) si el repuesto
 
   })
 
-if(datos_validar==0){ //retorna true/false
-  return false
+  if(datos_validar==0){ //retorna true/false
+    return false
+  }
+  else{
+    return true
+  }
 }
-else{
-  return true
+
+
+
+function contar_repuerto_id(coneccion,id){ //revisa por id (int) si el repuesto existe
+  let datos_validar
+
+  let query_validar=`SELECT cantidad  FROM repuestos WHERE id_repuesto = ${id}`; 
+  
+  coneccion.query(query_validar, function(err,rows){
+    if(err) throw err;
+    datos_validar=rows[0].cantidad
+    console.log("cantidad de repuestos: "+ datos_validar)
+
+  })
+  return datos_validar
+
 }
+
+function mostrar_repuesto_id(coneccion,id,callback){ //revisa por id (int) si el repuesto existe
+  let query_validar=`SELECT * FROM repuestos WHERE id_repuesto = ${id}`; 
+  
+  coneccion.query(query_validar, function(err,data){
+    if(err) throw err;
+    console.log("repuesto: ", data)
+    callback(data)
+  })
 }
 
 
@@ -132,24 +197,9 @@ function traer_orden_id(coneccion,datos,callback){
     callback(data)
   })
 }
- // ------------------------    STOCK
 
-function ingresar_stock (coneccion,datos,callback){
-  console.log(datos)
 
-  //consultar cuanto hay en stock
-  let query_contar=`SELECT cantidad FROM repuestos WHERE id_repuesto =${datos.id_repuesto}`; //ajustar
-  coneccion.query(query_contar, function(err,data){
-    if(err) throw err;
-    let cantidad_traida=data[0].cantidad
-    callback(data)
-    let query_sumar=`UPDATE repuestos SET cantidad=${cantidad_traida+datos.cantidad} WHERE id_repuesto=${datos.id_repuesto}`; //ajustar
-    coneccion.query(query_sumar, function(err,data){
-      if(err) throw err;
-      callback(data)
-    })
-  })
-}
+
 
 //-------------------------------ESTADOS
 
@@ -169,5 +219,5 @@ function mostrar_estados(coneccion,selector,callback){
 
 
 module.exports={mostrar_repuesto,crear_repuesto,ingresar_stock,validar_repuerto_id,validar_usuario_id,mostrar_ordenes_espera,mostrar_mis_ordenes,
-validar_orden_id,traer_orden_id,mostrar_estados
+validar_orden_id,traer_orden_id,mostrar_estados,contar_repuerto_id,mostrar_repuesto_id,modificar_repuesto_id
 }

@@ -1,7 +1,9 @@
 function inicio(){
     let form =document.getElementById('form_modificar_orden')
     form.addEventListener('submit',validar)
-    let repuesto =document.getElementById('repuesto')
+
+    $('#repuesto').select2()
+    
 }
 
 function validar(e){

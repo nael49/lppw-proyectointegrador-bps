@@ -4,7 +4,7 @@ const express=require('express');
 const router = express.Router();
 
 const conect_sql = require('../modelo_datos_bbdd/conexion_con_bbdd')
-const {mostrar_repuesto , crear_repuesto, ingresar_stock, validar_repuerto_id, mostrar_ordenes_espera, mostrar_mis_ordenes, validar_usuario_id, validar_orden_id, traer_orden_id, mostrar_estados} = require('../modelo_datos_bbdd/operaciones')
+const {mostrar_repuesto , crear_repuesto, ingresar_stock, validar_repuerto_id, mostrar_ordenes_espera, mostrar_mis_ordenes, validar_usuario_id, validar_orden_id, traer_orden_id, mostrar_estados, mostrar_repuesto_id} = require('../modelo_datos_bbdd/operaciones')
 
 
 router.get('/gerente',(req,res)=>{
@@ -172,7 +172,7 @@ router.get('/tecnico/misordenes',async(req,res)=>{
     }
 })
 
-router.get('/tecnico/orden/:id',async(req,res)=>{
+router.get('/tecnico/orden/:id',async(req,res)=>{         //---------------- MODIFICAR ORDENES ------------------
     console.log(req.params.id)
     let id_int=parseInt(req.params.id)
 
@@ -200,6 +200,14 @@ router.get('/tecnico/orden/:id',async(req,res)=>{
     else{
 
     }
+})
+
+router.post('/tecnico/orden/:id',async(req,res)=>{
+    const{repuesto,estado,datos_op}=req.body
+    console.log(repuesto)
+    console.log(estado)
+    console.log(datos_op)
+    res.send('bien')
 
 })
 
@@ -307,6 +315,36 @@ router.get('/stock', async(req,res)=>{
     }) 
 })
 
+router.get('/stock/mod/:dato', async(req,res)=>{   //completar ----------------------------------------------error--------------------
+    let dato=req.params.dato
+    console.log( "dato recibido en get :"+dato)
+    if(validar_repuerto_id(conect_sql,dato)){
+        await mostrar_repuesto_id(conect_sql,dato,(respuesta)=>{
+            res.render('layouts/modificar_repuesto',{respuesta})
+        })
+        
+    }
+    else{
+        res.status(404).send('Respuesto no encontrado')
+    }
+})
+
+router.post('/stock/:id',async(req,res)=>{
+    console.log("datos post:",req.body)
+    const{id,nombre,modelo,marca,precio,distribuidor}=req.body
+    let id_int=parseInt(id);
+    let precio_int=parseInt(precio);
+    let datos={
+        id:id_int,
+        nombre:nombre,
+        modelo:modelo,
+        marca:marca,
+        precio:precio_int,
+        distribuidor:distribuidor
+    }
+    
+})
+
 router.get('/stock/crear_repuesto',(req,res)=>{
     res.render('layouts/crear_repuesto')
 })
@@ -331,6 +369,7 @@ router.post('/stock/crear_repuesto',async (req,res)=>{
     } catch (error) {
         console.log(error)
     }
+    
     
     res.redirect('/stock/crear_repuesto')
     return;
@@ -374,7 +413,7 @@ router.post('/stock/ingresar_stock',(req,res)=>{
 
         if(validar_repuerto_id(conect_sql,datos.id_repuesto)){ //el repuesto existe?
             try {
-                ingresar_stock(conect_sql,datos,(respuesta)=>{
+                ingresar_stock(conect_sql,datos,"suma",(respuesta)=>{
                     console.log(respuesta)
                     error_orden.push({text:"stock agregado"})
                     console.log("antes del loca")

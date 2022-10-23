@@ -40,28 +40,25 @@
                 {{/each}}
             </div>
 
-            <div class="row g-3">
+           
               <label for="repuesto" class="form-label">Elegir repuesto usado</label>
-              <select class="form-select" name="repuesto" id="repuesto">
-                <option value="" selected disabled ></option>
+              <select class="form-select" name="repuesto" multiple="multiple" id="repuesto">
+                <option value=""  disabled ></option>
                 {{#each datos}}
                      <option value="{{id_repuesto}}">{{nombre}}</option>
                 {{/each}}
               </select>
             
-            <input type="button" id="agregar_repuesto" class="btn btn-primary" value="Agregar otro repuesto"></input>
-            </div>
-            
             <div class="row g-3 mt-1">
 
-              <textarea class="form-control" name="" id="" cols="80" rows="10" placeholder="Datos importantes (opcional) "></textarea>
+              <textarea class="form-control" name="datos_op" id="" cols="80" rows="10" placeholder="Datos importantes (opcional) "></textarea>
                 
             </div>
             
 
             <div class="row g-3 mt-1">
-              <label for="marca" class="form-label">Cambiar estado de la orden</label>
-              <select class="form-select" name="repuesto" id="repuesto" required>
+              <label for="estado" class="form-label">Cambiar estado de la orden</label>
+              <select class="form-select" name="estado" id="estado" required>
                 <option value="" selected disabled ></option>
                 {{#each estados}}
                      <option value="{{id_estados}}">{{nombre}}</option>
