@@ -217,7 +217,99 @@ function mostrar_estados(coneccion,selector,callback){
   })
 }
 
+//-------------------------------MODELO
+function mostrar_modelos(coneccion,callback){ //revisa por id (int) si el repuesto existe
+  let query=`SELECT * FROM modelo`; 
+  
+  coneccion.query(query, function(err,data){
+    if(err) throw err;
+    console.log("modelos: ", data)
+    callback(data)
+  })
+}
+
+function crear_modelo(coneccion,datos){ //revisa por id (int) si el repuesto existe
+  let query=`INSERT INTO modelo (modelo) VALUES (${datos}')`; 
+  
+  coneccion.query(query, function(err,data){
+    if(err) throw err;
+    console.log("modelos: ", data)
+  })
+}
+
+function buscar_modelo_nombre(coneccion,dato,callback){ //revisa por id (int) si el repuesto existe
+  let query=`SELECT * FROM modelo where modelo =${dato}`; 
+  let dato_bbdd
+  coneccion.query(query, function(err,data){
+    if(err) throw err;
+    console.log("modelo: ", data)
+    callback(data)
+  })
+}
+
+function validar_modelo_nombre(coneccion,datos){  //si existe la orden retorna true 
+  let query_validar=`SELECT COUNT(id_modelo) AS id_modelo FROM modelo WHERE modelo = ${datos}`; 
+  
+  coneccion.query(query_validar, function(err,rows){
+    if(err) throw err;
+    console.log("datos de validar si existe: "+ rows)
+    if(rows[0].id_modelo==0){ //retorna false si no existe
+      return false
+    }
+    else{
+      return true
+    }
+  })
+}
+
+
+
+//-------------------------------MARCA
+function mostrar_marcas(coneccion,callback){ //revisa por id (int) si el repuesto existe
+  let query=`SELECT * FROM marca`; 
+  
+  coneccion.query(query, function(err,data){
+    if(err) throw err;
+    console.log("marca: ", data)
+    callback(data)
+  })
+}
+
+function validar_marca_nombre(coneccion,datos){  //si existe la orden retorna true 
+  let query_validar=`SELECT COUNT(id_marca) AS id_marca FROM marca WHERE marca = ${datos}`; 
+  
+  coneccion.query(query_validar, function(err,rows){
+    if(err) throw err;
+    console.log("datos de validar si existe: "+ rows)
+    if(rows[0].id_marca==0){ //retorna false si no existe
+      return false
+    }
+    else{
+      return true
+    }
+  })
+}
+
+function buscar_marca_nombre(coneccion,dato,callback){ //revisa por id (int) si el repuesto existe
+  let query=`SELECT * FROM marca where marca =${dato}`; 
+  
+  coneccion.query(query, function(err,data){
+    if(err) throw err;
+    console.log("marca: ", data)
+    callback(data)
+  })
+}
+
+function crear_marca(coneccion,datos){ //revisa por id (int) si el repuesto existe
+  let query=`INSERT INTO marca (marca) VALUES (${datos}')`; 
+  
+  coneccion.query(query, function(err,data){
+    if(err) throw err;
+    console.log("marca: ", data)
+  })
+}
 
 module.exports={mostrar_repuesto,crear_repuesto,ingresar_stock,validar_repuerto_id,validar_usuario_id,mostrar_ordenes_espera,mostrar_mis_ordenes,
-validar_orden_id,traer_orden_id,mostrar_estados,contar_repuerto_id,mostrar_repuesto_id,modificar_repuesto_id
+validar_orden_id,traer_orden_id,mostrar_estados,contar_repuerto_id,mostrar_repuesto_id,modificar_repuesto_id,mostrar_marcas,mostrar_modelos,
+crear_marca,crear_modelo,buscar_marca_nombre,buscar_modelo_nombre,validar_marca_nombre,validar_modelo_nombre
 }

@@ -4,7 +4,7 @@ const express=require('express');
 const router = express.Router();
 
 const conect_sql = require('../modelo_datos_bbdd/conexion_con_bbdd')
-const {mostrar_repuesto , crear_repuesto, ingresar_stock, validar_repuerto_id, mostrar_ordenes_espera, mostrar_mis_ordenes, validar_usuario_id, validar_orden_id, traer_orden_id, mostrar_estados, mostrar_repuesto_id} = require('../modelo_datos_bbdd/operaciones')
+const {mostrar_repuesto , crear_repuesto, ingresar_stock, validar_repuerto_id, mostrar_ordenes_espera, mostrar_mis_ordenes, validar_usuario_id, validar_orden_id, traer_orden_id, mostrar_estados, mostrar_repuesto_id, mostrar_marcas, mostrar_modelos, crear_marca, buscar_marca_nombre, buscar_modelo_nombre, crear_modelo, validar_marca_nombre, validar_modelo_nombre} = require('../modelo_datos_bbdd/operaciones')
 
 
 router.get('/gerente',(req,res)=>{
@@ -345,30 +345,67 @@ router.post('/stock/:id',async(req,res)=>{
     
 })
 
-router.get('/stock/crear_repuesto',(req,res)=>{
-    res.render('layouts/crear_repuesto')
+router.get('/stock/crear_repuesto',async(req,res)=>{
+    res.render('layouts/crear_repuesto')  
 })
 
-router.post('/stock/crear_repuesto',async (req,res)=>{
-    let error_orden={text:'Repuesto creado con exito'}
-    const{ nombre,distribuidor,cantidad,precio,descripcion }=req.body
+router.post('/stock/crear_repuesto',async (req,res)=>{  //terminar
+    let error_orden
+
+    const{ nombre,distribuidor,cantidad,precio,descripcion,marca,modelo }=req.body
+
     let cantidad_int= parseInt(cantidad)
     let precio_int= parseInt(precio)
+    let modelo_lower=modelo.toLocaleLowerCase()
+    let marca_lower=marca.toLocaleLowerCase()
 
     let esquema={
+        marca,
+        modelo,
         nombre:nombre,
         distribuidor:distribuidor,
         cantidad:cantidad_int,
         precio:precio_int,
         descripcion:descripcion
     }
-    try {
-        await crear_repuesto(conect_sql,esquema,(datos_res) =>{
-            console.log(datos_res)
+
+    if(validar_marca_nombre(conect_sql,modelo_lower)){ //si ya existe la marca
+        await buscar_marca_nombre(conect_sql,modelo_lower,(respuesta)=>{
+            esquema.marca=respuesta.id_marca
+            if(validar_modelo_nombre(conect_sql,modelo_lower)){
+                buscar_modelo_nombre(conect_sql,modelo_lower,(respuesta2)=>{
+                    esquema.modelo=respuesta2.id_modelo
+                    crear_repuesto(conect_sql,esquema,(respuesta3)=>{
+                        error_orden={text:'Repuesto creado con exito'}
+                        res.render('/stock/crear_repuesto',{error_orden})
+                    })
+                })
+            }
+            else{
+                crear_modelo(conect_sql,modelo_lower)
+                buscar_modelo_nombre(conect_sql,modelo_lower)
+            }
         })
-    } catch (error) {
-        console.log(error)
     }
+    else{
+        await crear_marca(conect_sql,marca_lower)
+        await buscar_marca_nombre(conect_sql,marca_lower,(respuesta)=>{
+            esquema.marca=respuesta.id_marca
+            if(validar_modelo_nombre(conect_sql,modelo_lower)){
+                buscar_modelo_nombre(conect_sql,modelo_lower,(respuesta2)=>{
+                    esquema.modelo=respuesta2.id_modelo
+                    crear_repuesto(conect_sql,esquema,(respuesta3)=>{
+                        error_orden={text:'Repuesto creado con exito'}
+                        res.render('/stock/crear_repuesto',{error_orden})
+                    })
+                })
+            }
+            else{
+
+            }
+        })
+    }
+    
     
     
     res.redirect('/stock/crear_repuesto')
