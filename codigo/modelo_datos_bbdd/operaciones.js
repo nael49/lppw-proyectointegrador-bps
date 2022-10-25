@@ -95,24 +95,28 @@ function mostrar_repuesto(coneccion,callback){
     })
 }
 
-function crear_repuesto(coneccion,datos,callback){ 
+function crear_repuesto(coneccion,datos,marca,modelo,callback){ 
   console.log(datos)
-    let query=`INSERT INTO repuestos( nombre, distribuidor, cantidad, precio, descripcion) VALUES ('${datos.nombre}','${datos.distribuidor}',${datos.cantidad},${datos.precio},'${datos.descripcion}')`;
+    let query=`INSERT INTO repuestos( nombre, distribuidor, cantidad, precio, descripcion,fk_marca,fk_modelo) VALUES ('${datos.nombre}','${datos.distribuidor}',${datos.cantidad},${datos.precio},'${datos.descripcion}','${marca}','${modelo}')`;
     coneccion.query(query, function(err,data){
       if(err) throw err;
       callback(data)
     })
 }
 
-function validar_repuerto_id(coneccion,id){ //revisa por id (int) si el repuesto existe
-  let datos_validar
+function validar_repuerto_id(coneccion,id,callback){ //revisa por id (int) si el repuesto existe
+
 
   let query_validar=`SELECT COUNT(cantidad) AS cantidad FROM repuestos WHERE id_repuesto = ${id}`; 
   
-  coneccion.query(query_validar, function(err,rows){
+  coneccion.query(query_validar, function(err,data){
     if(err) throw err;
-    datos_validar=rows[0].cantidad
-    console.log("datos de validar si existe: "+ datos_validar)
+    if(data[0].cantidad==0){
+      callback(false)
+    }
+    else{
+      callback(true)
+    }
 
   })
 
@@ -229,7 +233,7 @@ function mostrar_modelos(coneccion,callback){ //revisa por id (int) si el repues
 }
 
 function crear_modelo(coneccion,datos){ //revisa por id (int) si el repuesto existe
-  let query=`INSERT INTO modelo (modelo) VALUES (${datos}')`; 
+  let query=`INSERT INTO modelo (modelo) VALUES ('${datos}')`; 
   
   coneccion.query(query, function(err,data){
     if(err) throw err;
@@ -238,7 +242,7 @@ function crear_modelo(coneccion,datos){ //revisa por id (int) si el repuesto exi
 }
 
 function buscar_modelo_nombre(coneccion,dato,callback){ //revisa por id (int) si el repuesto existe
-  let query=`SELECT * FROM modelo where modelo =${dato}`; 
+  let query=`SELECT * FROM modelo where modelo ="${dato}"`; 
   let dato_bbdd
   coneccion.query(query, function(err,data){
     if(err) throw err;
@@ -247,17 +251,17 @@ function buscar_modelo_nombre(coneccion,dato,callback){ //revisa por id (int) si
   })
 }
 
-function validar_modelo_nombre(coneccion,datos){  //si existe la orden retorna true 
-  let query_validar=`SELECT COUNT(id_modelo) AS id_modelo FROM modelo WHERE modelo = ${datos}`; 
+function validar_modelo_nombre(coneccion,datos,callback){  //si existe la orden retorna true 
+  let query_validar=`SELECT COUNT(id_modelo) AS id_modelo FROM modelo WHERE modelo = "${datos}"`; 
   
   coneccion.query(query_validar, function(err,rows){
     if(err) throw err;
-    console.log("datos de validar si existe: "+ rows)
+    console.log("datos de validar si existe: ", rows)
     if(rows[0].id_modelo==0){ //retorna false si no existe
-      return false
+      callback(false)
     }
     else{
-      return true
+      callback(true)
     }
   })
 }
@@ -275,23 +279,23 @@ function mostrar_marcas(coneccion,callback){ //revisa por id (int) si el repuest
   })
 }
 
-function validar_marca_nombre(coneccion,datos){  //si existe la orden retorna true 
-  let query_validar=`SELECT COUNT(id_marca) AS id_marca FROM marca WHERE marca = ${datos}`; 
+function validar_marca_nombre(coneccion,datos,callback){  //si existe la orden retorna true 
+  let query_validar=`SELECT COUNT(id_marca) AS id_marca FROM marca WHERE marca="${datos}"`; 
   
-  coneccion.query(query_validar, function(err,rows){
+  coneccion.query(query_validar, function(err,data){
     if(err) throw err;
-    console.log("datos de validar si existe: "+ rows)
-    if(rows[0].id_marca==0){ //retorna false si no existe
-      return false
+
+    if(data[0].id_marca==0){ //retorna false si no existe
+      callback (false)
     }
     else{
-      return true
+      callback (true)
     }
   })
 }
 
 function buscar_marca_nombre(coneccion,dato,callback){ //revisa por id (int) si el repuesto existe
-  let query=`SELECT * FROM marca where marca =${dato}`; 
+  let query=`SELECT * FROM marca where marca ='${dato}'`; 
   
   coneccion.query(query, function(err,data){
     if(err) throw err;
@@ -301,7 +305,7 @@ function buscar_marca_nombre(coneccion,dato,callback){ //revisa por id (int) si 
 }
 
 function crear_marca(coneccion,datos){ //revisa por id (int) si el repuesto existe
-  let query=`INSERT INTO marca (marca) VALUES (${datos}')`; 
+  let query=`INSERT INTO marca (marca) VALUES ('${datos}')`; 
   
   coneccion.query(query, function(err,data){
     if(err) throw err;
@@ -309,7 +313,18 @@ function crear_marca(coneccion,datos){ //revisa por id (int) si el repuesto exis
   })
 }
 
+//-------------------------------FUNCIONES GENERICAS
+
+function select_from(coneccion,tabla,callback){
+  let query=`SELECT * FROM ${tabla}`; 
+  coneccion.query(query, function(err,data){
+    if(err) throw err;
+    console.log("select * from: ", data)
+    callback(data)
+  })
+}
+
 module.exports={mostrar_repuesto,crear_repuesto,ingresar_stock,validar_repuerto_id,validar_usuario_id,mostrar_ordenes_espera,mostrar_mis_ordenes,
 validar_orden_id,traer_orden_id,mostrar_estados,contar_repuerto_id,mostrar_repuesto_id,modificar_repuesto_id,mostrar_marcas,mostrar_modelos,
-crear_marca,crear_modelo,buscar_marca_nombre,buscar_modelo_nombre,validar_marca_nombre,validar_modelo_nombre
+crear_marca,crear_modelo,buscar_marca_nombre,buscar_modelo_nombre,validar_marca_nombre,validar_modelo_nombre,select_from
 }

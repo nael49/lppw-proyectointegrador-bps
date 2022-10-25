@@ -4,7 +4,7 @@ const express=require('express');
 const router = express.Router();
 
 const conect_sql = require('../modelo_datos_bbdd/conexion_con_bbdd')
-const {mostrar_repuesto , crear_repuesto, ingresar_stock, validar_repuerto_id, mostrar_ordenes_espera, mostrar_mis_ordenes, validar_usuario_id, validar_orden_id, traer_orden_id, mostrar_estados, mostrar_repuesto_id, mostrar_marcas, mostrar_modelos, crear_marca, buscar_marca_nombre, buscar_modelo_nombre, crear_modelo, validar_marca_nombre, validar_modelo_nombre} = require('../modelo_datos_bbdd/operaciones')
+const {crear_repuesto, ingresar_stock, validar_repuerto_id, mostrar_ordenes_espera, mostrar_mis_ordenes, validar_usuario_id, validar_orden_id, traer_orden_id, mostrar_estados, mostrar_repuesto_id,crear_marca, buscar_marca_nombre, buscar_modelo_nombre, crear_modelo, validar_marca_nombre, validar_modelo_nombre, select_from} = require('../modelo_datos_bbdd/operaciones')
 
 
 router.get('/gerente',(req,res)=>{
@@ -162,7 +162,7 @@ router.get('/tecnico', async(req,res)=>{
 
 router.get('/tecnico/misordenes',async(req,res)=>{
     try {
-        await mostrar_mis_ordenes(conect_sql,35122299,(respuesta)=>{
+        await mostrar_mis_ordenes(conect_sql,35122299,(respuesta)=>{  //-----------------------CAMBIAR
             respuesta[0].fecha_creacion=(respuesta[0].fecha_creacion).toString().substring(0,10) //convierte la fehca y hora en solo fecha para mostrar
             console.log(respuesta)
             res.render('layouts/mis_ordenes_trabajo',{respuesta})
@@ -180,7 +180,7 @@ router.get('/tecnico/orden/:id',async(req,res)=>{         //---------------- MOD
 
         await mostrar_estados(conect_sql,1,(estados)=>{
 
-            mostrar_repuesto (conect_sql,(datos)=>{
+            select_from (conect_sql,"repuestos",(datos)=>{
             
                 traer_orden_id(conect_sql,id_int,(respuesta)=>{
     
@@ -308,28 +308,28 @@ router.post('/admin/crear_usuario', async(req,res)=>{
 
 router.get('/stock', async(req,res)=>{
 
-    await mostrar_repuesto(conect_sql,(resultado)=>{ //busca los repuestos y los envia al front
+    await select_from(conect_sql,"repuestos",(resultado)=>{ //busca los repuestos y los envia al front
         console.log(resultado[0])
         res.render('layouts/lista_repuestos',{resultado})  //completar el front (hbs)
-
     }) 
 })
 
 router.get('/stock/mod/:dato', async(req,res)=>{   //completar ----------------------------------------------error--------------------
     let dato=req.params.dato
     console.log( "dato recibido en get :"+dato)
-    if(validar_repuerto_id(conect_sql,dato)){
-        await mostrar_repuesto_id(conect_sql,dato,(respuesta)=>{
-            res.render('layouts/modificar_repuesto',{respuesta})
-        })
-        
-    }
-    else{
-        res.status(404).send('Respuesto no encontrado')
-    }
+    await validar_repuerto_id(conect_sql,dato,(dato_val)=>{
+        if (dato_val) {
+            mostrar_repuesto_id(conect_sql,dato,(respuesta)=>{
+                res.render('layouts/modificar_repuesto',{respuesta})
+            })
+        } else {
+            res.status(404).send('Respuesto no encontrado')
+        }
+    })
+
 })
 
-router.post('/stock/:id',async(req,res)=>{
+router.post('/stock/mod/:id',async(req,res)=>{
     console.log("datos post:",req.body)
     const{id,nombre,modelo,marca,precio,distribuidor}=req.body
     let id_int=parseInt(id);
@@ -350,7 +350,7 @@ router.get('/stock/crear_repuesto',async(req,res)=>{
 })
 
 router.post('/stock/crear_repuesto',async (req,res)=>{  //terminar
-    let error_orden
+    let error_orden=[]
 
     const{ nombre,distribuidor,cantidad,precio,descripcion,marca,modelo }=req.body
 
@@ -368,56 +368,110 @@ router.post('/stock/crear_repuesto',async (req,res)=>{  //terminar
         precio:precio_int,
         descripcion:descripcion
     }
-
-    if(validar_marca_nombre(conect_sql,modelo_lower)){ //si ya existe la marca
-        await buscar_marca_nombre(conect_sql,modelo_lower,(respuesta)=>{
-            esquema.marca=respuesta.id_marca
-            if(validar_modelo_nombre(conect_sql,modelo_lower)){
-                buscar_modelo_nombre(conect_sql,modelo_lower,(respuesta2)=>{
-                    esquema.modelo=respuesta2.id_modelo
-                    crear_repuesto(conect_sql,esquema,(respuesta3)=>{
-                        error_orden={text:'Repuesto creado con exito'}
-                        res.render('/stock/crear_repuesto',{error_orden})
-                    })
-                })
-            }
-            else{
-                crear_modelo(conect_sql,modelo_lower)
-                buscar_modelo_nombre(conect_sql,modelo_lower)
-            }
-        })
+    if (!nombre || nombre.length<3){
+        error_orden.push({text:"error en el nombre"})
     }
+    if (!distribuidor || distribuidor.length<3){
+        error_orden.push({text:"error en el distribuidor"})
+    }
+    if (!cantidad_int || cantidad_int<0 || typeof cantidad_int != 'number'){
+        error_orden.push({text:"error en la cantidad"})
+    }
+    if (!precio_int || precio_int<0 || typeof precio_int != 'number'){
+        error_orden.push({text:"error en el precio"})
+    }
+    if (!descripcion || descripcion.length<3){
+        error_orden.push({text:"error en la descripcion"})
+    }
+    if (!marca_lower || marca_lower.length<3){
+        error_orden.push({text:"error en la marca"})
+    }
+    if (!modelo_lower || modelo_lower.length<3){
+        error_orden.push({text:"error en el modelo"})
+    }
+
+    if(error_orden.length>0){
+        res.render('/stock/crear_repuesto',{error_orden})
+    }
+            //si noexisten errores pasa a crear el repuesto
+
+ 
     else{
-        await crear_marca(conect_sql,marca_lower)
-        await buscar_marca_nombre(conect_sql,marca_lower,(respuesta)=>{
-            esquema.marca=respuesta.id_marca
-            if(validar_modelo_nombre(conect_sql,modelo_lower)){
-                buscar_modelo_nombre(conect_sql,modelo_lower,(respuesta2)=>{
-                    esquema.modelo=respuesta2.id_modelo
-                    crear_repuesto(conect_sql,esquema,(respuesta3)=>{
-                        error_orden={text:'Repuesto creado con exito'}
-                        res.render('/stock/crear_repuesto',{error_orden})
+        await validar_marca_nombre(conect_sql,marca_lower,(datos_val)=>{
+            console.log(datos_val)
+            if(datos_val){
+                buscar_marca_nombre(conect_sql,marca_lower,(respuesta)=>{
+
+                    esquema.marca=respuesta[0].id_marca
+                    console.log("esquema modelo "+esquema.marca)
+                    console.log(respuesta)
+                    console.log(respuesta[0].id_marca)
+                    
+                    validar_modelo_nombre(conect_sql,modelo_lower,(datos_val2)=>{
+                        if(datos_val2){
+                            buscar_modelo_nombre(conect_sql,modelo_lower,(respuesta2)=>{
+                                esquema.modelo=respuesta2[0].id_modelo
+                                console.log("esquema modelo "+esquema.modelo)
+                                console.log(respuesta2.id_modelo)
+        
+                                crear_repuesto(conect_sql,esquema,respuesta[0].id_marca,respuesta2[0].id_modelo,(respuesta3)=>{
+                                    error_orden={text:'Repuesto creado con exito'}
+                                    res.render('layouts/crear_repuesto',{error_orden})
+                                })
+                            })
+                        }
+                        else{
+                            crear_modelo(conect_sql,modelo_lower)
+                            buscar_modelo_nombre(conect_sql,modelo_lower,(respuesta2)=>{
+                            esquema.modelo=respuesta2[0].id_modelo
+                            crear_repuesto(conect_sql,esquema,respuesta[0].id_marca,respuesta2[0].id_modelo,(respuesta3=>{
+                                error_orden={text:'Repuesto creado con exito'}
+                                res.render('layouts/crear_repuesto',{error_orden})
+                            }))
+                            
+                        })
+                        }
                     })
                 })
             }
+            
             else{
+                crear_marca(conect_sql,marca_lower)
+                buscar_marca_nombre(conect_sql,marca_lower,(respuesta)=>{ 
+                    esquema.marca=respuesta[0].id_marca
 
+                    validar_modelo_nombre(conect_sql,modelo_lower,(datos_val2)=>{
+                        if(datos_val2){
+                            buscar_modelo_nombre(conect_sql,modelo_lower,(respuesta2)=>{
+                                esquema.modelo=respuesta2[0].id_modelo
+                                crear_repuesto(conect_sql,esquema,respuesta[0].id_marca,respuesta2[0].id_modelo,(respuesta3)=>{
+                                    error_orden={text:'Repuesto creado con exito'}
+                                    res.render('layouts/crear_repuesto',{error_orden})
+                                })
+                            })
+                        }
+                        else{
+                            crear_modelo(conect_sql,modelo_lower)
+                            buscar_modelo_nombre(conect_sql,modelo_lower,(respuesta2)=>{
+                                esquema.modelo=respuesta2.id_modelo
+                                crear_repuesto(conect_sql,esquema,(respuesta3)=>{
+                                    error_orden={text:'Repuesto creado con exito'}
+                                    res.render('/stock/crear_repuesto',{error_orden})
+                                })
+                            })
+                        }
+                    })
+                }) 
             }
-        })
+        })     
     }
-    
-    
-    
-    res.redirect('/stock/crear_repuesto')
-    return;
 })
 
 router.get('/stock/ingresar_stock',(req,res)=>{  //carga los repuestos y los manda al front
-    mostrar_repuesto(conect_sql ,(respuesta)=>{
+    select_from(conect_sql ,"repuestos",(respuesta)=>{
         console.log(respuesta)
         res.render('layouts/sumar_repuesto',{repuestos_de_bbdd:respuesta})
     })
-    
 })
 
 router.post('/stock/ingresar_stock',(req,res)=>{
@@ -455,7 +509,7 @@ router.post('/stock/ingresar_stock',(req,res)=>{
                     error_orden.push({text:"stock agregado"})
                     console.log("antes del loca")
 
-                    mostrar_repuesto(conect_sql ,(respuesta)=>{
+                    select_from(conect_sql ,"repuestos",(respuesta)=>{
                         res.render('layouts/sumar_repuesto',{repuestos_de_bbdd:respuesta,error_orden})
                     })
                     console.log("despues del loca")
@@ -468,7 +522,7 @@ router.post('/stock/ingresar_stock',(req,res)=>{
         }
         else{
             error_orden.push({text:'El repuesto no existe '})
-            mostrar_repuesto(conect_sql ,(respuesta)=>{
+            select_from(conect_sql ,"repuestos",(respuesta)=>{
                 res.render('layouts/sumar_repuesto',{repuestos_de_bbdd:respuesta,error_orden})
             })
         }

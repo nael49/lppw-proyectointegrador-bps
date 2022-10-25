@@ -1,3 +1,9 @@
+{{#if error_orden}}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        {{text}}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+{{/if}}
 
 <div class="card mx-auto col-7 m-3">
     <div class="card-header titulos">
@@ -9,20 +15,20 @@
 
             <div class="mb-3">
                 <label for="nombre" class="form-label">Nombre del repuesto</label>
-                <input type="text" class="form-control" name="nombre" id="nombre" required pattern="[A-Z a-záéíóúÁÉÍÓÚñÑ0-9]{2,}">
+                <input type="text" class="form-control" name="nombre" id="nombre" required pattern="[A-Z\- a-záéíóúÁÉÍÓÚñÑ0-9]{2,}">
                 <div class="invalid-feedback">llalala</div>
             </div>
 
             <div class="row g-3">
                 <div class="mb-3 col">
                     <label for="modelo" class="form-label">Modelo</label>
-                    <input type="text" class="form-control" name="modelo" id="modelo" required pattern="[A-Z a-záéíóúÁÉÍÓÚñÑ.0-9]{2,}">
+                    <input type="text" class="form-control" name="modelo" id="modelo" required pattern="[A-Z\- a-záéíóúÁÉÍÓÚñÑ.0-9]{2,}">
 
                 </div>
 
                 <div class="mb-3 col">
                     <label for="marca" class="form-label">Marca</label>
-                    <input type="text" class="form-control" name="marca" id="marca" required pattern="[A-Z a-záéíóúÁÉÍÓÚñÑ.0-9]{2,}">
+                    <input type="text" class="form-control" name="marca" id="marca" required pattern="[A-Z\- a-záéíóúÁÉÍÓÚñÑ.0-9]{2,}">
                 </div>
             </div>
 
@@ -41,7 +47,7 @@
 
             <div class="mb-3">
                 <label class="form-label" for="distribuidor">Nombre del Distribuidor</label>
-                <input type="text" name="distribuidor" class="form-control" id="distribuidor" required pattern="[0-9a-z A-ZÑñÁÉÍÓÚáéíóú.]{3,}">
+                <input type="text" name="distribuidor" class="form-control" id="distribuidor" required pattern="[0-9a-z\- A-ZÑñÁÉÍÓÚáéíóú.]{3,}">
                 <div class="invalid-feedback">llalalala</div>
             </div>
 
