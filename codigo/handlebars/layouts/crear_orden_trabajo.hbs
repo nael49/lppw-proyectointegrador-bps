@@ -51,17 +51,18 @@
                 <input type="email" name="email" class="form-control" id="email" required>
             </div>
 
-            <select name="tipo_equipo" id="tipo_equipo" class="form-select">
-                <option value="" selected disabled></option>
-                {{#each datos_equipo}}
-                    <option value="{{equipo_id}}">{{equipo}}</option>
-                {{/each}}
-            </select>
-    
-
+            <div class="mb-3">
+                <label class="form-label" for="tipo_equipo">Elija el Tipo de Equipo</label>
+                <select name="tipo_equipo" id="tipo_equipo" class="form-select">
+                    <option value="" selected disabled></option>
+                    {{#each respuesta}}
+                        <option value="{{id_equipo}}">{{tipo_equipo}}</option>
+                    {{/each}}
+                </select>
+            </div>
             <textarea class="form-control" name="descripcion_falla" id="" cols="80" rows="10" placeholder="Descripcion de la falla"></textarea><br>
 
-            <button type="submit" class="btn btn-primary">Submit</button>
+            <button type="submit" class=" btn btn-primary">Crear Orden</button>
 
         </form>
 

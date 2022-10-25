@@ -19,7 +19,7 @@
                 <select class="form-select" name="dni" id="dni" required>
                     <option value=""selected disabled></option>
                     {{#each datos_dni}}
-                    <option value="{{dni_id}}">{{dni}}</option>
+                    <option value="{{dni}}">{{dni}}</option>
                     {{/each}}
                 </select>
                 <div class="feedback-invalid"></div>
@@ -27,8 +27,8 @@
 
             <select name="tipo_equipo" id="tipo_equipo" class="form-select">
                 <option value="" selected disabled></option>
-                {{#each datos_equipo}}
-                    <option value="{{equipo_id}}">{{equipo}}</option>
+                {{#each respuesta}}
+                    <option value="{{id_equipo}}">{{tipo_equipo}}</option>
                 {{/each}}
             </select>
 

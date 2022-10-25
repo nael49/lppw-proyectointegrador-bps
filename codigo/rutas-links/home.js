@@ -15,8 +15,11 @@ router.get('/recepcionista',(req,res)=>{
     res.render('layouts/index-recepcionista')
 })
 
-router.get('/crear_orden', (req,res)=>{
-    res.render('layouts/crear_orden_trabajo')
+router.get('/crear_orden', async(req,res)=>{
+    await select_from(conect_sql,"tipo_equipo",(respuesta)=>{
+        res.render('layouts/crear_orden_trabajo',{respuesta})
+    })
+    
 })
 
 router.post('/crear_orden_p',async(req,res)=>{  //ejemplo de crear un cliente en sql
@@ -113,8 +116,13 @@ router.post('/crear_orden_p',async(req,res)=>{  //ejemplo de crear un cliente en
     }
 })
 
-router.get('/crear_orden_g',(req,res)=>{
-    res.render('layouts/crear_orden_trabajo_cliente_existe')
+router.get('/crear_orden_g',async(req,res)=>{
+    await select_from(conect_sql,"tipo_equipo",(respuesta)=>{
+        select_from(conect_sql,"clientes",(datos_dni)=>{
+            res.render('layouts/crear_orden_trabajo_cliente_existe',{respuesta,datos_dni})
+        })
+        
+    })
 })
 
 router.post('/crear_orden_existe_cliente',async(req,res)=>{  //completar
