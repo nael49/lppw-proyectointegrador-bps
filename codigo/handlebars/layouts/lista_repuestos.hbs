@@ -3,7 +3,7 @@
 {{/if}}
 
 <div class="container rounded bg-light mt-4">
-      <h3 class="mx-auto titulos">Lista de todos los usuarios</h3><br>
+      <h3 class="mx-auto titulos">Lista de todos los Repuestos</h3><br>
         <table class="table">
             <thead>
                 <tr>
@@ -23,7 +23,7 @@
                     <td >{{precio}}</td>
                     <td >{{distribuidor}}</td>
                     <td >{{descripcion}}</td>
-                    <td><a href="mod/?dato={{id_repuesto}}">Modificar</a></td>     <!-- BOTON MODIFICAR REPUESTO-->
+                    <td><a href="stock/mod/{{id_repuesto}}">Modificar</a></td>     <!-- BOTON MODIFICAR REPUESTO-->
                   </tr>
                   {{/each}}
             </tbody>

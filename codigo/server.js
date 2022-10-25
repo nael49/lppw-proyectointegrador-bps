@@ -4,7 +4,8 @@ const exphlb = require('express-handlebars');
 const path= require('path');
 const methodoverride= require('method-override');
 const sesion=require('express-session')
-
+const flash=require('connect-flash');
+const { reset } = require('nodemon');
 
 //inicializacion
 const app = express();
@@ -33,6 +34,14 @@ app.use(sesion({
     resave:true,
     saveUninitialized:true
 }))
+
+app.use(flash())
+
+app.use((req, res, next) => {
+    res.locals.exito_msg = req.flash("exito_msg");
+    res.locals.error_msg = req.flash("error_msg");
+    next();
+  });
 
 //RUTAS /LINKS
     app.use(require('./rutas-links/home.js'));

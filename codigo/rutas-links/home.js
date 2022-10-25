@@ -4,7 +4,7 @@ const express=require('express');
 const router = express.Router();
 
 const conect_sql = require('../modelo_datos_bbdd/conexion_con_bbdd')
-const {crear_repuesto, ingresar_stock, validar_repuerto_id, mostrar_ordenes_espera, mostrar_mis_ordenes, validar_usuario_id, validar_orden_id, traer_orden_id, mostrar_estados, mostrar_repuesto_id,crear_marca, buscar_marca_nombre, buscar_modelo_nombre, crear_modelo, validar_marca_nombre, validar_modelo_nombre, select_from} = require('../modelo_datos_bbdd/operaciones')
+const {crear_repuesto, ingresar_stock, validar_repuerto_id, mostrar_ordenes_espera, mostrar_mis_ordenes, validar_usuario_id, validar_orden_id, traer_orden_id, mostrar_estados, mostrar_repuesto_id,crear_marca, buscar_marca_nombre, buscar_modelo_nombre, crear_modelo, validar_marca_nombre, validar_modelo_nombre, select_from, modificar_repuesto_id, insert} = require('../modelo_datos_bbdd/operaciones')
 
 
 router.get('/gerente',(req,res)=>{
@@ -21,7 +21,7 @@ router.get('/crear_orden', (req,res)=>{
 
 router.post('/crear_orden_p',async(req,res)=>{  //ejemplo de crear un cliente en sql
     console.log(req.body)
-    const { nombrecompleto , dni, localidad, direccion,celular,email,marca,modelo,descripcion_falla } = req.body;
+    const { nombrecompleto , dni, localidad, direccion,celular,email,tipo_equipo,descripcion_falla } = req.body;
     const error_orden=[]
 
     if(!nombrecompleto){
@@ -42,12 +42,10 @@ router.post('/crear_orden_p',async(req,res)=>{  //ejemplo de crear un cliente en
     if(!celular){
         error_orden.push({text:'ingrese numero de celular'})
     }
-    if(!marca){
-        error_orden.push({text:'ingrese marca'})
+    if(!tipo_equipo){
+        error_orden.push({text:'ingrese tipo de equipo'})
     }
-    if(!modelo){
-        error_orden.push({text:'ingrese modelo'})
-    }
+
     if(!descripcion_falla){
         error_orden.push({text:'ingrese descripcion de la falla'})
     }
@@ -61,63 +59,72 @@ router.post('/crear_orden_p',async(req,res)=>{  //ejemplo de crear un cliente en
             direccion,
             celular,
             email,
-            marca,
-            modelo,
             descripcion_falla
         })
     }
 
     else{
+        tipo_equipo_int=parseInt(tipo_equipo)
         celular_int=parseInt(celular)
         dni_int =parseInt(dni)
-        const cliente={
+
+        let cliente={
             dni : dni_int,
             nombrecompleto,
             celular : celular_int,
             direccion,
             email,
-            localidad,
+            localidad
         }
-
-        let datos_traidos //aca se guarda en 1 si ya existe el dni y en 0 sino
+        let orden_trabajo={  //por ahora con esto sirve
+            fk_cliente:dni_int,
+            descripcion_falla:descripcion_falla,
+            fk_tipo_equipo:tipo_equipo_int,
+            fk_tecnico:35122299
+        }
 
         try {
-            conect_sql.query(`SELECT COUNT(dni) AS ID FROM clientes WHERE dni =${cliente.dni}`,function(err, rows){ //revisa si ya existe el dni
+            let query=`SELECT COUNT(dni) AS ID FROM clientes WHERE dni =${cliente.dni}`
+            await conect_sql.query(query,function(err, dato){ //revisa si ya existe el dni
                 if(err)throw err;
-                datos_traidos=rows[0].ID
-                res.status(200).send('perfecto')
-            })
-        } catch (err) {
+                if(dato[0].ID!=0){ //si ya xiste
+                    req.flash('exito_msg','El cliente ya existe')
+                    re.redirect('/crear_orden_g')
+                    return
+                }
+                else{ //si el cliente no existe
+                    try {
+                        insert(conect_sql,"clientes",cliente)
+                        insert(conect_sql,"orden_trabajo",orden_trabajo)
+                        req.flash('exito_msg','Orden de Trabajo creada con Exito')
+                        res.redirect('/recepcionista')
+                    } catch (error) {
+                        
+                    }
+                    
+                    };
+                })
+            }
+        catch (err) {
             console.log("huno un error")
             throw err;
-        }
-        
-        if(datos_traidos==1){ //si ya esiste
-            res.redirect('/crear_orden_g')
-            return
-        }
-        else{ //si el usuario no existe
-            await conect_sql.query('INSERT INTO clientes set ?',[cliente]);
-            res.status(200).send('perfecto')
-        }
+            }
 
     }
 })
 
+router.get('/crear_orden_g',(req,res)=>{
+    res.render('layouts/crear_orden_trabajo_cliente_existe')
+})
 
-router.post('/crear_orden_existe_usuario',async(req,res)=>{
-    const{dni,marca,modelo,descripcion_falla}= req.body
+router.post('/crear_orden_existe_cliente',async(req,res)=>{  //completar
+    const{dni,descripcion_falla}= req.body
     const error_orden=[]
 
     if(!dni){
         error_orden.push({text:'Dni incorrecto'})
     }
-    if(!marca){
-        error_orden.push({text:'marca incorrecta'})
-    }
-    if(!modelo){
-        error_orden.push({text:'modelo incorrecto'})
-    }
+
     if(!descripcion_falla){
         error_orden.push({text:'falta Descripcion'})
     }
@@ -126,21 +133,19 @@ router.post('/crear_orden_existe_usuario',async(req,res)=>{
     let orden_trabajo={ //esquema para enviar a la base de datos
         estado: 2,
         descripcion_falla: descripcion_falla,
-        fk_marca: marca,
-        fk_modelo: modelo,
         fk_cliente: int_dni
     }
     
     try {
-        await conect_sql.query(`INSERT INTO orden_trabajo set ?`,[orden_trabajo])
+        await conect_sql.query(`INSERT INTO orden_trabajo set ?`,[orden_trabajo],(datos)=>{
+            //completar
+        })
     } catch (err) {
         if(err)throw err;
     }
 })
 
-router.get('/crear_orden_g',(req,res)=>{
-    res.render('layouts/crear_orden_trabajo_cliente_existe')
-})
+
 
 
 router.get('/sigin',(req,res)=>{
@@ -153,11 +158,17 @@ router.post('/sigin',(req,res)=>{ //completar
 router.get('/tecnico', async(req,res)=>{
 
     await mostrar_ordenes_espera(conect_sql,(respuesta)=>{
-        respuesta[0].fecha_creacion=(respuesta[0].fecha_creacion).toString().substring(0,10) //convierte la fehca y hora en solo fecha para mostrar
-        console.log(respuesta)
-        res.render('layouts/ordenes_trabajo_lista',{respuesta})
+        if(respuesta[0]==undefined){
+            let error_orden=[]
+            error_orden.push({text:"No hay mas Ordenes en Espera"})
+            res.render('layouts/ordenes_trabajo_lista',{error_orden})
+        }
+        else{
+            respuesta[0].fecha_creacion=(respuesta[0].fecha_creacion).toString().substring(0,10) //convierte la fehca y hora en solo fecha para mostrar
+            console.log(respuesta)
+            res.render('layouts/ordenes_trabajo_lista',{respuesta})
+        }
     })
-
 })
 
 router.get('/tecnico/misordenes',async(req,res)=>{
@@ -175,31 +186,29 @@ router.get('/tecnico/misordenes',async(req,res)=>{
 router.get('/tecnico/orden/:id',async(req,res)=>{         //---------------- MODIFICAR ORDENES ------------------
     console.log(req.params.id)
     let id_int=parseInt(req.params.id)
+    await validar_orden_id(conect_sql,id_int,(resultado)=>{
+        if(resultado){
+            mostrar_estados(conect_sql,1,(estados)=>{
 
-    if(await validar_orden_id(conect_sql,id_int)){
-
-        await mostrar_estados(conect_sql,1,(estados)=>{
-
-            select_from (conect_sql,"repuestos",(datos)=>{
+                select_from (conect_sql,"repuestos",(datos)=>{
+                
+                    traer_orden_id(conect_sql,id_int,(respuesta)=>{
+        
+                        respuesta[0].id_orden=(respuesta[0].id_orden).toString()
+                        respuesta[0].fk_marca=(respuesta[0].fk_marca).toString()
+                        respuesta[0].estado=(respuesta[0].estado).toString()
             
-                traer_orden_id(conect_sql,id_int,(respuesta)=>{
-    
-                    respuesta[0].id_orden=(respuesta[0].id_orden).toString()
-                    respuesta[0].fk_marca=(respuesta[0].fk_marca).toString()
-                    respuesta[0].estado=(respuesta[0].estado).toString()
-        
-                    console.log("orden de la bbdd: ",respuesta)
-                    //let para_mandar=respuesta[0]
-        
-                    res.render('layouts/modificar_orden',{respuesta,datos,estados})
+                        console.log("orden de la bbdd: ",respuesta)
+                        res.render('layouts/modificar_orden',{respuesta,datos,estados})
+                    })
                 })
             })
-        })
-        
-    }
-    else{
+        }
+        else{
+            res.status(404).send('no se encontro la orden')
+        }
+    })
 
-    }
 })
 
 router.post('/tecnico/orden/:id',async(req,res)=>{
@@ -329,19 +338,28 @@ router.get('/stock/mod/:dato', async(req,res)=>{   //completar -----------------
 
 })
 
-router.post('/stock/mod/:id',async(req,res)=>{
+router.post('/stock/mod/:id',async(req,res)=>{  //terminar
     console.log("datos post:",req.body)
-    const{id,nombre,modelo,marca,precio,distribuidor}=req.body
+    const{id,nombre,precio,distribuidor,descripcion}=req.body
     let id_int=parseInt(id);
     let precio_int=parseInt(precio);
     let datos={
         id:id_int,
         nombre:nombre,
-        modelo:modelo,
-        marca:marca,
         precio:precio_int,
-        distribuidor:distribuidor
+        distribuidor:distribuidor,
+        descripcion:descripcion
     }
+    await validar_repuerto_id(conect_sql,datos.id,(respuesta)=>{
+        if(respuesta){ //si existe
+            modificar_repuesto_id(conect_sql,datos,(respuesta2)=>{
+                res.redirect("/stock")
+            })
+        }
+        else{   //si el repesto no existe
+            res.status(404).send("no es encontro el repuesto")
+        }
+    })
     
 })
 

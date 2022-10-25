@@ -17,28 +17,20 @@
             <div class="mb-3">
                 <label for="dni" class="form-label">Seleccionar DNI</label>
                 <select class="form-select" name="dni" id="dni" required>
-                    <option value="" disabled></option>
+                    <option value=""selected disabled></option>
+                    {{#each datos_dni}}
+                    <option value="{{dni_id}}">{{dni}}</option>
+                    {{/each}}
                 </select>
                 <div class="feedback-invalid"></div>
             </div>
 
-            <div class="mb-3">
-                <label for="nombrecompleto" class="form-label">Nombre y Apellido</label>
-                <input type="text" class="form-control" name="nombrecompleto" id="nombrecompleto" pattern="[A-Za-záéíóúÁÉÍÓÚ ]{4,}" maxlength="50" required disabled>
-                <div class="feedback-invalid"></div>
-            </div>
-
-            <div class="row g-3">
-                <div class="col mb-3">
-                    <label class="form-label" for="marca">Marca</label>
-                    <input type="text" name="marca" class="form-control" id="marca" pattern="[A-Z a-záéíóúÁÉÍÓÚ0-9]{2,}" required>
-                </div>
-
-                <div class="col mb-3">
-                    <label class="form-label" for="modelo">Modelo</label>
-                    <input type="text" name="modelo" class="form-control" id="modelo" pattern="[A-Z a-záéíóúÁÉÍÓÚ0-9-]{2,}" required>
-                </div>
-            </div> 
+            <select name="tipo_equipo" id="tipo_equipo" class="form-select">
+                <option value="" selected disabled></option>
+                {{#each datos_equipo}}
+                    <option value="{{equipo_id}}">{{equipo}}</option>
+                {{/each}}
+            </select>
 
             <textarea class="form-control" name="descripcion_falla" id="" cols="80" rows="10" placeholder="Descripcion de la falla"></textarea><br>
 

@@ -80,7 +80,7 @@ function ingresar_stock (coneccion,datos,operacion,callback){ //trae la cantidad
 function modificar_repuesto_id(coneccion,datos,callback){ //trae la cantidad y suma o resta dependiento la "operacion"
   console.log(datos)
 
-  let query_sumar=`UPDATE repuestos SET nombre=${datos.nombre},modelo=${datos.modelo},precio=${datos.precio},marca=${datos.marca},distribuidor=${datos.distribuidor} WHERE id_repuesto=${datos.id_repuesto}`; 
+  let query_sumar=`UPDATE repuestos SET descripcion="${datos.descripcion}" ,nombre="${datos.nombre}",precio=${datos.precio},distribuidor="${datos.distribuidor}" WHERE id_repuesto=${datos.id}`; 
   coneccion.query(query_sumar, function(err,data){
     if(err) throw err;
     callback(data)
@@ -119,13 +119,6 @@ function validar_repuerto_id(coneccion,id,callback){ //revisa por id (int) si el
     }
 
   })
-
-  if(datos_validar==0){ //retorna true/false
-    return false
-  }
-  else{
-    return true
-  }
 }
 
 
@@ -159,7 +152,7 @@ function mostrar_repuesto_id(coneccion,id,callback){ //revisa por id (int) si el
 // ------------------------   ORDENES
 
 function mostrar_ordenes_espera(coneccion,callback){
-  let query=`SELECT fecha_creacion,fk_cliente,fk_recepcionista,descripcion_falla,marca.marca,modelo.modelo FROM orden_trabajo JOIN marca ON orden_trabajo.fk_marca = marca.id_marca JOIN modelo ON orden_trabajo.fk_modelo = modelo.id_modelo WHERE orden_trabajo.estado=2`;
+  let query=`SELECT fecha_creacion,fk_cliente,fk_recepcionista,descripcion_falla FROM orden_trabajo  WHERE orden_trabajo.estado=2`;
   coneccion.query(query, function(err,data){
     if(err) throw err;
     callback(data)
@@ -167,31 +160,27 @@ function mostrar_ordenes_espera(coneccion,callback){
 }
 
 function mostrar_mis_ordenes(coneccion,datos,callback){
-  let query=`SELECT  id_orden,fecha_creacion,fk_cliente,fk_recepcionista,descripcion_falla, marca.marca, modelo.modelo, estados.nombre FROM orden_trabajo JOIN marca ON orden_trabajo.fk_marca = marca.id_marca JOIN modelo ON orden_trabajo.fk_modelo= modelo.id_modelo JOIN estados ON orden_trabajo.estado =estados.id_estados WHERE fk_tecnico=${datos} AND estado != 5 AND estado != 6` ; //cambiar datos
+  let query=`SELECT  id_orden,fecha_creacion,fk_cliente,fk_recepcionista,descripcion_falla estados.nombre FROM orden_trabajo  JOIN estados ON orden_trabajo.estado =estados.id_estados WHERE fk_tecnico=${datos} AND estado != 5 AND estado != 6` ; //cambiar datos
   coneccion.query(query, function(err,data){
     if(err) throw err;
     callback(data)
   })
 }
 
-function validar_orden_id(coneccion,datos){  //si existe la orden retorna true 
-  let datos_validar
-
+function validar_orden_id(coneccion,datos,callback){  //si existe la orden retorna true 
   let query_validar=`SELECT COUNT(id_orden) AS id_orden FROM orden_trabajo WHERE id_orden = ${datos}`; 
   
-  coneccion.query(query_validar, function(err,rows){
+  coneccion.query(query_validar, function(err,dato){
     if(err) throw err;
-    datos_validar=rows[0].id_orden
-    console.log("datos de validar si existe: "+ datos_validar)
-
+    if(dato[0].id_orden==0){ //no existe = falso
+      callback(false)
+    }
+    else{
+      callback (true) //existe true
+    }
   })
 
-  if(datos_validar==0){ //retorna true/false
-    return false
-  }
-  else{
-    return true
-  }
+  
 }
 
 function traer_orden_id(coneccion,datos,callback){
@@ -324,7 +313,15 @@ function select_from(coneccion,tabla,callback){
   })
 }
 
+function insert (coneccion,tabla,datos){
+
+  coneccion.query(`INSERT INTO ${tabla} set ?`,[datos],function(err){
+    if(err) throw err;
+  })
+}
+
+
 module.exports={mostrar_repuesto,crear_repuesto,ingresar_stock,validar_repuerto_id,validar_usuario_id,mostrar_ordenes_espera,mostrar_mis_ordenes,
 validar_orden_id,traer_orden_id,mostrar_estados,contar_repuerto_id,mostrar_repuesto_id,modificar_repuesto_id,mostrar_marcas,mostrar_modelos,
-crear_marca,crear_modelo,buscar_marca_nombre,buscar_modelo_nombre,validar_marca_nombre,validar_modelo_nombre,select_from
+crear_marca,crear_modelo,buscar_marca_nombre,buscar_modelo_nombre,validar_marca_nombre,validar_modelo_nombre,select_from,insert
 }
