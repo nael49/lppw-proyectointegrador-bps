@@ -1,4 +1,35 @@
 const mysql=require('mysql')
+//------------------------   CLIENTE
+
+function mostrar_cliente_id(coneccion,dato,callback){
+  let query=`SELECT * FROM clientes WHERE dni=${dato}`;
+  coneccion.query(query, function(err,data){
+    if(err) throw err;
+    callback(data)
+  })
+}
+
+function update_cliente(coneccion,datos){
+  let query=`UPDATE clientes SET nombrecompleto='${datos.nombrecompleto}',celular=${datos.celular},direccion='${datos.direccion}',email='${datos.email}',localidad='${datos.localidad}' WHERE dni=${datos.dni}`;
+  coneccion.query(query, function(err){
+    if(err) throw err;
+
+  })
+}
+
+function validar_cliente_id(coneccion,dato,callback){
+  let query=`SELECT COUNT(dni) AS dni FROM clientes WHERE dni = ${dato}`;
+  coneccion.query(query, function(err,data){
+    if(err) throw err;
+    if(data[0].dni==0){
+      callback(false)
+    }
+    else{
+      callback(true)
+    }
+   
+  })
+}
 
 
 // ------------------------   USUARIOS
@@ -20,8 +51,8 @@ function mostrar_usuarios_g(coneccion,callback){
 }
 
 
-function validar_usuario_id(coneccion,id,tipo){ //revisa por id (int) si el repuesto existe
-  let datos_validar
+function validar_usuario_id(coneccion,id,tipo,callback){ //revisa por id (int) si el repuesto existe
+
   let query_validar
   if(tipo=1){
     query_validar=`SELECT COUNT(dni) AS dni FROM 'usuarios_tecnicos' WHERE dni = ${id}`; 
@@ -33,17 +64,17 @@ function validar_usuario_id(coneccion,id,tipo){ //revisa por id (int) si el repu
   
   coneccion.query(query_validar, function(err,rows){
     if(err) throw err;
-    datos_validar=rows[0].cantidad
-    console.log("datos de validar si existe: "+ datos_validar)
+    
+    if(rows[0].cantidad==0){ //retorna true si ya existe la pk/ false si no existe la pk
+      callback(false)
+    }
+    else{
+      callback(true)
+    }
 
   })
 
-  if(datos_validar==0){ //retorna true si ya existe la pk/ false si no existe la pk
-    return false
-  }
-  else{
-    return true
-  }
+  
 }
 
 
@@ -323,5 +354,6 @@ function insert (coneccion,tabla,datos){
 
 module.exports={mostrar_repuesto,crear_repuesto,ingresar_stock,validar_repuerto_id,validar_usuario_id,mostrar_ordenes_espera,mostrar_mis_ordenes,
 validar_orden_id,traer_orden_id,mostrar_estados,contar_repuerto_id,mostrar_repuesto_id,modificar_repuesto_id,mostrar_marcas,mostrar_modelos,
-crear_marca,crear_modelo,buscar_marca_nombre,buscar_modelo_nombre,validar_marca_nombre,validar_modelo_nombre,select_from,insert
+crear_marca,crear_modelo,buscar_marca_nombre,buscar_modelo_nombre,validar_marca_nombre,validar_modelo_nombre,select_from,insert,mostrar_cliente_id,update_cliente,
+validar_cliente_id
 }

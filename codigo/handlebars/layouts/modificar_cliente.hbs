@@ -1,0 +1,68 @@
+{{#each errores}}
+
+{{/each}}
+
+
+<div class="card mx-auto col-7 m-3">
+    <div class="card-header titulos">
+        Modificar Cliente
+    </div>
+    <div class="card-body">
+        <form  action="" method="POST" id="form_modificar_cliente">
+            {{#each respuesta}}
+                <input type="hidden" class="form-control" name="dni_cliente" id="dni_cliente"  value="{{dni}}">
+            {{/each}}
+
+            
+            <div class="mb-3">
+                <label for="dni_cliente" class="form-label">DNI</label>
+                {{#each respuesta}}
+                    <input type="number" class="form-control"  id="dni_cliente" disabled value="{{dni}}">
+                {{/each}}
+            </div>
+
+          
+            <div class="mb-3">
+                <label for="nombrecompleto" class="form-label">Nombre Completo</label>
+                {{#each respuesta}}
+                <input type="text" name="nombrecompleto" class="form-control" id="nombrecompleto"  value="{{nombrecompleto}}">
+                {{/each}}
+            </div>
+
+            <div class="row g-3">
+                <div class="mb-3 col">
+                    <label for="direccion" class="form-label">Direccion</label>
+                    {{#each respuesta}}
+                    <input type="text" name="direccion" class="form-control" id="direccion"  value="{{direccion}}">
+                    {{/each}}
+                </div> 
+
+                <div class="mb-3 col">
+                    <label for="localidad" class="form-label">Localidad</label>
+                    {{#each respuesta}}
+                    <input type="text" name="localidad" class="form-control" id="localidad"  value="{{localidad}}">
+                    {{/each}}
+                </div> 
+            </div>
+
+            <div class="mb-3 ">
+                <label for="email" class="form-label">Email</label>
+                {{#each respuesta}}
+                <input type="text" name="email" class="form-control" id="email"  value="{{email}}">
+                {{/each}}
+            </div> 
+
+            <div class="mb-3 ">
+                <label for="celular" class="form-label">Celular</label>
+                {{#each respuesta}}
+                <input type="number" name="celular" class="form-control" id="celular"  value="{{celular}}">
+                {{/each}}
+            </div> 
+            
+            <button type="submit" class=" mt-2 btn btn-primary">Guardar Cambios</button>
+
+        </form>
+    </div>
+</div>
+
+<script src=""></script>

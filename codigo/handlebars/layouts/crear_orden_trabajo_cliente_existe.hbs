@@ -24,15 +24,20 @@
                 </select>
                 <div class="feedback-invalid"></div>
             </div>
-
-            <select name="tipo_equipo" id="tipo_equipo" class="form-select">
-                <option value="" selected disabled></option>
-                {{#each respuesta}}
-                    <option value="{{id_equipo}}">{{tipo_equipo}}</option>
-                {{/each}}
-            </select>
-
-            <textarea class="form-control" name="descripcion_falla" id="" cols="80" rows="10" placeholder="Descripcion de la falla"></textarea><br>
+            <div class="mb-3">
+                <label for="tipo_equipo" class="form-label">Seleccionar Tipo de Equipo</label>
+                <select name="tipo_equipo" id="tipo_equipo" class="form-select">
+                    <option value="" selected disabled></option>
+                        {{#each respuesta}}
+                            <option value="{{id_equipo}}">{{tipo_equipo}}</option>
+                        {{/each}}
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <textarea class="form-control" name="descripcion_falla" id="" cols="80" rows="10" placeholder="Descripcion de la falla"></textarea><br>
+            </div>
+            
 
             <button type="submit" class="btn btn-primary">Submit</button>
 

@@ -4,7 +4,7 @@ const express=require('express');
 const router = express.Router();
 
 const conect_sql = require('../modelo_datos_bbdd/conexion_con_bbdd')
-const {crear_repuesto, ingresar_stock, validar_repuerto_id, mostrar_ordenes_espera, mostrar_mis_ordenes, validar_usuario_id, validar_orden_id, traer_orden_id, mostrar_estados, mostrar_repuesto_id,crear_marca, buscar_marca_nombre, buscar_modelo_nombre, crear_modelo, validar_marca_nombre, validar_modelo_nombre, select_from, modificar_repuesto_id, insert} = require('../modelo_datos_bbdd/operaciones')
+const {crear_repuesto, ingresar_stock, validar_repuerto_id, mostrar_ordenes_espera, mostrar_mis_ordenes, validar_orden_id, traer_orden_id, mostrar_estados, mostrar_repuesto_id,crear_marca, buscar_marca_nombre, buscar_modelo_nombre, crear_modelo, validar_marca_nombre, validar_modelo_nombre, select_from, modificar_repuesto_id, insert, mostrar_cliente_id, validar_cliente_id, update_cliente} = require('../modelo_datos_bbdd/operaciones')
 
 
 router.get('/gerente',(req,res)=>{
@@ -13,6 +13,94 @@ router.get('/gerente',(req,res)=>{
 
 router.get('/recepcionista',(req,res)=>{
     res.render('layouts/index-recepcionista')
+})
+
+router.get('/clientes',(req,res)=>{
+    select_from(conect_sql,"clientes",(respuesta)=>{
+        res.render('layouts/lista_clientes',{respuesta})
+    })
+    
+})
+
+router.get('/clientes/mod/:id',(req,res)=>{
+    if(!req.params.id){
+
+    }
+    else{
+        dni_int=parseInt(req.params.id)
+        mostrar_cliente_id(conect_sql,dni_int,(respuesta=>{
+            res.render('layouts/modificar_cliente',{respuesta})
+        }))
+    }
+})
+
+router.post('/clientes/mod/:id',async(req,res)=>{
+    const{dni_cliente,nombrecompleto,celular,localidad,direccion,email}=req.body
+    let error_orden=[]
+    console.log(dni_cliente)
+    console.log(req.params.id)
+    if(!dni_cliente ||  parseInt(dni_cliente)!= 'number'){
+        error_orden.push({text:'Error en el DNI'})
+    }
+    if(!nombrecompleto){
+        error_orden.push({text:'Error en el Nombre'})
+    }
+    if(!celular){
+        error_orden.push({text:'Error en el numero de celular'})
+    }
+    if(!localidad){
+        error_orden.push({text:'Error en la Localidad'})
+    }
+    if(!direccion){
+        error_orden.push({text:'Error en la direccion'})
+    }
+    if(!email){
+        error_orden.push({text:'Eroor en el Email'})
+    }
+    if(error_orden>0){
+        if(!dni_cliente ||  parseInt(dni_cliente)!= 'number'){
+            req.flash('exito_msg','no existe el cliente')
+            res.redirect('/clientes')
+        }
+        else{
+            res.render(`/clientes/mod/:${dni_cliente}`,{error_orden})
+        }
+        
+    }
+    else{
+        let dni_int=parseInt(dni_cliente)
+        let celular_int=parseInt(celular)
+
+        let cliente={
+            dni:dni_int,
+            nombrecompleto:nombrecompleto,
+            celular:celular_int,
+            direccion:direccion,
+            email:email,
+            localidad:localidad
+        }
+        console.log(cliente)
+
+        await validar_cliente_id(conect_sql,cliente.dni,(respuesta)=>{
+            if(respuesta){
+                try {
+                    update_cliente(conect_sql,cliente)
+                    req.flash('exito_msg','Cliente Modificado con exito')
+                    res.redirect('/clientes')
+                } catch (error) {
+                    req.flash('exito_msg','Error al crear cliente')
+                    res.redirect('/clientes')
+                }
+
+                
+            }
+            else{
+                req.flash('exito_msg','no existe el cliente')
+                res.redirect('/clientes')
+            }
+        })
+    }
+    
 })
 
 router.get('/crear_orden', async(req,res)=>{
