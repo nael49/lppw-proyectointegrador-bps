@@ -34,47 +34,30 @@ function validar_cliente_id(coneccion,dato,callback){
 
 // ------------------------   USUARIOS
 
-function mostrar_usuarios_t(coneccion,callback){
-  let query="SELECT * FROM usuarios_tecnicos";
-  coneccion.query(query, function(err,data){
-    if(err) throw err;
-    callback(data)
-  })
-}
 
-function mostrar_usuarios_g(coneccion,callback){
-  let query="SELECT * FROM usuarios_general";
-  coneccion.query(query, function(err,data){
-    if(err) throw err;
-    callback(data)
-  })
-}
-
-
-function validar_usuario_id(coneccion,id,tipo,callback){ //revisa por id (int) si el repuesto existe
-
-  let query_validar
-  if(tipo=1){
-    query_validar=`SELECT COUNT(dni) AS dni FROM 'usuarios_tecnicos' WHERE dni = ${id}`; 
-  }
-  else{
-    query_validar=`SELECT COUNT(dni) AS dni FROM 'usuarios_general' WHERE dni = ${id}`; 
-  }
-   
-  
+function validar_usuario_id(coneccion,id,callback){ //revisa por id (int) si el repuesto existe
+  let query_validar=`SELECT COUNT(dni) AS dni FROM usuarios_general WHERE dni = ${id}`; 
   coneccion.query(query_validar, function(err,rows){
     if(err) throw err;
     
-    if(rows[0].cantidad==0){ //retorna true si ya existe la pk/ false si no existe la pk
+    if(rows[0].dni==0){ //retorna true si ya existe la pk/ false si no existe la pk
       callback(false)
     }
     else{
       callback(true)
     }
+  })
+}
+
+function mostrar_usuario_id(coneccion,id,callback){ //revisa por id (int) si el repuesto existe
+
+  let query_validar=`SELECT *  FROM usuarios_general WHERE dni = ${id}`; 
+  
+  coneccion.query(query_validar, function(err,data){
+    if(err) throw err;
+    callback(data)
 
   })
-
-  
 }
 
 
@@ -355,5 +338,5 @@ function insert (coneccion,tabla,datos){
 module.exports={mostrar_repuesto,crear_repuesto,ingresar_stock,validar_repuerto_id,validar_usuario_id,mostrar_ordenes_espera,mostrar_mis_ordenes,
 validar_orden_id,traer_orden_id,mostrar_estados,contar_repuerto_id,mostrar_repuesto_id,modificar_repuesto_id,mostrar_marcas,mostrar_modelos,
 crear_marca,crear_modelo,buscar_marca_nombre,buscar_modelo_nombre,validar_marca_nombre,validar_modelo_nombre,select_from,insert,mostrar_cliente_id,update_cliente,
-validar_cliente_id
+validar_cliente_id,mostrar_usuario_id
 }

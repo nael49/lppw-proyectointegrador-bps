@@ -4,7 +4,7 @@ const express=require('express');
 const router = express.Router();
 
 const conect_sql = require('../modelo_datos_bbdd/conexion_con_bbdd')
-const {crear_repuesto, ingresar_stock, validar_repuerto_id, mostrar_ordenes_espera, mostrar_mis_ordenes, validar_orden_id, traer_orden_id, mostrar_estados, mostrar_repuesto_id,crear_marca, buscar_marca_nombre, buscar_modelo_nombre, crear_modelo, validar_marca_nombre, validar_modelo_nombre, select_from, modificar_repuesto_id, insert, mostrar_cliente_id, validar_cliente_id, update_cliente} = require('../modelo_datos_bbdd/operaciones')
+const {crear_repuesto, ingresar_stock, validar_repuerto_id, mostrar_ordenes_espera, mostrar_mis_ordenes, validar_orden_id, traer_orden_id, mostrar_estados, mostrar_repuesto_id,crear_marca, buscar_marca_nombre, buscar_modelo_nombre, crear_modelo, validar_marca_nombre, validar_modelo_nombre, select_from, modificar_repuesto_id, insert, mostrar_cliente_id, validar_cliente_id, update_cliente, validar_usuario_id, mostrar_usuario_id} = require('../modelo_datos_bbdd/operaciones')
 
 
 router.get('/gerente',(req,res)=>{
@@ -316,8 +316,23 @@ router.post('/tecnico/orden/:id',async(req,res)=>{
 
 })
 
-router.get('/admin',(req,res)=>{
-    res.render('layouts/lista_usuario')
+router.get('/admin',async (req,res)=>{
+    select_from(conect_sql,"usuarios_general",(respuesta)=>{
+        
+        for (let index = 0; index < respuesta.length; index++) {
+            respuesta[index].fecha_inicio=respuesta[index].fecha_inicio.substring(0, 10);
+                if(respuesta[index].estado==1){
+                    respuesta[index].estado="Habilitado"
+                }
+                else{
+                    respuesta[index].estado="Desabilitado"
+                }
+            console.log(respuesta[index].fecha_inicio)
+        }
+
+        res.render('layouts/lista_usuario',{respuesta})
+    })
+    
 })
 
 router.get('/admin/crear_usuario',(req,res)=>{
@@ -326,10 +341,13 @@ router.get('/admin/crear_usuario',(req,res)=>{
 
 router.post('/admin/crear_usuario', async(req,res)=>{
     console.log(req.body)
-    const {puesto,direccion,localidad,DNI,nombreyapellido,fecha_ingreso,numerocelular,email}= req.body
+    const {puesto,direccion,localidad,DNI,nombreyapellido,fecha_ingreso,numerocelular,email,pass}= req.body
 
     const error_orden=[]
 
+    if(!pass){
+        error_orden.push({text:'Contraseña incorrecta'})
+    }
     if(!direccion){
         error_orden.push({text:'Dni incorrecto'})
     }
@@ -372,44 +390,141 @@ router.post('/admin/crear_usuario', async(req,res)=>{
         fecha_inicio: fecha_ingreso,
         celular: numero_int,
         email:email,
-        estado:1
-    }
-    let nuevo_usuario_t={ //esquema para enviar a la base de datos (tecnico)
-        dni: dni_int,
-        nombrecompleto: nombreyapellido,
-        fecha_inicio: fecha_ingreso,
-        celular: numero_int,
-        email:email,
-        estado:1
+        estado:1,
+        pass:pass
     }
     
-    console.log("puesto elegido: "+puesto)
-    if(puesto=="TECNICO"){
-        try {
-            await conect_sql.query(`INSERT INTO usuarios_tecnicos set ?`,[nuevo_usuario_t])
-            let datos_enviar={text:'usuario creado'}
-            res.render('layouts/crear_usuario',{datos_enviar}) //se envia a la misma pagina con una alerta de creado
-            return
-            
-        } catch (err) {
-            if(err)throw err;
-        }
-    }
-    else{
-        try {
-            await conect_sql.query(`INSERT INTO usuarios_general set ?`,[nuevo_usuario_g])
+    try {
+        await validar_usuario_id(conect_sql,nuevo_usuario_g.dni,(respuesta)=>{
+            if (respuesta) {
+                req.flash('exito_msg',"ERROR !!! El usuario ya existe ")
+                res.redirect("/admin/crear_usuario") //completar con redirect
+            } 
+            else {
+                conect_sql.query(`INSERT INTO usuarios_general set ?`,[nuevo_usuario_g])
+                req.flash('exito_msg',"Usuario Creado con Exito ")
+                res.redirect("/admin") //completar con redirect
+            }
+        })
+     
 
-            let datos_enviar={text:'usuario creado'}
-            res.render('layouts/crear_usuario',{datos_enviar}) //se envia a la misma pagina con una alerta de creado
-            return
-        } catch (err) {
-            if(err)throw err;
-        }
+    } catch (err) {
+        if(err)throw err;
     }
-    res.send(200,"usuario creado") //completar con redirect
-    
+})
+
+router.get('/admin/mod/:id', async(req,res)=>{   //terminar
+    let id=req.params.id
+    let tipos_usuarios=["TECNICO","ADMINISTRADOR","RECEPCIONISTA","GERENTE","ADMIN. STOCK"]
+    let listfilter
+    let lista_enviar=[]
+    validar_usuario_id(conect_sql,id,(respuesta)=>{
+        if(respuesta){
+            mostrar_usuario_id(conect_sql,id,(respuesta2)=>{
+                
+                if(respuesta2[0].estado==1){
+                    for (let index = 0; index < tipos_usuarios.length; index++) {
+                        if (respuesta2[0].puesto==tipos_usuarios[index]) {
+                            listfilter= tipos_usuarios.filter((item) => item !== respuesta2[0].puesto)  
+
+                            for (let index = 0; index < listfilter.length; index++) {
+                                lista_enviar.push({puesto:listfilter[index]})
+                                
+                            }
+                        }
+                    }
+                    respuesta2[0].estado=true
+                    res.render('layouts/modificar_usuario',{respuesta:respuesta2,lista_enviar})
+                }
+                else{
+                    respuesta2[0].estado=false
+                    res.render('layouts/modificar_usuario',{respuesta:respuesta2,lista_enviar})
+                }
+               
+            })
+        }
+        else{
+            req.flash('exito_msg',"ERROR !!! El usuario no existe ")
+            res.redirect("/admin") //completar con redirect
+        }
+    })
 
 })
+
+router.post('/admin/mod/:id', async(req,res)=>{                      //terminar
+    console.log(req.body)
+    const{dni,pass,nombrecompleto,direccion,localidad,email,celular,puesto,estado}=req.body
+    let tipos_usuarios=["TECNICO","ADMINISTRADOR","RECEPCIONISTA","GERENTE","ADMIN. STOCK"]
+    let error_orden=[]
+
+
+    if(!dni){
+        error_orden.push({text:'no hay dni'})
+    }
+    if(!pass){
+        error_orden.push({text:'no ingreso una password'})
+    }
+    if(!nombrecompleto){
+        error_orden.push({text:'no ingreso el nombre completo'})
+    }
+    if(!direccion){
+        error_orden.push({text:'no ingreso una direccion'})
+    }
+    if(!localidad){
+        error_orden.push({text:'no ingreso una localidad'})
+    }
+    if(!email){
+        error_orden.push({text:'no ingreso un email'})
+    }
+    if(!celular){
+        error_orden.push({text:'no ingreso un celular'})
+    }
+    if(!puesto){
+        error_orden.push({text:'no ingreso un puesto'})
+    }
+    if(!estado || !isNaN(parseInt(estado)) || parseInt(estado)>2 ||parseInt(estado)<1){
+        error_orden.push({text:'no ingreso un estado valido'})
+    }
+    if(!tipos_usuarios.includes(puesto)){
+        error_orden.push({text:'no ingreso un puesto valido'})
+    }
+    if(error_orden.length>0){
+        if (!dni || !isNaN(parseInt(dni))) {
+            res.render('layouts/modificar_usuario',{error_orden})
+        } else {
+            res.render('layouts/modificar_usuario',{error_orden})
+        }
+    }
+
+
+    if(error_orden.length==0){
+        let dni_int=parseInt(dni)
+        let celular_int=parseInt(celular)
+        let estado_int=parseInt(estado)
+
+        let usuario={
+            dni:dni_int,
+            pass:pass,
+            nombrecompleto:nombrecompleto,
+            direccion:direccion,
+            localidad:localidad,
+            email:email,
+            celular:celular_int,
+            puesto:puesto,
+            estado:estado_int
+        }
+        validar_usuario_id(conect_sql,usuario,(respuesta)=>{  
+            if(respuesta){ //si existe el usuario
+
+            }
+            else{//si no existe el usuario
+
+            }
+        })
+
+    }
+})
+
 
 router.get('/stock', async(req,res)=>{
 

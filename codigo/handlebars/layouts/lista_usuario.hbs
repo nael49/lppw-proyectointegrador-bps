@@ -7,138 +7,33 @@
             <thead>
                 <tr>
                     <th>DNI</th>  
-                    <th>NOMBRE COMPLETO</th>
-                    <th>ESTADO</th>
-                    <th>PUESTO</th>
-                    <th>FECHA INGRESO</th>
-                    <th>CELULAR</th>
-                    <th>EMAIL</th>
-                    <th>MODIFICAR</th>    
-                    <th>ELIMINAR</th>
+                    <th>Nombre Completo</th>
+                    <th>Estado</th>
+                    <th>Puesto</th>
+                    <th>fecha Ingreso </th>
+                    <th>Celular</th>
+                    <th>Email</th>
+                    <th>Direccion</th>
+                    <th>Localidad</th>
+                    <th>Modificar</th>    
                 </tr>
             </thead>
             <tbody id="">
+              {{#each respuesta}}
                 <tr>
-                    <td >3</td>
-                    <td >3</td>
-                    <td >3</td>
-                    <td >1</td>
-                    <td >1</td>
-                    <td >1</td>
-                    <td >1</td>
-                    <td><a data-bs-toggle="modal" data-bs-target="#modificar_user" href="">Modificar</a></td>     <!-- BOTON MODIFICAR USUARIO-->
-                    <td><a data-bs-toggle="modal" data-bs-target="#eliminar" href="">eliminar</a></td>
-
+                    <td >{{dni}}</td>
+                    <td >{{nombrecompleto}}</td>
+                    <td >{{estado}}</td>
+                    <td >{{puesto}}</td>
+                    <td >{{fecha_inicio}}</td>
+                    <td >{{celular}}</td>
+                    <td >{{email}}</td>
+                    <td >{{direccion}}</td>
+                    <td >{{localidad}}</td>
+                    <td><a class="btn btn-primary" href="admin/mod/{{dni}}">Modificar</a></td>     <!-- BOTON MODIFICAR USUARIO-->
                 </tr>
-                <tr>
-                    <td >3</td>
-                    <td >3</td>
-                    <td >1</td>
-                    <td >1</td>
-                    <td >1</td>
-                    <td >3</td>
-                    <td >1</td>
-                    <td><a data-bs-toggle="modal" data-bs-target="#modificar_user" href="">Modificar</a> </td>     <!-- BOTON MODIFICAR USUARIO-->
-                    <td><a data-bs-toggle="modal" data-bs-target="#eliminar" href="">eliminar</a> </td>
-
-                </tr>
-                <tr>
-                    <td >3</td>
-                    <td >3</td>
-                    <td >1</td>
-                    <td >1</td>
-                    <td >1</td>
-                    <td >3</td>
-                    <td >1</td>
-                    <td><a data-bs-toggle="modal" data-bs-target="#modificar_user" href="">Modificar</a></td>     <!-- BOTON MODIFICAR USUARIO-->
-                    <td><a data-bs-toggle="modal" data-bs-target="#eliminar" href="">eliminar</a></td>
-                </tr>
+              {{/each}}
             </tbody>
         </table>
     </div>
-</div>
-
-
-<!-- MODAL MODIFICAR USUARIO-->
-
-<div class="modal" id="modificar_user" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Modificar Usuario</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        
-        <form action="" method="post" id="form_crear_usuario">
-
-            <div class="mb-3">
-                <label for="nombreyapellido" class="form-label">Nombre y Apellido</label>
-                <input type="text" class="form-control" name="nombreyapellido" pattern="[A-Za-záéíóúÁÉÍÓÚ0-9]{4,}( [A-Za-záéíóúÁÉÍÓÚ0-9]{4,}){1,}" id="nombreyapellido" required>
-                <div class="feedback-invalid"></div>
-            </div>
-
-            <div class="row g-3">
-                <div class="col mb-3">
-                    <label for="DNI" class="form-label">DNI</label>
-                    <input type="number" name="DNI" class="form-control" id="DNI" min="111111" max="999999999" required>
-                </div>
-
-                <div class="col mb-3">
-                    <label for="puesto" class="form-label">PUESTO</label>
-                    <select class="form-control" name="puesto" id="puesto" required>
-                        <option value="" selected disabled></option>
-                        <option value="ADMIN">ADMIN</option>
-                        <option value="RECEPCIONISTA">RECEPCIONISTA</option>
-                        <option value="TECNICO">TECNICO</option>
-                        <option value="GERENTE">GERENTE</option>
-                        <option value="ADMINISTRADOR DE DEPOSITO">ADMINISTRADOR DE DEPOSITO</option>
-                    </select>
-                </div>
-            </div>
-             
-             <div class="row g-3">
-                <div class="mb-3 col">
-                    <label for="fecha_ingreso" class="form-label">FECHA DE INGRESO</label>
-                    <input type="date" name="fecha_ingreso" class="form-control" id="fecha_ingreso" required>
-                </div>
-
-                <div class="mb-3 col">
-                    <label class="form-label" for="numerocelular">Numero de Celular del usuario</label>
-                    <input type="number" name="numerocelular" class="form-control" id="numerocelular" min="1111111111" max="999999999" required>
-                </div>
-             </div>
-
-            <div class="mb-3">
-                <label class="form-label" for="email">Email</label>
-                <input type="email" name="email" class="form-control" id="email" required>
-            </div>
-
-            <button type="submit" class="btn btn-primary">Modificar</button>
-
-        </form>
-      </div>
-    </div>
-  </div>
-</div>
-
-
-<!-- BOTON ELIMINAR USUARIO-->
-
-<div class="modal" id="eliminar" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">eliminar</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <p>¿Estas seguro de desabilitar este usuario?</p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-primary">Eliminar</button>
-      </div>
-    </div>
-  </div>
 </div>

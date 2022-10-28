@@ -7,7 +7,7 @@
 
 <div class="card mx-auto col-7 m-3">
     <div class="card-header titulos">
-        Crear nueva Usuario
+        Crear nuevo Usuario
     </div>
     <div class="card-body">
 
@@ -70,6 +70,12 @@
             <div class="mb-3">
                 <label class="form-label" for="email">Email</label>
                 <input type="email" name="email" class="form-control" id="email" required pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$">
+                <div class="feedback-invalid"></div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label" for="email">Contraseña</label>
+                <input type="password" name="pass" id="pass" minlength="3" maxlength="20">
                 <div class="feedback-invalid"></div>
             </div>
 
