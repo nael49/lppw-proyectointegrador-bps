@@ -4,7 +4,7 @@ const express=require('express');
 const router = express.Router();
 
 const conect_sql = require('../modelo_datos_bbdd/conexion_con_bbdd')
-const {crear_repuesto, ingresar_stock, validar_repuerto_id, mostrar_ordenes_espera, mostrar_mis_ordenes, validar_orden_id, traer_orden_id, mostrar_estados, mostrar_repuesto_id,crear_marca, buscar_marca_nombre, buscar_modelo_nombre, crear_modelo, validar_marca_nombre, validar_modelo_nombre, select_from, modificar_repuesto_id, insert, mostrar_cliente_id, validar_cliente_id, update_cliente, validar_usuario_id, mostrar_usuario_id} = require('../modelo_datos_bbdd/operaciones')
+const {crear_repuesto, ingresar_stock, validar_repuerto_id, mostrar_ordenes_espera, mostrar_mis_ordenes, validar_orden_id, traer_orden_id, mostrar_estados, mostrar_repuesto_id,crear_marca, buscar_marca_nombre, buscar_modelo_nombre, crear_modelo, validar_marca_nombre, validar_modelo_nombre, select_from, modificar_repuesto_id, insert, mostrar_cliente_id, validar_cliente_id, update_cliente, validar_usuario_id, mostrar_usuario_id, update, update_usuario, login} = require('../modelo_datos_bbdd/operaciones')
 
 
 router.get('/gerente',(req,res)=>{
@@ -247,9 +247,72 @@ router.post('/crear_orden_existe_cliente',async(req,res)=>{  //completar
 router.get('/sigin',(req,res)=>{
     res.render('layouts/sigin')
 })
-router.post('/sigin',(req,res)=>{ //completar
-    res.render('layouts/sigin')
+
+router.post('/sigin',async(req,res)=>{ //completar
+    const{usuario,contraseña}=req.body
+    let error_orden=[]
+    if(!usuario){
+        error_orden.push({text:'Ingrese usuario'})
+    }
+    if(!contraseña){
+        error_orden.push({text:'Ingrese contrseña'})
+    }
+    if(error_orden.length>0){
+        res.render('layouts/sigin',{error_orden})
+    }
+    if(error_orden.length==0){ 
+        let int_usuario=parseInt(usuario)
+        let int_pass=parseInt(contraseña)
+
+        let nuevo_usuario={
+            usuario:int_usuario,
+            contraseña:int_pass
+        }
+    
+        await login(conect_sql,nuevo_usuario,(respuesta)=>{
+            if(respuesta[0]){
+                console.log('existe el usaario')
+                if(respuesta[0].dni=nuevo_usuario.usuario){
+                    console.log(respuesta)
+                    req.session.user = nuevo_usuario.usuario;
+                    req.session.puesto = respuesta[0].puesto;
+        
+                    if(respuesta[0].puesto=="TECNICO"){
+                        res.redirect('/tecnico')
+                    }
+                    if(respuesta[0].puesto=="ADMIN"){
+                        res.redirect('/admin')
+                    }
+                    if(respuesta[0].puesto=="RECEPCIONISTA"){
+                        res.redirect('/recepcionista')
+                    }
+                    if(respuesta[0].puesto=="GERENTE"){
+                        res.redirect('/gerente')
+                    }
+                    if(respuesta[0].puesto=="ADMINISTRADOR_DE_DEPOSITO"){
+                        res.redirect('/stock')
+                    }
+                }
+                else{
+                    req.flash('exito_msg','Usuario y/o contraseña invalido')
+                    res.redirect('/login')
+                }
+            }
+            else{
+                console.log('no existe el usuario')
+                req.flash('exito_msg','Usuario y/o contraseña invalido')
+                res.redirect('/login')
+            }
+
+            
+        })
+    }
 })
+
+router.get('/logout', (req, res) => {
+    req.session.destroy();
+    res.redirect('/sigin');
+});
 
 router.get('/tecnico', async(req,res)=>{
 
@@ -279,7 +342,7 @@ router.get('/tecnico/misordenes',async(req,res)=>{
     }
 })
 
-router.get('/tecnico/orden/:id',async(req,res)=>{         //---------------- MODIFICAR ORDENES ------------------
+router.get('/tecnico/orden/:id',async(req,res)=>{        //---------------- MODIFICAR ORDENES ------------------ COMPLETAR
     console.log(req.params.id)
     let id_int=parseInt(req.params.id)
     await validar_orden_id(conect_sql,id_int,(resultado)=>{
@@ -290,9 +353,8 @@ router.get('/tecnico/orden/:id',async(req,res)=>{         //---------------- MOD
                 
                     traer_orden_id(conect_sql,id_int,(respuesta)=>{
         
-                        respuesta[0].id_orden=(respuesta[0].id_orden).toString()
-                        respuesta[0].fk_marca=(respuesta[0].fk_marca).toString()
-                        respuesta[0].estado=(respuesta[0].estado).toString()
+                        respuesta[0].id_orden=(respuesta[0].id_orden)
+                        respuesta[0].estado=(respuesta[0].estado)
             
                         console.log("orden de la bbdd: ",respuesta)
                         res.render('layouts/modificar_orden',{respuesta,datos,estados})
@@ -490,7 +552,8 @@ router.post('/admin/mod/:id', async(req,res)=>{                      //terminar
     }
     if(error_orden.length>0){
         if (!dni || !isNaN(parseInt(dni))) {
-            res.render('layouts/modificar_usuario',{error_orden})
+            req.flash('exito_msg',"ERROR !!! El usuario no existe ")
+            res.redirect('/admin')
         } else {
             res.render('layouts/modificar_usuario',{error_orden})
         }
@@ -515,10 +578,13 @@ router.post('/admin/mod/:id', async(req,res)=>{                      //terminar
         }
         validar_usuario_id(conect_sql,usuario,(respuesta)=>{  
             if(respuesta){ //si existe el usuario
-
+                update_usuario(conect_sql,"usuarios_general",usuario) //actualiza la tabla
+                req.flash('exito_msg',"El usuario fue actualizado correctamente ")
+                res.redirect('/admin')
             }
             else{//si no existe el usuario
-
+                req.flash('exito_msg',"ERROR !!! El usuario no existe ")
+                res.redirect('/admin')
             }
         })
 

@@ -6,6 +6,7 @@ const methodoverride= require('method-override');
 const sesion=require('express-session')
 const flash=require('connect-flash');
 const { reset } = require('nodemon');
+const cookieparser=require('cookie-parser')
 
 //inicializacion
 const app = express();
@@ -29,10 +30,12 @@ app.use(express.text())
 app.use(express.json())
 
 app.use(methodoverride('_method'));
+app.use(cookieparser('secret'))
 app.use(sesion({
+    cookie: { maxAge: 600000 },
     secret:'secreto',
     resave:true,
-    saveUninitialized:true
+    saveUninitialized:true,
 }))
 
 app.use(flash())

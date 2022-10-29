@@ -34,6 +34,14 @@ function validar_cliente_id(coneccion,dato,callback){
 
 // ------------------------   USUARIOS
 
+function login(coneccion,datos,callback){
+  let query=`SELECT nombrecompleto,puesto,dni  FROM usuarios_general WHERE dni = ${datos.usuario} AND pass =${datos.contraseña}`; 
+  coneccion.query(query, function(err,data){
+    if(err) throw err;
+    console.log('datos traidos del login',data)
+    callback(data)
+    }
+)}
 
 function validar_usuario_id(coneccion,id,callback){ //revisa por id (int) si el repuesto existe
   let query_validar=`SELECT COUNT(dni) AS dni FROM usuarios_general WHERE dni = ${id}`; 
@@ -46,6 +54,13 @@ function validar_usuario_id(coneccion,id,callback){ //revisa por id (int) si el 
     else{
       callback(true)
     }
+  })
+}
+
+function update_usuario(coneccion,tabla,datos){
+
+  coneccion.query(`update ${tabla} set ? WHERE dni=${datos.dni}`,[datos],function(err){
+    if(err) throw err;
   })
 }
 
@@ -174,7 +189,7 @@ function mostrar_ordenes_espera(coneccion,callback){
 }
 
 function mostrar_mis_ordenes(coneccion,datos,callback){
-  let query=`SELECT  id_orden,fecha_creacion,fk_cliente,fk_recepcionista,descripcion_falla estados.nombre FROM orden_trabajo  JOIN estados ON orden_trabajo.estado =estados.id_estados WHERE fk_tecnico=${datos} AND estado != 5 AND estado != 6` ; //cambiar datos
+  let query=`SELECT  id_orden,fecha_creacion,fk_cliente,fk_recepcionista,descripcion_falla ,estados.nombre FROM orden_trabajo  JOIN estados ON orden_trabajo.estado =estados.id_estados WHERE fk_tecnico=${datos} AND estado != 5 AND estado != 6` ; //cambiar datos
   coneccion.query(query, function(err,data){
     if(err) throw err;
     callback(data)
@@ -198,7 +213,7 @@ function validar_orden_id(coneccion,datos,callback){  //si existe la orden retor
 }
 
 function traer_orden_id(coneccion,datos,callback){
-  let query=`SELECT  id_orden,descripcion_falla,fk_marca, marca.marca, modelo.modelo,estado,estados.nombre FROM orden_trabajo JOIN marca ON orden_trabajo.fk_marca = marca.id_marca JOIN modelo ON orden_trabajo.fk_modelo= modelo.id_modelo JOIN estados ON orden_trabajo.estado =estados.id_estados WHERE id_orden=${datos}` ; 
+  let query=`SELECT  id_orden,descripcion_falla,estados.nombre FROM orden_trabajo  JOIN estados ON orden_trabajo.estado =estados.id_estados WHERE id_orden=${datos}` ; 
   coneccion.query(query, function(err,data){
     if(err) throw err;
     callback(data)
@@ -329,14 +344,18 @@ function select_from(coneccion,tabla,callback){
 
 function insert (coneccion,tabla,datos){
 
-  coneccion.query(`INSERT INTO ${tabla} set ?`,[datos],function(err){
+  coneccion.query(`INSERT INTO ${tabla} set ?`,[datos],function(err,data){
     if(err) throw err;
+    console.log(data)
   })
 }
+
+
+
 
 
 module.exports={mostrar_repuesto,crear_repuesto,ingresar_stock,validar_repuerto_id,validar_usuario_id,mostrar_ordenes_espera,mostrar_mis_ordenes,
 validar_orden_id,traer_orden_id,mostrar_estados,contar_repuerto_id,mostrar_repuesto_id,modificar_repuesto_id,mostrar_marcas,mostrar_modelos,
 crear_marca,crear_modelo,buscar_marca_nombre,buscar_modelo_nombre,validar_marca_nombre,validar_modelo_nombre,select_from,insert,mostrar_cliente_id,update_cliente,
-validar_cliente_id,mostrar_usuario_id
+validar_cliente_id,mostrar_usuario_id,update_usuario,login
 }
