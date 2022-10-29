@@ -1,4 +1,5 @@
 const mysql=require('mysql')
+const conect_sql=require('./conexion_con_bbdd')
 //------------------------   CLIENTE
 
 function mostrar_cliente_id(coneccion,dato,callback){
@@ -33,6 +34,21 @@ function validar_cliente_id(coneccion,dato,callback){
 
 
 // ------------------------   USUARIOS
+function tipo_usuario(coneccion,id,callback){
+  let query=`SELECT puesto FROM usuarios_general WHERE dni = ${id}`; 
+  coneccion.query(query, function(err,data){
+    if(err) throw err;
+    console.log('datos traidos del login',data[0].puesto)
+    callback(data[0].puesto)
+    }
+)}
+
+function deshabilitar_usuario(coneccion,id){
+  let query=`UPDATE usuarios_general SET estado=0 WHERE dni = ${id}`; 
+  coneccion.query(query, function(err,data){
+    if(err) throw err;
+    }
+)}
 
 function login(coneccion,datos,callback){
   let query=`SELECT nombrecompleto,puesto,dni  FROM usuarios_general WHERE dni = ${datos.usuario} AND pass =${datos.contraseña}`; 
@@ -74,6 +90,7 @@ function mostrar_usuario_id(coneccion,id,callback){ //revisa por id (int) si el 
 
   })
 }
+
 
 
 // ------------------------   REPUESTOS
@@ -179,9 +196,17 @@ function mostrar_repuesto_id(coneccion,id,callback){ //revisa por id (int) si el
 
 
 // ------------------------   ORDENES
-
 function mostrar_ordenes_espera(coneccion,callback){
-  let query=`SELECT fecha_creacion,fk_cliente,fk_recepcionista,descripcion_falla FROM orden_trabajo  WHERE orden_trabajo.estado=2`;
+  let query=`SELECT id_orden,fecha_creacion,fk_cliente,fk_recepcionista,descripcion_falla FROM orden_trabajo  WHERE orden_trabajo.estado=2`;
+  coneccion.query(query, function(err,data){
+    if(err) throw err;
+    callback(data)
+  })
+}
+
+
+function mostrar_ordenes_para_retirar(coneccion,callback){
+  let query=`SELECT id_orden,fk_cliente,clientes.nombrecompleto,descripcion_falla,tipo_equipo.tipo_equipo FROM orden_trabajo JOIN clientes ON orden_trabajo.fk_cliente =clientes.dni JOIN tipo_equipo on orden_trabajo.fk_tipo_equipo = tipo_equipo.id_tipo WHERE orden_trabajo.estado=5 `;
   coneccion.query(query, function(err,data){
     if(err) throw err;
     callback(data)
@@ -221,6 +246,14 @@ function traer_orden_id(coneccion,datos,callback){
 }
 
 
+function tomar_orden(coneccion,datos,id_orden,callback){ //terminar
+
+    coneccion.query(`UPDATE  orden_trabajo  set estado = 4, fk_tecnico=${datos}   WHERE id_orden = ${id_orden}`  , function(err,data){
+      if(err) throw err;
+      callback(data)
+    })
+}
+
 
 
 //-------------------------------ESTADOS
@@ -228,7 +261,7 @@ function traer_orden_id(coneccion,datos,callback){
 function mostrar_estados(coneccion,selector,callback){
   let query
   if(selector==1){
-    query="SELECT * FROM estados WHERE id_estados!=6";
+    query="SELECT * FROM estados WHERE id_estados!=6 ";
   }
   else{
     query="SELECT * FROM estados ";
@@ -352,10 +385,8 @@ function insert (coneccion,tabla,datos){
 
 
 
-
-
 module.exports={mostrar_repuesto,crear_repuesto,ingresar_stock,validar_repuerto_id,validar_usuario_id,mostrar_ordenes_espera,mostrar_mis_ordenes,
 validar_orden_id,traer_orden_id,mostrar_estados,contar_repuerto_id,mostrar_repuesto_id,modificar_repuesto_id,mostrar_marcas,mostrar_modelos,
 crear_marca,crear_modelo,buscar_marca_nombre,buscar_modelo_nombre,validar_marca_nombre,validar_modelo_nombre,select_from,insert,mostrar_cliente_id,update_cliente,
-validar_cliente_id,mostrar_usuario_id,update_usuario,login
+validar_cliente_id,mostrar_usuario_id,update_usuario,login,tipo_usuario,tomar_orden,deshabilitar_usuario,mostrar_ordenes_para_retirar
 }

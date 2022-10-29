@@ -60,11 +60,21 @@
                     {{/each}}
                 </select>
             </div>
-            <textarea class="form-control" name="descripcion_falla" id="" cols="80" rows="10" placeholder="Descripcion de la falla"></textarea><br>
+            <div class="mb-3">
+                <textarea class="form-control" name="descripcion_falla" id="" cols="80" rows="10" placeholder="Descripcion de la falla" required></textarea>
+            </div>
+            <div class="mb-3">
+                <textarea class="form-control" name="datos_importantes" id="" cols="80" rows="10" placeholder="Datos del aparato"></textarea>
+            </div>
 
-            <button type="submit" class=" btn btn-primary">Crear Orden</button>
-
+            <div class="row g-3">
+                <div class="mb-3 col">
+                    <button type="submit" class=" btn btn-primary">Crear Orden</button>
+                </div>
+                <div class="mb-3 col" >
+                    <a class="btn btn-secondary" href="/recepcionista">Cancelar</a>
+                </div>
+            </div>
         </form>
-
     </div>
 </div>

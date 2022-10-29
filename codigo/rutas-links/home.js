@@ -4,22 +4,23 @@ const express=require('express');
 const router = express.Router();
 
 const conect_sql = require('../modelo_datos_bbdd/conexion_con_bbdd')
-const {crear_repuesto, ingresar_stock, validar_repuerto_id, mostrar_ordenes_espera, mostrar_mis_ordenes, validar_orden_id, traer_orden_id, mostrar_estados, mostrar_repuesto_id,crear_marca, buscar_marca_nombre, buscar_modelo_nombre, crear_modelo, validar_marca_nombre, validar_modelo_nombre, select_from, modificar_repuesto_id, insert, mostrar_cliente_id, validar_cliente_id, update_cliente, validar_usuario_id, mostrar_usuario_id, update, update_usuario, login} = require('../modelo_datos_bbdd/operaciones')
+const {crear_repuesto, ingresar_stock, validar_repuerto_id, mostrar_ordenes_espera, mostrar_mis_ordenes, validar_orden_id, traer_orden_id, mostrar_estados, mostrar_repuesto_id,crear_marca, buscar_marca_nombre, buscar_modelo_nombre, crear_modelo, validar_marca_nombre, validar_modelo_nombre, select_from, modificar_repuesto_id, insert, mostrar_cliente_id, validar_cliente_id, update_cliente, validar_usuario_id, mostrar_usuario_id, update, update_usuario, login, mostrar_repuesto, tipo_usuario, tomar_orden, deshabilitar_usuario, mostrar_ordenes_para_retirar} = require('../modelo_datos_bbdd/operaciones')
 
 
 router.get('/gerente',(req,res)=>{
     res.render('layouts/gerente_index')
 })
 
-router.get('/recepcionista',(req,res)=>{
-    res.render('layouts/index-recepcionista')
+router.get('/recepcionista',async(req,res)=>{
+    await mostrar_ordenes_para_retirar(conect_sql,(respuesta)=>{
+        res.render('layouts/index-recepcionista',{respuesta})
+    })
 })
 
 router.get('/clientes',(req,res)=>{
     select_from(conect_sql,"clientes",(respuesta)=>{
         res.render('layouts/lista_clientes',{respuesta})
     })
-    
 })
 
 router.get('/clientes/mod/:id',(req,res)=>{
@@ -110,9 +111,9 @@ router.get('/crear_orden', async(req,res)=>{
     
 })
 
-router.post('/crear_orden_p',async(req,res)=>{  //ejemplo de crear un cliente en sql
+router.post('/crear_orden',async(req,res)=>{ 
     console.log(req.body)
-    const { nombrecompleto , dni, localidad, direccion,celular,email,tipo_equipo,descripcion_falla } = req.body;
+    const { nombrecompleto , dni, localidad, direccion, celular, email, tipo_equipo, descripcion_falla, datos_importantes } = req.body;
     const error_orden=[]
 
     if(!nombrecompleto){
@@ -159,28 +160,30 @@ router.post('/crear_orden_p',async(req,res)=>{  //ejemplo de crear un cliente en
         celular_int=parseInt(celular)
         dni_int =parseInt(dni)
 
+
         let cliente={
             dni : dni_int,
-            nombrecompleto,
+            nombrecompleto: nombrecompleto,
             celular : celular_int,
-            direccion,
-            email,
-            localidad
+            direccion:direccion,
+            email:email,
+            localidad:localidad
         }
         let orden_trabajo={  //por ahora con esto sirve
             fk_cliente:dni_int,
             descripcion_falla:descripcion_falla,
             fk_tipo_equipo:tipo_equipo_int,
-            fk_tecnico:35122299
+            fk_recepcionista:req.session.id,
+            datos_importantes:datos_importantes
         }
 
         try {
             let query=`SELECT COUNT(dni) AS ID FROM clientes WHERE dni =${cliente.dni}`
-            await conect_sql.query(query,function(err, dato){ //revisa si ya existe el dni
+            await conect_sql.query(query,function(err, dato){           //---------------Revisa si ya existe el dni
                 if(err)throw err;
                 if(dato[0].ID!=0){ //si ya xiste
                     req.flash('exito_msg','El cliente ya existe')
-                    re.redirect('/crear_orden_g')
+                    re.redirect('/crear_orden_cliente_existe')
                     return
                 }
                 else{ //si el cliente no existe
@@ -189,56 +192,81 @@ router.post('/crear_orden_p',async(req,res)=>{  //ejemplo de crear un cliente en
                         insert(conect_sql,"orden_trabajo",orden_trabajo)
                         req.flash('exito_msg','Orden de Trabajo creada con Exito')
                         res.redirect('/recepcionista')
-                    } catch (error) {
+                    } 
+                    catch (error) {
                         
                     }
                     
-                    };
-                })
-            }
+                };
+            })
+        }
         catch (err) {
             console.log("huno un error")
             throw err;
-            }
+        }
 
     }
 })
 
-router.get('/crear_orden_g',async(req,res)=>{
+router.get('/crear_orden_cliente_existe',async(req,res)=>{
     await select_from(conect_sql,"tipo_equipo",(respuesta)=>{
         select_from(conect_sql,"clientes",(datos_dni)=>{
-            res.render('layouts/crear_orden_trabajo_cliente_existe',{respuesta,datos_dni})
+            select_from(conect_sql,"tipo_equipo",(respuesta2)=>{
+                res.render('layouts/crear_orden_trabajo_cliente_existe',{respuesta,datos_dni,respuesta2})
+            })
         })
         
     })
 })
 
-router.post('/crear_orden_existe_cliente',async(req,res)=>{  //completar
-    const{dni,descripcion_falla}= req.body
+router.post('/crear_orden_cliente_existe',async(req,res)=>{  
+    const{dni,descripcion_falla,tipo_equipo}= req.body
     const error_orden=[]
 
-    if(!dni){
+    if(!tipo_equipo || isNaN(parseInt(tipo_equipo))){
+        error_orden.push({text:'Tipo de equipo incorrecto'})
+    }
+    if(!dni || isNaN(parseInt(dni))){
         error_orden.push({text:'Dni incorrecto'})
     }
 
     if(!descripcion_falla){
         error_orden.push({text:'falta Descripcion'})
     }
-    let int_dni=parseInt(dni)
 
-    let orden_trabajo={ //esquema para enviar a la base de datos
-        estado: 2,
-        descripcion_falla: descripcion_falla,
-        fk_cliente: int_dni
+    if(error_orden.length>0){
+        req.render('layouts/crear_orden_trabajo_cliente_existe',{error_orden})
+    }
+    if(error_orden.length==0){
+        let int_dni=parseInt(dni)
+        let tipo_equipo_int=parseInt(tipo_equipo)
+
+        let orden_trabajo={ //esquema para enviar a la base de datos
+            estado: 2,
+            descripcion_falla: descripcion_falla,
+            fk_cliente: int_dni,
+            fk_tipo_equipo:tipo_equipo_int,
+            fk_recepcionista:req.session.id
+        }
+        
+        try {
+            await validar_cliente_id(conect_sql,dni,(respuesta)=>{
+                if (respuesta) {
+                    conect_sql.query(`INSERT INTO orden_trabajo set ?`,[orden_trabajo])
+                    req.flash('exito_msg','Orden de Trabajo Creada')
+                    res.redirect('/recepcionista')
+                } else {
+                    req.flash('exito_msg','El cliente no existe')
+                    res.redirect('/crear_orden')
+                }
+            })
+                
+        } catch (err) {
+            if(err)throw err;
+            res.redirect('/recepcionista')
+        }
     }
     
-    try {
-        await conect_sql.query(`INSERT INTO orden_trabajo set ?`,[orden_trabajo],(datos)=>{
-            //completar
-        })
-    } catch (err) {
-        if(err)throw err;
-    }
 })
 
 
@@ -248,13 +276,13 @@ router.get('/sigin',(req,res)=>{
     res.render('layouts/sigin')
 })
 
-router.post('/sigin',async(req,res)=>{ //completar
+router.post('/sigin',async(req,res)=>{ 
     const{usuario,contraseña}=req.body
     let error_orden=[]
-    if(!usuario){
+    if(!usuario || isNaN(parseInt(usuario))){
         error_orden.push({text:'Ingrese usuario'})
     }
-    if(!contraseña){
+    if(!contraseña || isNaN(parseInt(contraseña))){
         error_orden.push({text:'Ingrese contrseña'})
     }
     if(error_orden.length>0){
@@ -271,25 +299,32 @@ router.post('/sigin',async(req,res)=>{ //completar
     
         await login(conect_sql,nuevo_usuario,(respuesta)=>{
             if(respuesta[0]){
-                console.log('existe el usaario')
+                console.log('existe el usuario')
                 if(respuesta[0].dni=nuevo_usuario.usuario){
-                    console.log(respuesta)
+                    console.log("mostrando respuesta", respuesta)
                     req.session.user = nuevo_usuario.usuario;
                     req.session.puesto = respuesta[0].puesto;
+                    req.session.nombre=respuesta[0].nombrecompleto
+                    console.log("sesion: ",req.session.id)
         
                     if(respuesta[0].puesto=="TECNICO"){
+                        req.session.tecnico=1
                         res.redirect('/tecnico')
                     }
                     if(respuesta[0].puesto=="ADMIN"){
+                        req.session.admin=1
                         res.redirect('/admin')
                     }
                     if(respuesta[0].puesto=="RECEPCIONISTA"){
+                        req.session.recepcionista=1
                         res.redirect('/recepcionista')
                     }
                     if(respuesta[0].puesto=="GERENTE"){
+                        req.session.gerente=1
                         res.redirect('/gerente')
                     }
                     if(respuesta[0].puesto=="ADMINISTRADOR_DE_DEPOSITO"){
+                        req.session.stock=1
                         res.redirect('/stock')
                     }
                 }
@@ -301,7 +336,7 @@ router.post('/sigin',async(req,res)=>{ //completar
             else{
                 console.log('no existe el usuario')
                 req.flash('exito_msg','Usuario y/o contraseña invalido')
-                res.redirect('/login')
+                res.redirect('/sigin')
             }
 
             
@@ -315,7 +350,9 @@ router.get('/logout', (req, res) => {
 });
 
 router.get('/tecnico', async(req,res)=>{
-
+    console.log("dni del usuario: ",req.session.user)
+    console.log("puesto del usuario: ",req.session.puesto)
+    console.log("nombre del usuario: ",req.session.nombre)
     await mostrar_ordenes_espera(conect_sql,(respuesta)=>{
         if(respuesta[0]==undefined){
             let error_orden=[]
@@ -323,19 +360,79 @@ router.get('/tecnico', async(req,res)=>{
             res.render('layouts/ordenes_trabajo_lista',{error_orden})
         }
         else{
-            respuesta[0].fecha_creacion=(respuesta[0].fecha_creacion).toString().substring(0,10) //convierte la fehca y hora en solo fecha para mostrar
+            respuesta[0].fecha_creacion=(respuesta[0].fecha_creacion).toString().substring(0,10) //convierte la fecha y hora en solo fecha para mostrar
             console.log(respuesta)
-            res.render('layouts/ordenes_trabajo_lista',{respuesta})
+            let user={
+                admin:1,
+                nombre:'dsad'
+            }
+            console.log(user)
+            res.render('layouts/ordenes_trabajo_lista',{respuesta,user})
         }
     })
 })
 
+router.get('/tecnico/add/:id', async(req,res)=>{   //probar cuando haya sesiones implementadas
+    let id
+    if (req.params.id) {
+        if(!isNaN(parseInt(req.params.id))){
+            id=parseInt(req.params.id)
+        }
+        else{
+            req.flash('exito_msg','Orden Invalida')
+            res.redirect('/tecnico')
+            return
+        }
+        
+    } else {
+        req.flash('exito_msg','Orden Invalida')
+        res.redirect('/tecnico')
+        return
+    }
+
+    let dato={
+        id_orden:id
+    }
+
+
+    await validar_orden_id(conect_sql,dato.id_orden,(respuesta)=>{
+        if(respuesta){
+           
+            if(req.session.puesto=="TECNICO" || req.session.puesto=="GERENTE"){
+                tomar_orden(conect_sql,req.session.id,dato,(respuesta2)=>{
+                    console.log(respuesta2)
+                    req.flash('exito_msg','has tomado esta Orden')
+                    res.redirect('/tecnico')
+                })
+            }
+            else{
+                req.flash('exito_msg','Usuario no es Tecnico')
+                res.redirect('/tecnico')
+            }
+        }
+        else{
+            req.flash('exito_msg','Orden Invalida')
+            res.redirect('/tecnico')
+        }
+    })
+})
+
+
 router.get('/tecnico/misordenes',async(req,res)=>{
     try {
         await mostrar_mis_ordenes(conect_sql,35122299,(respuesta)=>{  //-----------------------CAMBIAR
-            respuesta[0].fecha_creacion=(respuesta[0].fecha_creacion).toString().substring(0,10) //convierte la fehca y hora en solo fecha para mostrar
-            console.log(respuesta)
-            res.render('layouts/mis_ordenes_trabajo',{respuesta})
+            if(respuesta[0]==undefined){
+                let error_orden=[]
+                error_orden.push({text:"No Tienes Ordenes Adjuntadas"})
+                res.render('layouts/ordenes_trabajo_lista',{error_orden})
+            }
+            else{
+                respuesta[0].fecha_creacion=(respuesta[0].fecha_creacion).toString().substring(0,10) //convierte la fecha y hora en solo fecha para mostrar
+                console.log(respuesta)
+                res.render('layouts/mis_ordenes_trabajo',{respuesta})
+            }
+
+            
         })
     } catch (error) {
         res.send('Error en la BBDD')
@@ -344,32 +441,34 @@ router.get('/tecnico/misordenes',async(req,res)=>{
 
 router.get('/tecnico/orden/:id',async(req,res)=>{        //---------------- MODIFICAR ORDENES ------------------ COMPLETAR
     console.log(req.params.id)
-    let id_int=parseInt(req.params.id)
-    await validar_orden_id(conect_sql,id_int,(resultado)=>{
-        if(resultado){
-            mostrar_estados(conect_sql,1,(estados)=>{
+    if (isNaN(parseInt(req.params.id))) {
+        req.flash('exito_msg','Orden invalida')
+        res.redirect('/tecnico')
+    } 
+    else {
+        let id_int=parseInt(req.params.id)
+        await validar_orden_id(conect_sql,id_int,(resultado)=>{
+            if(resultado){
+                mostrar_estados(conect_sql,1,(estados)=>{
 
-                select_from (conect_sql,"repuestos",(datos)=>{
-                
-                    traer_orden_id(conect_sql,id_int,(respuesta)=>{
-        
-                        respuesta[0].id_orden=(respuesta[0].id_orden)
-                        respuesta[0].estado=(respuesta[0].estado)
-            
-                        console.log("orden de la bbdd: ",respuesta)
-                        res.render('layouts/modificar_orden',{respuesta,datos,estados})
+                    select_from (conect_sql,"repuestos",(datos)=>{
+                    
+                        traer_orden_id(conect_sql,id_int,(respuesta)=>{
+                            console.log("orden de la bbdd: ",respuesta)
+                            res.render('layouts/modificar_orden',{respuesta,datos,estados})
+                        })
                     })
                 })
-            })
-        }
-        else{
-            res.status(404).send('no se encontro la orden')
-        }
-    })
-
+            }
+            else{
+                req.flash('exito_msg','Orden invalida')
+                res.redirect('/tecnico')
+            }
+        })
+    }
 })
 
-router.post('/tecnico/orden/:id',async(req,res)=>{
+router.post('/tecnico/orden/:id',async(req,res)=>{ //terminar
     const{repuesto,estado,datos_op}=req.body
     console.log(repuesto)
     console.log(estado)
@@ -465,7 +564,7 @@ router.post('/admin/crear_usuario', async(req,res)=>{
             else {
                 conect_sql.query(`INSERT INTO usuarios_general set ?`,[nuevo_usuario_g])
                 req.flash('exito_msg',"Usuario Creado con Exito ")
-                res.redirect("/admin") //completar con redirect
+                res.redirect("/admin") 
             }
         })
      
@@ -590,6 +689,28 @@ router.post('/admin/mod/:id', async(req,res)=>{                      //terminar
 
     }
 })
+
+router.post('/admin/delete/:id', async(req,res)=>{ 
+
+    if(!req.params.id || isNaN(parseInt(req.params.id))){
+        
+    }
+    else{
+        let dato={
+            id_usuario:parseInt(req.params.id)
+        }
+        await validar_usuario_id(conect_sql,dato.id_usuario,(respuesta)=>{
+            if (respuesta) {
+                deshabilitar_usuario(conect_sql,dato.id_usuario)
+                req.flash('exito_msg',"Usuario eliminado con Exito ")
+                res.redirect("/admin") 
+            } 
+            else {
+                
+            }
+        })
+    }
+})  
 
 
 router.get('/stock', async(req,res)=>{
