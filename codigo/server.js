@@ -7,13 +7,14 @@ const sesion=require('express-session')
 const flash=require('connect-flash');
 const { reset } = require('nodemon');
 const cookieparser=require('cookie-parser')
+const { authUserMiddleware } = require('./auth');
 
 //inicializacion
 const app = express();
 
-
-
 //configuracion
+
+
 app.set('port',process.env.PORT||3000);
 app.set('views',path.join(__dirname,'handlebars'));
 const hbs=exphlb.create({
@@ -39,7 +40,7 @@ app.use(sesion({
 }))
 
 app.use(flash())
-
+app.use(authUserMiddleware);
 app.use((req, res, next) => {
     res.locals.exito_msg = req.flash("exito_msg");
     res.locals.error_msg = req.flash("error_msg");

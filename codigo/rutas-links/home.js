@@ -1,10 +1,10 @@
 const bodyParser = require('body-parser');
-const { json } = require('body-parser');
 const express=require('express');
 const router = express.Router();
+const { authGuestMiddleware, authMiddleware } = require('../auth');
 
 const conect_sql = require('../modelo_datos_bbdd/conexion_con_bbdd')
-const {crear_repuesto, ingresar_stock, validar_repuerto_id, mostrar_ordenes_espera, mostrar_mis_ordenes, validar_orden_id, traer_orden_id, mostrar_estados, mostrar_repuesto_id,crear_marca, buscar_marca_nombre, buscar_modelo_nombre, crear_modelo, validar_marca_nombre, validar_modelo_nombre, select_from, modificar_repuesto_id, insert, mostrar_cliente_id, validar_cliente_id, update_cliente, validar_usuario_id, mostrar_usuario_id, update, update_usuario, login, mostrar_repuesto, tipo_usuario, tomar_orden, deshabilitar_usuario, mostrar_ordenes_para_retirar} = require('../modelo_datos_bbdd/operaciones')
+const {crear_repuesto, ingresar_stock, validar_repuerto_id, mostrar_ordenes_espera, mostrar_mis_ordenes, validar_orden_id, traer_orden_id, mostrar_estados, mostrar_repuesto_id,crear_marca, buscar_marca_nombre, buscar_modelo_nombre, crear_modelo, validar_marca_nombre, validar_modelo_nombre, select_from, modificar_repuesto_id, insert, mostrar_cliente_id, validar_cliente_id, update_cliente, validar_usuario_id, mostrar_usuario_id, update_usuario, login, tomar_orden, deshabilitar_usuario, mostrar_ordenes_para_retirar} = require('../modelo_datos_bbdd/operaciones')
 
 
 router.get('/gerente',(req,res)=>{
@@ -23,7 +23,7 @@ router.get('/clientes',(req,res)=>{
     })
 })
 
-router.get('/clientes/mod/:id',(req,res)=>{
+router.get('/clientes/mod/:id',(req,res)=>{ //teminar
     if(!req.params.id){
 
     }
@@ -272,11 +272,11 @@ router.post('/crear_orden_cliente_existe',async(req,res)=>{
 
 
 
-router.get('/sigin',(req,res)=>{
+router.get('/sigin',authGuestMiddleware,(req,res)=>{
     res.render('layouts/sigin')
 })
 
-router.post('/sigin',async(req,res)=>{ 
+router.post('/sigin',authGuestMiddleware,async(req,res)=>{ 
     const{usuario,contraseña}=req.body
     let error_orden=[]
     if(!usuario || isNaN(parseInt(usuario))){
@@ -300,6 +300,7 @@ router.post('/sigin',async(req,res)=>{
         await login(conect_sql,nuevo_usuario,(respuesta)=>{
             if(respuesta[0]){
                 console.log('existe el usuario')
+                
                 if(respuesta[0].dni=nuevo_usuario.usuario){
                     console.log("mostrando respuesta", respuesta)
                     req.session.user = nuevo_usuario.usuario;
@@ -344,15 +345,16 @@ router.post('/sigin',async(req,res)=>{
     }
 })
 
-router.get('/logout', (req, res) => {
+router.get('/logout',authMiddleware, (req, res) => {
     req.session.destroy();
     res.redirect('/sigin');
 });
 
-router.get('/tecnico', async(req,res)=>{
+router.get('/tecnico',authMiddleware, async(req,res)=>{
     console.log("dni del usuario: ",req.session.user)
     console.log("puesto del usuario: ",req.session.puesto)
     console.log("nombre del usuario: ",req.session.nombre)
+
     await mostrar_ordenes_espera(conect_sql,(respuesta)=>{
         if(respuesta[0]==undefined){
             let error_orden=[]
@@ -368,11 +370,12 @@ router.get('/tecnico', async(req,res)=>{
             }
             console.log(user)
             res.render('layouts/ordenes_trabajo_lista',{respuesta,user})
+            console.log("recursos res.locals", JSON.stringify(res.locals))
         }
     })
 })
 
-router.get('/tecnico/add/:id', async(req,res)=>{   //probar cuando haya sesiones implementadas
+router.get('/tecnico/add/:id', async(req,res)=>{   //terminar
     let id
     if (req.params.id) {
         if(!isNaN(parseInt(req.params.id))){
