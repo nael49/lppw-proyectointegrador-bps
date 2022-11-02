@@ -94,6 +94,14 @@ function mostrar_usuario_id(coneccion,id,callback){ //revisa por id (int) si el 
 
 
 // ------------------------   REPUESTOS
+function mostrar_repuestos_marca_modelo(coneccion,callback){
+  let query=`SELECT id_repuesto,nombre,marca,modelo FROM repuestos JOIN marca ON repuestos.fk_marca=marca.id_marca JOIN modelo ON repuestos.fk_modelo=modelo.id_modelo`; 
+  coneccion.query(query, function(err,data){
+    if(err) throw err;
+    callback(data) 
+  })
+}
+
 
 function ingresar_stock (coneccion,datos,operacion,callback){ //trae la cantidad y suma o resta dependiento la "operacion"
   console.log(datos)
@@ -241,8 +249,10 @@ function traer_orden_id(coneccion,datos,callback){
 
 
 function tomar_orden(coneccion,datos,id_orden,callback){ //terminar
+    let x=new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '')
 
-    coneccion.query(`UPDATE  orden_trabajo  set estado = 4, fk_tecnico=${datos}   WHERE id_orden = ${id_orden}`  , function(err,data){
+    console.log(x)
+    coneccion.query(`UPDATE  orden_trabajo  set estado = 4,hora_inicio='${x}', fk_tecnico=${datos}   WHERE id_orden = ${id_orden}`  , function(err,data){
       if(err) throw err;
       callback(data)
     })
@@ -260,6 +270,14 @@ function mostrar_estados(coneccion,selector,callback){
   else{
     query="SELECT * FROM estados ";
   }
+  coneccion.query(query, function(err,data){
+    if(err) throw err;
+    callback(data)
+  })
+}
+
+function traer_id_estado(coneccion,dato,callback){
+  let query=`SELECT id_estados FROM estados WHERE nombre='${dato}' `;
   coneccion.query(query, function(err,data){
     if(err) throw err;
     callback(data)
@@ -365,5 +383,5 @@ function insert (coneccion,tabla,datos){
 module.exports={crear_repuesto,ingresar_stock,validar_repuerto_id,validar_usuario_id,mostrar_ordenes_espera,mostrar_mis_ordenes,validar_orden_id,traer_orden_id,
 mostrar_estados,contar_repuerto_id,mostrar_repuesto_id,modificar_repuesto_id,crear_marca,crear_modelo,buscar_marca_nombre,buscar_modelo_nombre,validar_marca_nombre,
 validar_modelo_nombre,select_from,insert,mostrar_cliente_id,update_cliente,validar_cliente_id,mostrar_usuario_id,update_usuario,login,tipo_usuario,tomar_orden,
-deshabilitar_usuario,mostrar_ordenes_para_retirar
+deshabilitar_usuario,mostrar_ordenes_para_retirar,mostrar_repuestos_marca_modelo,traer_id_estado
 }

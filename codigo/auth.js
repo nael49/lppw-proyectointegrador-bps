@@ -5,7 +5,7 @@ const authMiddleware = (req, res, next) => {
         next();
     } else {
         // res.sendStatus(401);
-        res.redirect('sigin');
+        res.redirect('/sigin');
     }
 };
 const authGuestMiddleware = (req, res, next) => {

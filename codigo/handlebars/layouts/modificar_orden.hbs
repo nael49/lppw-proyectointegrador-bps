@@ -13,7 +13,8 @@
             <div class="mb-3">
                 <label for="nombre" class="form-label">ORDEN N°</label>
                 {{#each respuesta}}
-                    <input type="text" class="form-control" name="{{id_orden}}" id="nombre" disabled value="{{id_orden}}">
+                    <input type="text" class="form-control"  id="nombre" disabled value="{{id_orden}}">
+                    <input type="hidden" name="id_orden" value="{{id_orden}}">
                 {{/each}}
             </div>
 
@@ -25,11 +26,11 @@
             </div>
 
            
-              <label for="repuesto" class="form-label">Elegir repuesto usado</label>
+              <label for="repuesto" class="form-label">Elegir repuesto/s usado/s</label>
               <select class="form-select" name="repuesto" multiple="multiple" id="repuesto">
                 <option value=""  disabled ></option>
                 {{#each datos}}
-                     <option value="{{id_repuesto}}">{{nombre}}</option>
+                     <option value="{{id_repuesto}}">{{nombre}} - {{modelo}} - {{marca}}</option>
                 {{/each}}
               </select>
             
@@ -40,12 +41,14 @@
             </div>
             
 
-            <div class="row g-3 mt-1">
-              <label for="estado" class="form-label">Cambiar estado de la orden</label>
+            <div class="mt-3">
+              <label for="estado" class="form-label">Cambiar estado de la orden.</label>
+              <label for="estado" class="form-label">Estado actual -> </label>
               <select class="form-select" name="estado" id="estado" required>
-                <option value="" selected disabled ></option>
-                {{#each estados}}
-                     <option value="{{id_estados}}">{{nombre}}</option>
+                <option value="{{#each respuesta}}{{nombre}}{{/each}}" selected>{{#each respuesta}}{{nombre}}{{/each}}</option>
+
+                {{#each lista_enviar}}
+                     <option value="{{estado}}">{{estado}}</option>
                 {{/each}}
               </select>
             

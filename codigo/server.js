@@ -14,7 +14,7 @@ const app = express();
 
 //configuracion
 
-
+process.env.TZ='UTC-3';
 app.set('port',process.env.PORT||3000);
 app.set('views',path.join(__dirname,'handlebars'));
 const hbs=exphlb.create({
@@ -38,6 +38,7 @@ app.use(sesion({
     resave:true,
     saveUninitialized:true,
 }))
+
 
 app.use(flash())
 app.use(authUserMiddleware);

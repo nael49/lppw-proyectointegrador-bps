@@ -4,7 +4,7 @@ const router = express.Router();
 const { authGuestMiddleware, authMiddleware } = require('../auth');
 
 const conect_sql = require('../modelo_datos_bbdd/conexion_con_bbdd')
-const {crear_repuesto, ingresar_stock, validar_repuerto_id, mostrar_ordenes_espera, mostrar_mis_ordenes, validar_orden_id, traer_orden_id, mostrar_estados, mostrar_repuesto_id,crear_marca, buscar_marca_nombre, buscar_modelo_nombre, crear_modelo, validar_marca_nombre, validar_modelo_nombre, select_from, modificar_repuesto_id, insert, mostrar_cliente_id, validar_cliente_id, update_cliente, validar_usuario_id, mostrar_usuario_id, update_usuario, login, tomar_orden, deshabilitar_usuario, mostrar_ordenes_para_retirar} = require('../modelo_datos_bbdd/operaciones')
+const {crear_repuesto, ingresar_stock, validar_repuerto_id, mostrar_ordenes_espera, mostrar_mis_ordenes, validar_orden_id, traer_orden_id, mostrar_estados, mostrar_repuesto_id,crear_marca, buscar_marca_nombre, buscar_modelo_nombre, crear_modelo, validar_marca_nombre, validar_modelo_nombre, select_from, modificar_repuesto_id, insert, mostrar_cliente_id, validar_cliente_id, update_cliente, validar_usuario_id, mostrar_usuario_id, update_usuario, login, tomar_orden, deshabilitar_usuario, mostrar_ordenes_para_retirar, mostrar_repuestos_marca_modelo} = require('../modelo_datos_bbdd/operaciones')
 
 
 router.get('/gerente',(req,res)=>{
@@ -92,8 +92,6 @@ router.post('/clientes/mod/:id',async(req,res)=>{
                     req.flash('exito_msg','Error al crear cliente')
                     res.redirect('/clientes')
                 }
-
-                
             }
             else{
                 req.flash('exito_msg','no existe el cliente')
@@ -339,8 +337,6 @@ router.post('/sigin',authGuestMiddleware,async(req,res)=>{
                 req.flash('exito_msg','Usuario y/o contraseña invalido')
                 res.redirect('/sigin')
             }
-
-            
         })
     }
 })
@@ -368,12 +364,11 @@ router.get('/tecnico',authMiddleware, async(req,res)=>{
                 admin:1,
             }
             res.render('layouts/ordenes_trabajo_lista',{respuesta})
-            console.log("recursos res.locals", JSON.stringify(res.locals))
         }
     })
 })
 
-router.get('/tecnico/add/:id', async(req,res)=>{   //terminar
+router.get('/tecnico/add/:id',authMiddleware, async(req,res)=>{  
     let id
     if (req.params.id) {
         if(!isNaN(parseInt(req.params.id))){
@@ -385,7 +380,8 @@ router.get('/tecnico/add/:id', async(req,res)=>{   //terminar
             return
         }
         
-    } else {
+    } 
+    else {
         req.flash('exito_msg','Orden Invalida')
         res.redirect('/tecnico')
         return
@@ -394,13 +390,11 @@ router.get('/tecnico/add/:id', async(req,res)=>{   //terminar
     let dato={
         id_orden:id
     }
-
-
     await validar_orden_id(conect_sql,dato.id_orden,(respuesta)=>{
         if(respuesta){
            
-            if(req.session.puesto=="TECNICO" || req.session.puesto=="GERENTE"){
-                tomar_orden(conect_sql,req.session.id,dato,(respuesta2)=>{
+            if(res.locals.userLogged.puesto=="TECNICO"){
+                tomar_orden(conect_sql,res.locals.userLogged.dni,dato.id_orden,(respuesta2)=>{
                     console.log(respuesta2)
                     req.flash('exito_msg','has tomado esta Orden')
                     res.redirect('/tecnico')
@@ -419,45 +413,55 @@ router.get('/tecnico/add/:id', async(req,res)=>{   //terminar
 })
 
 
-router.get('/tecnico/misordenes',async(req,res)=>{
+router.get('/tecnico/misordenes',authMiddleware,async(req,res)=>{
     try {
-        await mostrar_mis_ordenes(conect_sql,35122299,(respuesta)=>{  //-----------------------CAMBIAR
-            if(respuesta[0]==undefined){
-                let error_orden=[]
-                error_orden.push({text:"No Tienes Ordenes Adjuntadas"})
-                res.render('layouts/ordenes_trabajo_lista',{error_orden})
+        console.log(req.session.user) 
+        await mostrar_mis_ordenes(conect_sql,req.session.user,(respuesta)=>{ 
+            console.log("respuesta: ",respuesta) 
+            if(respuesta==undefined){        //si no tiene ordenes asignadas
+                req.flash('exito_msg','No Tienes Ordenes Asignadas')
+                res.redirect('/tecnico/misordenes')
             }
             else{
-                respuesta[0].fecha_creacion=(respuesta[0].fecha_creacion).toString().substring(0,10) //convierte la fecha y hora en solo fecha para mostrar
-                console.log(respuesta)
+                for (let index = 0; index < respuesta.length; index++) {
+                    respuesta[index].fecha_creacion=(respuesta[index].fecha_creacion).toString().substring(0,10) //convierte la fecha y hora en solo fecha para mostrar
+                    
+                }
                 res.render('layouts/mis_ordenes_trabajo',{respuesta})
-            }
-
-            
+            }  
         })
-    } catch (error) {
+    } 
+    catch (error) {
         res.send('Error en la BBDD')
     }
 })
 
-router.get('/tecnico/orden/:id',async(req,res)=>{        //---------------- MODIFICAR ORDENES ------------------ COMPLETAR
-    console.log(req.params.id)
+router.get('/tecnico/orden/:id',async(req,res)=>{ 
+    let lista_estados=["Cancelado","En Espera","En Revision","En Reparacion","Reparado","Finalizado"]        
+    let listfilter
+    let lista_enviar=[]
     if (isNaN(parseInt(req.params.id))) {
         req.flash('exito_msg','Orden invalida')
         res.redirect('/tecnico')
     } 
+    
     else {
         let id_int=parseInt(req.params.id)
         await validar_orden_id(conect_sql,id_int,(resultado)=>{
             if(resultado){
-                mostrar_estados(conect_sql,1,(estados)=>{
+                mostrar_repuestos_marca_modelo(conect_sql,(datos)=>{
+                    traer_orden_id(conect_sql,id_int,(respuesta)=>{
+                        for (let index = 0; index < lista_estados.length; index++) {
+                            if(respuesta[0].nombre==lista_estados[index]){
+                                listfilter= lista_estados.filter((item) => item !== respuesta[0].nombre)
 
-                    select_from (conect_sql,"repuestos",(datos)=>{
-                    
-                        traer_orden_id(conect_sql,id_int,(respuesta)=>{
-                            console.log("orden de la bbdd: ",respuesta)
-                            res.render('layouts/modificar_orden',{respuesta,datos,estados})
-                        })
+                                for (let index = 0; index < listfilter.length; index++) {
+                                    lista_enviar.push({estado:listfilter[index]})
+                                    
+                                }
+                            }
+                        }
+                        res.render('layouts/modificar_orden',{respuesta,datos,lista_enviar})
                     })
                 })
             }
@@ -469,13 +473,62 @@ router.get('/tecnico/orden/:id',async(req,res)=>{        //---------------- MODI
     }
 })
 
-router.post('/tecnico/orden/:id',async(req,res)=>{ //terminar
-    const{repuesto,estado,datos_op}=req.body
-    console.log(repuesto)
-    console.log(estado)
-    console.log(datos_op)
-    res.send('bien')
+router.post('/tecnico/orden/:id',async(req,res)=>{ //--------------------------------------------terminar
+    let id=req.params.id
+    let lista_estados=["En Espera","En Revision","En Reparacion","Reparado","Finalizado"]  
+    const{repuesto,estado,datos_op,id_orden}=req.body
+    let error_orden=[]
 
+    console.log("datos de modificar orden",req.body)
+    console.log("tipo de dato repuesto", typeof repuesto)
+
+    if(!id_orden){
+        error_orden.push({text:"error al elegir repuestos"})
+    }
+    
+    if(estado==lista_estados[4]){ //si el equipo ya termino de reparar
+
+        if(error_orden.length>0){
+            req.flash("exito_msg","Error en repuestos o el estado")
+            res.redirect(`/tecnico/orden/${id}`)
+        }
+        if(error_orden.length==0){
+
+        }
+    }
+    else{                   //si el equipo todavia necesita cambios
+
+        if(!repuesto){
+            error_orden.push({text:"error al elegir repuestos"})
+        }
+        if(!estado || !lista_estados.includes(estado)){
+            error_orden.push({text:"error al elegir estado"})
+        }
+    
+        if(error_orden.length>0){
+            req.flash("exito_msg","Error en repuestos o el estado")
+            res.redirect(`/tecnico/orden/${id}`)
+        }
+        if(error_orden.length==0){
+            
+            if(typeof repuesto =='object'){ //si repuestos trae varias cosas
+
+                for (let index = 0; index < repuesto.length; index++) {
+                    let query=`INSERT INTO repuestos_orden (fk_orden,fk_repuesto) VALUES (${id_orden},${repuesto[index]})`
+                    conect_sql.query(query, function(err,data){
+                    })   
+                }
+                res.send('bien')
+            }
+            if(typeof repuesto =='string'){ //repuesto solo tiene un repuesto
+                let query=`INSERT INTO repuestos_orden (fk_orden,fk_repuesto) VALUES (${id_orden},${repuesto})`
+                conect_sql.query(query, function(err,data){
+
+                })
+                res.send('bien')
+            }
+        }
+    }
 })
 
 router.get('/admin',async (req,res)=>{
@@ -687,7 +740,6 @@ router.post('/admin/mod/:id', async(req,res)=>{                      //terminar
                 res.redirect('/admin')
             }
         })
-
     }
 })
 
