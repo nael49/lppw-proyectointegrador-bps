@@ -27,59 +27,75 @@
                         <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"/>
                     </svg>
                     {{#if userLogged}}
-                    <span class="p-2">{{userLogged.puesto}}---{{userLogged.nombrecompleto}}</span>
+                    <span class="p-2">{{userLogged.puesto}}</span>
+                    <span class="p-2">{{userLogged.nombrecompleto}}</span>
                     {{/if}}
                 </div>
                 <div class="navbar" id="navbarNav">
                     <ul class="navbar-nav ml-auto">
-                        {{#if userLogged}}
-                            {{nombre}}
-                        {{/if}}
-                        {{#if user.tecnico}}
+
+                        {{#if userLogged.tecnico}}
                             <li class="nav-item">
-                                <a class="nav-link active" aria-current="page" href="tecnico">lista Ordenes</a>
+                                <a class="nav-link active" aria-current="page" href="/tecnico">lista Ordenes</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="tecnico/misordenes">Mis ordenes </a>
+                                <a class="nav-link" href="/tecnico/misordenes">Mis ordenes </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="tecnico/misordenes/finalizadas">Mis ordenes Finalizadas</a>
+                                <a class="nav-link" href="/tecnico/misordenes/finalizadas">Mis ordenes Finalizadas</a>
                             </li>
+                            <li class="nav-item">
+                            <a class="nav-link" href="/logout">Cerrar Sesion</a>
+                        </li>
                             
                         {{/if}}
-                        {{#if user.admin}}
+                        {{#if userLogged.admin}}
                             <li class="nav-item">
                                 <a class="nav-link active" aria-current="page" href="admin">Lista Usuarios</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="admin/crear_usuario">Crear Usuario </a>
                             </li>
+                            <li class="nav-item">
+                            <a class="nav-link" href="/logout">Cerrar Sesion</a>
+                        </li>
                         {{/if}}
-                        {{#if user.stock}}
+                        {{#if userLogged.stock}}
                             <li class="nav-item">
                                 <a class="nav-link active" aria-current="page" href="stock">Lista Repuestos</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="stock/crear_repuesto">Crear Repuestos </a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="/logout">Cerrar Sesion</a>
+                            </li>
                         {{/if}}
-                        {{#if user.gerente}}
+                        {{#if userLogged.gerente}}
+
+                            <li class="nav-item">
+                                <a class="nav-link" href="/logout">Cerrar Sesion</a>
+                            </li>   
 
                         {{/if}}
-                        {{#if user.recepcionista}}
+                        {{#if userLogged.recepcionista}}
                             <li class="nav-item">
-                                <a class="nav-link active" aria-current="page" href="recepcionista">Equipos listos</a>
+                                <a class="nav-link active" aria-current="page" href="/recepcionista">Equipos listos</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="recepcionista/crear_orden">Crear Orden de Trabajo </a>
+                                <a class="nav-link" href="/crear_orden">Nueva orden </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="clientes">Lista clientes </a>
+                                <a class="nav-link" href="/crear_orden_cliente_existe">Nueva orden (Cliente existe)</a>
                             </li>
-                        {{/if}}
-                        <li class="nav-item">
+                            <li class="nav-item">
+                                <a class="nav-link" href="/clientes">Lista clientes </a>
+                            </li>
+                            <li class="nav-item">
                             <a class="nav-link" href="/logout">Cerrar Sesion</a>
                         </li>
+                        {{/if}}
+                        
                     </ul>
                 </div>
             </div>

@@ -133,13 +133,7 @@ function modificar_repuesto_id(coneccion,datos,callback){ //trae la cantidad y s
   })
 }
 
-function mostrar_repuesto(coneccion,callback){
-    let query="SELECT * FROM repuestos";
-    coneccion.query(query, function(err,data){
-      if(err) throw err;
-      callback(data)
-    })
-}
+
 
 function crear_repuesto(coneccion,datos,marca,modelo,callback){ 
   console.log(datos)
@@ -273,15 +267,7 @@ function mostrar_estados(coneccion,selector,callback){
 }
 
 //-------------------------------MODELO
-function mostrar_modelos(coneccion,callback){ //revisa por id (int) si el repuesto existe
-  let query=`SELECT * FROM modelo`; 
-  
-  coneccion.query(query, function(err,data){
-    if(err) throw err;
-    console.log("modelos: ", data)
-    callback(data)
-  })
-}
+
 
 function crear_modelo(coneccion,datos){ //revisa por id (int) si el repuesto existe
   let query=`INSERT INTO modelo (modelo) VALUES ('${datos}')`; 
@@ -320,15 +306,6 @@ function validar_modelo_nombre(coneccion,datos,callback){  //si existe la orden 
 
 
 //-------------------------------MARCA
-function mostrar_marcas(coneccion,callback){ //revisa por id (int) si el repuesto existe
-  let query=`SELECT * FROM marca`; 
-  
-  coneccion.query(query, function(err,data){
-    if(err) throw err;
-    console.log("marca: ", data)
-    callback(data)
-  })
-}
 
 function validar_marca_nombre(coneccion,datos,callback){  //si existe la orden retorna true 
   let query_validar=`SELECT COUNT(id_marca) AS id_marca FROM marca WHERE marca="${datos}"`; 
@@ -385,8 +362,8 @@ function insert (coneccion,tabla,datos){
 
 
 
-module.exports={mostrar_repuesto,crear_repuesto,ingresar_stock,validar_repuerto_id,validar_usuario_id,mostrar_ordenes_espera,mostrar_mis_ordenes,
-validar_orden_id,traer_orden_id,mostrar_estados,contar_repuerto_id,mostrar_repuesto_id,modificar_repuesto_id,mostrar_marcas,mostrar_modelos,
-crear_marca,crear_modelo,buscar_marca_nombre,buscar_modelo_nombre,validar_marca_nombre,validar_modelo_nombre,select_from,insert,mostrar_cliente_id,update_cliente,
-validar_cliente_id,mostrar_usuario_id,update_usuario,login,tipo_usuario,tomar_orden,deshabilitar_usuario,mostrar_ordenes_para_retirar
+module.exports={crear_repuesto,ingresar_stock,validar_repuerto_id,validar_usuario_id,mostrar_ordenes_espera,mostrar_mis_ordenes,validar_orden_id,traer_orden_id,
+mostrar_estados,contar_repuerto_id,mostrar_repuesto_id,modificar_repuesto_id,crear_marca,crear_modelo,buscar_marca_nombre,buscar_modelo_nombre,validar_marca_nombre,
+validar_modelo_nombre,select_from,insert,mostrar_cliente_id,update_cliente,validar_cliente_id,mostrar_usuario_id,update_usuario,login,tipo_usuario,tomar_orden,
+deshabilitar_usuario,mostrar_ordenes_para_retirar
 }

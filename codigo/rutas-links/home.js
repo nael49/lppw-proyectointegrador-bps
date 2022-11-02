@@ -104,18 +104,24 @@ router.post('/clientes/mod/:id',async(req,res)=>{
     
 })
 
-router.get('/crear_orden', async(req,res)=>{
+router.get('/crear_orden',authMiddleware, async(req,res)=>{
     await select_from(conect_sql,"tipo_equipo",(respuesta)=>{
         res.render('layouts/crear_orden_trabajo',{respuesta})
     })
+    console.log(res.locals)
+    console.log(req.session)
     
 })
 
-router.post('/crear_orden',async(req,res)=>{ 
+router.post('/crear_orden',authMiddleware,async(req,res)=>{ 
     console.log(req.body)
-    const { nombrecompleto , dni, localidad, direccion, celular, email, tipo_equipo, descripcion_falla, datos_importantes } = req.body;
+    const { nombrecompleto , dni, localidad, direccion, celular, email, tipo_equipo, descripcion_falla, datos_importantes,pago } = req.body;
     const error_orden=[]
 
+
+    if(!pago){
+        error_orden.push({text:'ingrese una seña o en su defecto "0"'})
+    }
     if(!nombrecompleto){
         error_orden.push({text:'ingrese nombre completo'})
     }
@@ -141,25 +147,21 @@ router.post('/crear_orden',async(req,res)=>{
     if(!descripcion_falla){
         error_orden.push({text:'ingrese descripcion de la falla'})
     }
+    if(!datos_importantes){
+        error_orden.push({text:'ingrese datos importantes'})
+    }
 
     if(error_orden.length>0){
-        res.render('layouts/crear_orden_trabajo',{
-            error_orden,
-            nombrecompleto,
-            dni,
-            localidad,
-            direccion,
-            celular,
-            email,
-            descripcion_falla
+        await select_from(conect_sql,"tipo_equipo",(respuesta)=>{
+            res.render('layouts/crear_orden_trabajo',{respuesta,error_orden})
         })
     }
 
     else{
-        tipo_equipo_int=parseInt(tipo_equipo)
-        celular_int=parseInt(celular)
-        dni_int =parseInt(dni)
-
+        let tipo_equipo_int=parseInt(tipo_equipo)
+        let celular_int=parseInt(celular)
+        let dni_int =parseInt(dni)
+        let pago_int =parseInt(pago)
 
         let cliente={
             dni : dni_int,
@@ -173,8 +175,11 @@ router.post('/crear_orden',async(req,res)=>{
             fk_cliente:dni_int,
             descripcion_falla:descripcion_falla,
             fk_tipo_equipo:tipo_equipo_int,
-            fk_recepcionista:req.session.id,
-            datos_importantes:datos_importantes
+            fk_recepcionista:req.session.user,
+            datos_importantes:datos_importantes,
+            estado:2,
+            fk_tipo_equipo:tipo_equipo_int,
+            pago:pago_int
         }
 
         try {
@@ -208,21 +213,23 @@ router.post('/crear_orden',async(req,res)=>{
     }
 })
 
-router.get('/crear_orden_cliente_existe',async(req,res)=>{
+router.get('/crear_orden_cliente_existe',authMiddleware,async(req,res)=>{
     await select_from(conect_sql,"tipo_equipo",(respuesta)=>{
         select_from(conect_sql,"clientes",(datos_dni)=>{
-            select_from(conect_sql,"tipo_equipo",(respuesta2)=>{
-                res.render('layouts/crear_orden_trabajo_cliente_existe',{respuesta,datos_dni,respuesta2})
-            })
+            res.render('layouts/crear_orden_trabajo_cliente_existe',{respuesta,datos_dni})
         })
-        
     })
 })
 
-router.post('/crear_orden_cliente_existe',async(req,res)=>{  
-    const{dni,descripcion_falla,tipo_equipo}= req.body
+router.post('/crear_orden_cliente_existe',authMiddleware,async(req,res)=>{  
+    const{dni,descripcion_falla,tipo_equipo,pago,datos_importantes}= req.body
     const error_orden=[]
-
+    if(!datos_importantes){
+        error_orden.push({text:'Ingrese los datos del equipo'})
+    }
+    if(!pago || isNaN(parseInt(tipo_equipo))){
+        error_orden.push({text:'ingrese una seña o en su defecto "0"'})
+    }
     if(!tipo_equipo || isNaN(parseInt(tipo_equipo))){
         error_orden.push({text:'Tipo de equipo incorrecto'})
     }
@@ -240,13 +247,16 @@ router.post('/crear_orden_cliente_existe',async(req,res)=>{
     if(error_orden.length==0){
         let int_dni=parseInt(dni)
         let tipo_equipo_int=parseInt(tipo_equipo)
+        let int_pago=parseInt(pago)
 
         let orden_trabajo={ //esquema para enviar a la base de datos
             estado: 2,
             descripcion_falla: descripcion_falla,
             fk_cliente: int_dni,
             fk_tipo_equipo:tipo_equipo_int,
-            fk_recepcionista:req.session.id
+            fk_recepcionista:req.session.user,
+            pago:int_pago,
+            datos_importantes:datos_importantes
         }
         
         try {
@@ -300,32 +310,22 @@ router.post('/sigin',authGuestMiddleware,async(req,res)=>{
         await login(conect_sql,nuevo_usuario,(respuesta)=>{
             if(respuesta[0]){
                 console.log('existe el usuario')
-                
                 if(respuesta[0].dni=nuevo_usuario.usuario){
-                    console.log("mostrando respuesta", respuesta)
                     req.session.user = nuevo_usuario.usuario;
-                    req.session.puesto = respuesta[0].puesto;
-                    req.session.nombre=respuesta[0].nombrecompleto
-                    console.log("sesion: ",req.session.id)
         
                     if(respuesta[0].puesto=="TECNICO"){
-                        req.session.tecnico=1
                         res.redirect('/tecnico')
                     }
                     if(respuesta[0].puesto=="ADMIN"){
-                        req.session.admin=1
                         res.redirect('/admin')
                     }
                     if(respuesta[0].puesto=="RECEPCIONISTA"){
-                        req.session.recepcionista=1
                         res.redirect('/recepcionista')
                     }
                     if(respuesta[0].puesto=="GERENTE"){
-                        req.session.gerente=1
                         res.redirect('/gerente')
                     }
                     if(respuesta[0].puesto=="ADMINISTRADOR_DE_DEPOSITO"){
-                        req.session.stock=1
                         res.redirect('/stock')
                     }
                 }
@@ -351,9 +351,9 @@ router.get('/logout',authMiddleware, (req, res) => {
 });
 
 router.get('/tecnico',authMiddleware, async(req,res)=>{
-    console.log("dni del usuario: ",req.session.user)
-    console.log("puesto del usuario: ",req.session.puesto)
-    console.log("nombre del usuario: ",req.session.nombre)
+
+    console.log("sesion: ",req.session)
+
 
     await mostrar_ordenes_espera(conect_sql,(respuesta)=>{
         if(respuesta[0]==undefined){
@@ -366,10 +366,8 @@ router.get('/tecnico',authMiddleware, async(req,res)=>{
             console.log(respuesta)
             let user={
                 admin:1,
-                nombre:'dsad'
             }
-            console.log(user)
-            res.render('layouts/ordenes_trabajo_lista',{respuesta,user})
+            res.render('layouts/ordenes_trabajo_lista',{respuesta})
             console.log("recursos res.locals", JSON.stringify(res.locals))
         }
     })

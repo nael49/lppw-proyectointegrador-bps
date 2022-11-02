@@ -38,6 +38,21 @@ const authUserMiddleware = async (req, res, next) => {
             await user_id(conect1,userLoggedId,(respuesta)=>{
                 let userLogged = respuesta;//buscar un usuario
                 res.locals.userLogged = userLogged;
+                if(userLogged.puesto=="TECNICO"){
+                    userLogged.tecnico=1
+                }
+                if(userLogged.puesto=="ADMINISTRADOR_DE_DEPOSITO"){
+                    userLogged.stock=1
+                }
+                if(userLogged.puesto=="RECEPCIONISTA"){
+                    userLogged.recepcionista=1
+                }
+                if(userLogged.puesto=="ADMIN"){
+                    userLogged.admin=1
+                }
+                if(userLogged.puesto=="GERENTE"){
+                    userLogged.gerente=1
+                }
             })
         }
     }

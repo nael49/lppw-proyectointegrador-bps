@@ -8,11 +8,11 @@
 
 <div class="card mx-auto col-7 m-3">
     <div class="card-header titulos">
-        Crear nueva orden de trabajo
+        Crear nueva orden de trabajo (el cliente ya existe)
     </div>
     <div class="card-body">
 
-        <form action="/crear_orden_existe_usuario" method="post" id="form_crear_orden">
+        <form action="" method="post" id="form_crear_orden">
 
             <div class="mb-3">
                 <label for="dni" class="form-label">Seleccionar DNI</label>
@@ -24,15 +24,22 @@
                 </select>
                 <div class="feedback-invalid"></div>
             </div>
-            <div class="mb-3">
-                <label for="tipo_equipo" class="form-label">Seleccionar Tipo de Equipo</label>
-                <select name="tipo_equipo" id="tipo_equipo" class="form-select">
-                    <option value="" selected disabled></option>
-                        {{#each respuesta2}}
-                            <option value="{{id_equipo}}">{{tipo_equipo}}</option>
-                        {{/each}}
-                </select>
+            <div class="row g-3">
+                <div class="mb-3 col">
+                    <label for="tipo_equipo" class="form-label">Seleccionar Tipo de Equipo</label>
+                    <select name="tipo_equipo" id="tipo_equipo" class="form-select">
+                        <option value="" selected disabled></option>
+                            {{#each respuesta}}
+                                <option value="{{id_tipo}}">{{tipo_equipo}}</option>
+                            {{/each}}
+                    </select>
+                </div>
+                <div class="mb-3 col">
+                    <label for="pago" class="form-label">Seña (opcional)</label>
+                    <input type="number" class="form-control" name="pago" id="pago" value="0" required pattern="[0-9]+" min="0" max="999999">
+                </div>
             </div>
+            
             
             <div class="mb-3">
                 <textarea class="form-control" name="descripcion_falla" id="" cols="80" rows="10" placeholder="Descripcion de la falla"></textarea><br>
@@ -50,8 +57,6 @@
                     <a class="btn btn-secondary" href="/recepcionista">Cancelar</a>
                 </div>
             </div>
-
         </form>
-
     </div>
 </div>

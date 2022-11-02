@@ -8,11 +8,11 @@
 
 <div class="card mx-auto col-7 m-3">
     <div class="card-header titulos">
-        Crear nueva orden de trabajo
+        Crear nueva orden de trabajo (Nuevo Cliente)
     </div>
     <div class="card-body">
 
-        <form action="/crear_orden_p" method="post" id="form_crear_orden">
+        <form action="" method="post" id="form_crear_orden">
 
             <div class="mb-3">
                 <label for="nombrecompleto" class="form-label">Nombre y Apellido</label>
@@ -43,22 +43,27 @@
 
             <div class="mb-3">
                 <label class="form-label" for="celular">Numero de Celular</label>
-                <input type="text" name="celular" class="form-control" id="celular" pattern="[0-9]{6,13}" required>
+                <input type="number" name="celular" class="form-control" id="celular" pattern="[0-9]{7,13}" required>
             </div>
 
             <div class="mb-3">
                 <label class="form-label" for="email">Email</label>
                 <input type="email" name="email" class="form-control" id="email" required>
             </div>
-
-            <div class="mb-3">
-                <label class="form-label" for="tipo_equipo">Elija el Tipo de Equipo</label>
-                <select name="tipo_equipo" id="tipo_equipo" class="form-select">
-                    <option value="" selected disabled></option>
-                    {{#each respuesta}}
-                        <option value="{{id_equipo}}">{{tipo_equipo}}</option>
-                    {{/each}}
-                </select>
+            <div class="row g-3">
+                <div class="mb-3 col">
+                    <label class="form-label" for="tipo_equipo">Elija el Tipo de Equipo</label>
+                    <select name="tipo_equipo" id="tipo_equipo" class="form-select" required>
+                        <option value="" selected disabled></option>
+                        {{#each respuesta}}
+                            <option value="{{id_tipo}}">{{tipo_equipo}}</option>
+                        {{/each}}
+                    </select>
+                </div>
+                <div class="mb-3 col">
+                    <label class="form-label" for="pago">Seña (opcional)</label>
+                    <input type="number" name="pago" class="form-control" id="pago" pattern="[0-9]+"  min="0" max="999999" required value="0">
+                </div>
             </div>
             <div class="mb-3">
                 <textarea class="form-control" name="descripcion_falla" id="" cols="80" rows="10" placeholder="Descripcion de la falla" required></textarea>
