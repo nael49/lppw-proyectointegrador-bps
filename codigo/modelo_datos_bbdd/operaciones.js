@@ -44,7 +44,7 @@ function tipo_usuario(coneccion,id,callback){
 )}
 
 function deshabilitar_usuario(coneccion,id){
-  let query=`UPDATE usuarios_general SET estado=0 WHERE dni = ${id}`; 
+  let query=`UPDATE usuarios_general SET estado=2 WHERE dni = ${id}`; 
   coneccion.query(query, function(err,data){
     if(err) throw err;
     }
@@ -54,7 +54,6 @@ function login(coneccion,datos,callback){
   let query=`SELECT nombrecompleto,puesto,dni  FROM usuarios_general WHERE dni = ${datos.usuario} AND pass =${datos.contraseña}`; 
   coneccion.query(query, function(err,data){
     if(err) throw err;
-    console.log('datos traidos del login',data)
     callback(data)
     }
 )}
@@ -73,9 +72,9 @@ function validar_usuario_id(coneccion,id,callback){ //revisa por id (int) si el 
   })
 }
 
-function update_usuario(coneccion,tabla,datos){
+function update_usuario(coneccion,tabla,id,datos){
 
-  coneccion.query(`update ${tabla} set ? WHERE dni=${datos.dni}`,[datos],function(err){
+  coneccion.query(`update ${tabla} set ? WHERE dni=${id}`,[datos],function(err){
     if(err) throw err;
   })
 }
@@ -95,7 +94,7 @@ function mostrar_usuario_id(coneccion,id,callback){ //revisa por id (int) si el 
 
 // ------------------------   REPUESTOS
 function mostrar_repuestos_marca_modelo(coneccion,callback){
-  let query=`SELECT id_repuesto,nombre,marca,modelo FROM repuestos JOIN marca ON repuestos.fk_marca=marca.id_marca JOIN modelo ON repuestos.fk_modelo=modelo.id_modelo`; 
+  let query=`SELECT id_repuesto,nombre,marca,modelo FROM repuestos JOIN marca ON repuestos.fk_marca=marca.id_marca JOIN modelo ON repuestos.fk_modelo=modelo.id_modelo WHERE repuestos.cantidad != 0 `; 
   coneccion.query(query, function(err,data){
     if(err) throw err;
     callback(data) 
@@ -143,13 +142,10 @@ function modificar_repuesto_id(coneccion,datos,callback){ //trae la cantidad y s
 
 
 
-function crear_repuesto(coneccion,datos,marca,modelo,callback){ 
+function crear_repuesto(coneccion,datos,marca,modelo){ 
   console.log(datos)
     let query=`INSERT INTO repuestos( nombre, distribuidor, cantidad, precio, descripcion,fk_marca,fk_modelo) VALUES ('${datos.nombre}','${datos.distribuidor}',${datos.cantidad},${datos.precio},'${datos.descripcion}','${marca}','${modelo}')`;
-    coneccion.query(query, function(err,data){
-      if(err) throw err;
-      callback(data)
-    })
+    coneccion.query(query)
 }
 
 function validar_repuerto_id(coneccion,id,callback){ //revisa por id (int) si el repuesto existe
@@ -187,15 +183,21 @@ function contar_repuerto_id(coneccion,id){ //revisa por id (int) si el repuesto 
 }
 
 function mostrar_repuesto_id(coneccion,id,callback){ //revisa por id (int) si el repuesto existe
-  let query_validar=`SELECT * FROM repuestos WHERE id_repuesto = ${id}`; 
+  let query=`SELECT id_repuesto, nombre, distribuidor,cantidad, precio, descripcion, marca.marca, modelo.modelo FROM repuestos JOIN marca ON repuestos.fk_marca=marca.id_marca JOIN modelo ON repuestos.fk_modelo= modelo.id_modelo WHERE id_repuesto = ${id}`; 
   
-  coneccion.query(query_validar, function(err,data){
+  coneccion.query(query, function(err,data){
     if(err) throw err;
     console.log("repuesto: ", data)
     callback(data)
   })
 }
-
+function mostrar_repuestos_con_marca_modelo_stock(coneccion,callback){
+  let query=`SELECT id_repuesto, nombre, distribuidor,cantidad, precio, descripcion, marca.marca, modelo.modelo FROM repuestos JOIN marca ON repuestos.fk_marca=marca.id_marca JOIN modelo ON repuestos.fk_modelo= modelo.id_modelo`
+  coneccion.query(query, function(err,data){
+    if(err) throw err;
+    callback(data)
+  })
+}
 
 // ------------------------   ORDENES
 function mostrar_ordenes_espera(coneccion,callback){
@@ -240,7 +242,7 @@ function validar_orden_id(coneccion,datos,callback){  //si existe la orden retor
 }
 
 function traer_orden_id(coneccion,datos,callback){
-  let query=`SELECT  id_orden,descripcion_falla,estados.nombre FROM orden_trabajo  JOIN estados ON orden_trabajo.estado =estados.id_estados WHERE id_orden=${datos}` ; 
+  let query=`SELECT  id_orden,descripcion_falla,estados.nombre,datos_importantes FROM orden_trabajo  JOIN estados ON orden_trabajo.estado =estados.id_estados WHERE id_orden=${datos}` ; 
   coneccion.query(query, function(err,data){
     if(err) throw err;
     callback(data)
@@ -252,7 +254,7 @@ function tomar_orden(coneccion,datos,id_orden,callback){ //terminar
     let x=new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '')
 
     console.log(x)
-    coneccion.query(`UPDATE  orden_trabajo  set estado = 4,hora_inicio='${x}', fk_tecnico=${datos}   WHERE id_orden = ${id_orden}`  , function(err,data){
+    coneccion.query(`UPDATE  orden_trabajo  set estado = 3,hora_inicio='${x}', fk_tecnico=${datos}   WHERE id_orden = ${id_orden}`  , function(err,data){
       if(err) throw err;
       callback(data)
     })
@@ -383,5 +385,5 @@ function insert (coneccion,tabla,datos){
 module.exports={crear_repuesto,ingresar_stock,validar_repuerto_id,validar_usuario_id,mostrar_ordenes_espera,mostrar_mis_ordenes,validar_orden_id,traer_orden_id,
 mostrar_estados,contar_repuerto_id,mostrar_repuesto_id,modificar_repuesto_id,crear_marca,crear_modelo,buscar_marca_nombre,buscar_modelo_nombre,validar_marca_nombre,
 validar_modelo_nombre,select_from,insert,mostrar_cliente_id,update_cliente,validar_cliente_id,mostrar_usuario_id,update_usuario,login,tipo_usuario,tomar_orden,
-deshabilitar_usuario,mostrar_ordenes_para_retirar,mostrar_repuestos_marca_modelo,traer_id_estado
+deshabilitar_usuario,mostrar_ordenes_para_retirar,mostrar_repuestos_marca_modelo,traer_id_estado,mostrar_repuestos_con_marca_modelo_stock
 }

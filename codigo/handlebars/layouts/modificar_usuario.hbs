@@ -15,9 +15,9 @@
 
             
             <div class="mb-3">
-                <label for="dni_cliente" class="form-label">DNI</label>
+                <label for="dni" class="form-label">DNI</label>
                 {{#each respuesta}}
-                    <input type="number" class="form-control"  id="dni_cliente" disabled value="{{dni}}">
+                    <input type="number" class="form-control" name="dni"  id="dni" disabled value="{{dni}}">
                 {{/each}}
             </div>
             <div class="mb-3 ">
@@ -78,7 +78,6 @@
             <div class="mb-3 ">
                 <label for="estado" class="form-label">Estado</label>
                 <select name="estado" id="estado" class="form-select">
-                    {{#each respuesta}}
                         {{#if estado}}
                             <option value="1" selected> Habilitado</option>
                             <option value="2" >Deshabilitado</option>
@@ -86,7 +85,6 @@
                             <option value="2" selected> Deshabilitado</option>
                             <option value="1" >Habilitado</option>
                         {{/if}}
-                    {{/each}}
                 </select>
             </div> 
             <div class="row g-3">
@@ -97,7 +95,6 @@
                     <a href="/admin" class="btn btn-secondary">Cancelar</a>
                 </div>
             </div>
-            
 
         </form>
     </div>

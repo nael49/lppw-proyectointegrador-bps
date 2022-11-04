@@ -51,10 +51,10 @@
                         {{/if}}
                         {{#if userLogged.admin}}
                             <li class="nav-item">
-                                <a class="nav-link active" aria-current="page" href="admin">Lista Usuarios</a>
+                                <a class="nav-link active" aria-current="page" href="/admin">Lista Usuarios</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="admin/crear_usuario">Crear Usuario </a>
+                                <a class="nav-link" href="/admin/crear_usuario">Crear Usuario </a>
                             </li>
                             <li class="nav-item">
                             <a class="nav-link" href="/logout">Cerrar Sesion</a>
@@ -62,10 +62,10 @@
                         {{/if}}
                         {{#if userLogged.stock}}
                             <li class="nav-item">
-                                <a class="nav-link active" aria-current="page" href="stock">Lista Repuestos</a>
+                                <a class="nav-link active" aria-current="page" href="/stock">Lista Repuestos</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="stock/crear_repuesto">Crear Repuestos </a>
+                                <a class="nav-link" href="/stock/crear_repuesto">Crear Repuestos </a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="/logout">Cerrar Sesion</a>
@@ -101,10 +101,6 @@
             </div>
         </nav>             
     </div>
-
-    {{#if session}}
-        <h1>hola si aparesco es porque la sesion existe</h1>
-    {{/if}}
 
     <div class="container">  
         {{>mensajes}}

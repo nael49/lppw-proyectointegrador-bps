@@ -12,8 +12,17 @@
                 <input type="text" class="form-control" name="nombre" id="nombre" value="{{#each respuesta}}{{nombre}}{{/each}}" pattern="[A-Z a-záéíóúÁÉÍÓÚÑñ.0-9]{2,}" required>
                 <div class="feedback-invalid"></div>
             </div>
-
-            <div class="mb-3 col" >
+             <div class="row  g-3">
+                <div class="mb-3 col">
+                    <label for="marca" class="form-label">Marca</label>
+                    <input class="form-control" type="text"  id="marca" value="{{#each respuesta}}{{marca}}{{/each}}" disabled>
+                </div>
+                <div class="mb-3 col">
+                    <label for="modelo" class="form-label">Modelo</label>
+                    <input class="form-control" type="text" id="modelo" value="{{#each respuesta}}{{modelo}}{{/each}}" disabled>
+                </div>
+             </div>
+            <div class="mb-3">
                 <label for="precio" class="form-label">Precio</label>
                 <input type="number" name="precio" value={{#each respuesta}}{{precio}}{{/each}} class="form-control" min="1" id="precio" required>
             </div>
@@ -31,8 +40,7 @@
                     <button type="submit" class="btn btn-primary">Guardar Cambios</button>
                 </div>
                 <div class="col mb-3">
-                    <a href="http://localhost:3000/stock" class="btn btn-secondary">Cancelar</a>
-                    
+                    <a href="/stock" class="btn btn-secondary">Cancelar</a>
                 </div>
             </div>
             

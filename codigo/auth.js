@@ -1,4 +1,5 @@
 const conect1= require('./modelo_datos_bbdd/conexion_con_bbdd')
+const conect2= require('./modelo_datos_bbdd/conexion_sql2')
 
 const authMiddleware = (req, res, next) => {
     if (req.session && req.session.user) {
@@ -33,11 +34,21 @@ const authGuestMiddleware = (req, res, next) => {
 
 const authUserMiddleware = async (req, res, next) => {
     if (req.session && req.session.user) {
+        console.log("dato de usuario", req.session.user)
         let userLoggedId = req.session.user;
         if (userLoggedId) {
-            await user_id(conect1,userLoggedId,(respuesta)=>{
-                let userLogged = respuesta;//buscar un usuario
+            let userLogged
+                let queryStr = `SELECT * FROM usuarios_general WHERE dni = ${userLoggedId}`;
+                let rows, fields;
+                [rows, fields] =await conect2.query(
+                    queryStr,
+                );
+                if (rows.length > 0) {
+                    userLogged= rows[0]
+                }
+
                 res.locals.userLogged = userLogged;
+                console.log("dato de res.locals", res.locals)
                 if(userLogged.puesto=="TECNICO"){
                     userLogged.tecnico=1
                 }
@@ -53,11 +64,13 @@ const authUserMiddleware = async (req, res, next) => {
                 if(userLogged.puesto=="GERENTE"){
                     userLogged.gerente=1
                 }
-            })
         }
     }
     next();
 }
+
+
+
 
 module.exports = {
     authMiddleware,
@@ -65,10 +78,3 @@ module.exports = {
     authUserMiddleware,
 };
 
-function user_id(conect1,id,respuesta){
-    let query=`SELECT *  FROM usuarios_general WHERE dni = ${id}`
-    conect1.query(query, function(err,data){
-        if(err) throw err;
-        respuesta(data[0])
-    })
-}

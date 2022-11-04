@@ -4,20 +4,21 @@ const router = express.Router();
 const { authGuestMiddleware, authMiddleware } = require('../auth');
 
 const conect_sql = require('../modelo_datos_bbdd/conexion_con_bbdd')
-const {crear_repuesto, ingresar_stock, validar_repuerto_id, mostrar_ordenes_espera, mostrar_mis_ordenes, validar_orden_id, traer_orden_id, mostrar_estados, mostrar_repuesto_id,crear_marca, buscar_marca_nombre, buscar_modelo_nombre, crear_modelo, validar_marca_nombre, validar_modelo_nombre, select_from, modificar_repuesto_id, insert, mostrar_cliente_id, validar_cliente_id, update_cliente, validar_usuario_id, mostrar_usuario_id, update_usuario, login, tomar_orden, deshabilitar_usuario, mostrar_ordenes_para_retirar, mostrar_repuestos_marca_modelo} = require('../modelo_datos_bbdd/operaciones')
+const {crear_repuesto, ingresar_stock, validar_repuerto_id, mostrar_ordenes_espera, mostrar_mis_ordenes, validar_orden_id, traer_orden_id, mostrar_estados, mostrar_repuesto_id,crear_marca, buscar_marca_nombre, buscar_modelo_nombre, crear_modelo, validar_marca_nombre, validar_modelo_nombre, select_from, modificar_repuesto_id, insert, mostrar_cliente_id, validar_cliente_id, update_cliente, validar_usuario_id, mostrar_usuario_id, update_usuario, login, tomar_orden, deshabilitar_usuario, mostrar_ordenes_para_retirar, mostrar_repuestos_marca_modelo, mostrar_repuestos_con_marca_modelo_stock} = require('../modelo_datos_bbdd/operaciones')
 
 
 router.get('/gerente',(req,res)=>{
     res.render('layouts/gerente_index')
 })
 
-router.get('/recepcionista',async(req,res)=>{
+router.get('/recepcionista',authMiddleware,async(req,res)=>{
+    console.log(res.locals)
     await mostrar_ordenes_para_retirar(conect_sql,(respuesta)=>{
         res.render('layouts/index-recepcionista',{respuesta})
     })
 })
 
-router.get('/clientes',(req,res)=>{
+router.get('/clientes',authMiddleware,(req,res)=>{
     select_from(conect_sql,"clientes",(respuesta)=>{
         res.render('layouts/lista_clientes',{respuesta})
     })
@@ -308,34 +309,25 @@ router.post('/sigin',authGuestMiddleware,async(req,res)=>{
         await login(conect_sql,nuevo_usuario,(respuesta)=>{
             if(respuesta[0]){
                 console.log('existe el usuario')
-                if(respuesta[0].dni=nuevo_usuario.usuario){
+                if(respuesta[0].dni==nuevo_usuario.usuario){
                     req.session.user = nuevo_usuario.usuario;
-        
-                    if(respuesta[0].puesto=="TECNICO"){
-                        res.redirect('/tecnico')
-                    }
-                    if(respuesta[0].puesto=="ADMIN"){
-                        res.redirect('/admin')
-                    }
-                    if(respuesta[0].puesto=="RECEPCIONISTA"){
-                        res.redirect('/recepcionista')
-                    }
-                    if(respuesta[0].puesto=="GERENTE"){
-                        res.redirect('/gerente')
-                    }
-                    if(respuesta[0].puesto=="ADMINISTRADOR_DE_DEPOSITO"){
-                        res.redirect('/stock')
-                    }
+                    req.session.puesto=respuesta[0].puesto
+                    req.session.nombre=respuesta[0].nombrecompleto
+                    console.log("sesion creada", req.session)
+                    res.redirect('/sigin')
+                    return
                 }
                 else{
                     req.flash('exito_msg','Usuario y/o contraseña invalido')
-                    res.redirect('/login')
+                    res.redirect('/sigin')
+                    return
                 }
             }
             else{
                 console.log('no existe el usuario')
                 req.flash('exito_msg','Usuario y/o contraseña invalido')
                 res.redirect('/sigin')
+                return
             }
         })
     }
@@ -348,7 +340,7 @@ router.get('/logout',authMiddleware, (req, res) => {
 
 router.get('/tecnico',authMiddleware, async(req,res)=>{
 
-    console.log("sesion: ",req.session)
+    console.log("datos globales: ",res.locals.userLogged)
 
 
     await mostrar_ordenes_espera(conect_sql,(respuesta)=>{
@@ -436,7 +428,7 @@ router.get('/tecnico/misordenes',authMiddleware,async(req,res)=>{
     }
 })
 
-router.get('/tecnico/orden/:id',async(req,res)=>{ 
+router.get('/tecnico/orden/:id',authMiddleware,async(req,res)=>{ 
     let lista_estados=["Cancelado","En Espera","En Revision","En Reparacion","Reparado","Finalizado"]        
     let listfilter
     let lista_enviar=[]
@@ -473,11 +465,12 @@ router.get('/tecnico/orden/:id',async(req,res)=>{
     }
 })
 
-router.post('/tecnico/orden/:id',async(req,res)=>{ //--------------------------------------------terminar
+router.post('/tecnico/orden/:id',authMiddleware,async(req,res)=>{ //--------------------------------------------terminar
     let id=req.params.id
     let lista_estados=["En Espera","En Revision","En Reparacion","Reparado","Finalizado"]  
     const{repuesto,estado,datos_op,id_orden}=req.body
     let error_orden=[]
+    let validador=true
 
     console.log("datos de modificar orden",req.body)
     console.log("tipo de dato repuesto", typeof repuesto)
@@ -486,18 +479,49 @@ router.post('/tecnico/orden/:id',async(req,res)=>{ //---------------------------
         error_orden.push({text:"error al elegir repuestos"})
     }
     
-    if(estado==lista_estados[4]){ //si el equipo ya termino de reparar
-
+    if(estado==lista_estados[3]){                           //si el equipo ya termino de reparar
+        validador=false
         if(error_orden.length>0){
             req.flash("exito_msg","Error en repuestos o el estado")
-            res.redirect(`/tecnico/orden/${id}`)
+            res.redirect(`/tecnico/misordenes`)
+            return
         }
         if(error_orden.length==0){
-
+            try {
+                let x=new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '')
+                let query=`UPDATE orden_trabajo SET estado=5,hora_fin=${x} WHERE id_orden=${id}`
+                conect_sql.query(query)
+            } 
+            catch (error) {
+                req.flash("exito_msg","Error en la orden de trabajo")
+                res.redirect(`/tecnico/misordenes`)
+                return
+            }  
         }
     }
-    else{                   //si el equipo todavia necesita cambios
-
+    if (estado==lista_estados[0] ) {                          //si el tecnico se quiere desvincular de una orden
+        validador=false
+        if(error_orden.length>0){
+            req.flash("exito_msg","Error en repuestos o el estado")
+            res.redirect(`/tecnico/misordenes`)
+            return
+        }
+        if(error_orden.length==0){
+            try {
+                let query=`UPDATE orden_trabajo SET estado=2,hora_inicio=NULL,fk_tecnico=NULL WHERE id_orden=${id}`
+                conect_sql.query(query)
+                req.flash("exito_msg","Se ha desvinculado de la orden de trabajo con exito")
+                res.redirect(`/tecnico/misordenes`)
+                return
+            } 
+            catch (error) {
+                req.flash("exito_msg","Error en la orden de trabajo")
+                res.redirect(`/tecnico/misordenes`)
+                return
+            }  
+        }
+    }
+    if(validador){                   //si el equipo todavia necesita cambios
         if(!repuesto){
             error_orden.push({text:"error al elegir repuestos"})
         }
@@ -510,28 +534,34 @@ router.post('/tecnico/orden/:id',async(req,res)=>{ //---------------------------
             res.redirect(`/tecnico/orden/${id}`)
         }
         if(error_orden.length==0){
-            
-            if(typeof repuesto =='object'){ //si repuestos trae varias cosas
-
-                for (let index = 0; index < repuesto.length; index++) {
-                    let query=`INSERT INTO repuestos_orden (fk_orden,fk_repuesto) VALUES (${id_orden},${repuesto[index]})`
-                    conect_sql.query(query, function(err,data){
-                    })   
+            validar_orden_id(conect_sql,id,(respuesta)=>{
+                if(respuesta){
+                    if(typeof repuesto =='object'){                 //si repuestos trae varias cosas
+                        for (let index = 0; index < repuesto.length; index++) {
+                            let query=`INSERT INTO repuestos_orden (fk_orden,fk_repuesto) VALUES (${id_orden},${repuesto[index]})`
+                            conect_sql.query(query)  
+                        }
+                    }
+                    if(typeof repuesto =='string'){                 //repuesto solo tiene un repuesto
+                        let query=`INSERT INTO repuestos_orden (fk_orden,fk_repuesto) VALUES (${id_orden},${repuesto})`
+                        conect_sql.query(query)
+                    }
+                    let query2=`UPDATE orden_trabajo SET estado = 4, WHERE id_orden=${id_orden}`
+                    conect_sql.query(query2)
+                    req.flash("exito_msg","La orden de trabajo fue actualizada correctamente")
+                    res.redirect(`/tecnico/misordenes`)
                 }
-                res.send('bien')
-            }
-            if(typeof repuesto =='string'){ //repuesto solo tiene un repuesto
-                let query=`INSERT INTO repuestos_orden (fk_orden,fk_repuesto) VALUES (${id_orden},${repuesto})`
-                conect_sql.query(query, function(err,data){
-
-                })
-                res.send('bien')
-            }
+                else{
+                    req.flash("exito_msg","La orden de trabajo no existe")
+                    res.redirect(`/tecnico/misordenes`)
+                }
+            })
+            
         }
     }
 })
 
-router.get('/admin',async (req,res)=>{
+router.get('/admin',authMiddleware,async (req,res)=>{
     select_from(conect_sql,"usuarios_general",(respuesta)=>{
         
         for (let index = 0; index < respuesta.length; index++) {
@@ -547,14 +577,13 @@ router.get('/admin',async (req,res)=>{
 
         res.render('layouts/lista_usuario',{respuesta})
     })
-    
 })
 
-router.get('/admin/crear_usuario',(req,res)=>{
+router.get('/admin/crear_usuario',authMiddleware,(req,res)=>{
     res.render('layouts/crear_usuario')
 })
 
-router.post('/admin/crear_usuario', async(req,res)=>{
+router.post('/admin/crear_usuario',authMiddleware, async(req,res)=>{
     console.log(req.body)
     const {puesto,direccion,localidad,DNI,nombreyapellido,fecha_ingreso,numerocelular,email,pass}= req.body
 
@@ -628,45 +657,51 @@ router.post('/admin/crear_usuario', async(req,res)=>{
     }
 })
 
-router.get('/admin/mod/:id', async(req,res)=>{   //terminar
+router.get('/admin/mod/:id',authMiddleware, async(req,res)=>{   //terminar
     let id=req.params.id
     let tipos_usuarios=["TECNICO","ADMINISTRADOR","RECEPCIONISTA","GERENTE","ADMIN. STOCK"]
     let listfilter
     let lista_enviar=[]
-    validar_usuario_id(conect_sql,id,(respuesta)=>{
-        if(respuesta){
-            mostrar_usuario_id(conect_sql,id,(respuesta2)=>{
-                
-                if(respuesta2[0].estado==1){
-                    for (let index = 0; index < tipos_usuarios.length; index++) {
-                        if (respuesta2[0].puesto==tipos_usuarios[index]) {
-                            listfilter= tipos_usuarios.filter((item) => item !== respuesta2[0].puesto)  
 
-                            for (let index = 0; index < listfilter.length; index++) {
-                                lista_enviar.push({puesto:listfilter[index]})
-                                
+    if(!req.params.id ||isNaN(parseInt(id))) {
+        req.flash('exito_msg',"ERROR !!! El usuario no existe ")
+        res.redirect("/admin") 
+    } 
+    else {
+        validar_usuario_id(conect_sql,id,(respuesta)=>{
+            if(respuesta){
+                mostrar_usuario_id(conect_sql,id,(respuesta2)=>{
+                    
+                        for (let index = 0; index < tipos_usuarios.length; index++) {
+                            if (respuesta2[0].puesto==tipos_usuarios[index]) {
+                                listfilter= tipos_usuarios.filter((item) => item !== respuesta2[0].puesto)  
+    
+                                for (let index = 0; index < listfilter.length; index++) {
+                                    lista_enviar.push({puesto:listfilter[index]})
+                                    
+                                }
                             }
                         }
-                    }
-                    respuesta2[0].estado=true
-                    res.render('layouts/modificar_usuario',{respuesta:respuesta2,lista_enviar})
-                }
-                else{
-                    respuesta2[0].estado=false
-                    res.render('layouts/modificar_usuario',{respuesta:respuesta2,lista_enviar})
-                }
-               
-            })
-        }
-        else{
-            req.flash('exito_msg',"ERROR !!! El usuario no existe ")
-            res.redirect("/admin") //completar con redirect
-        }
-    })
+                        if(respuesta2[0].estado==1){
+                            let estado={lalala:1}
+                            res.render('layouts/modificar_usuario',{respuesta:respuesta2,lista_enviar,estado})
+                        }
+                        else{
+                            res.render('layouts/modificar_usuario',{respuesta:respuesta2,lista_enviar})
+                        }
+                })
+            }
+            else{
+                req.flash('exito_msg',"ERROR !!! El usuario no existe ")
+                res.redirect("/admin") //completar con redirect
+            }
+        })
+    }
+    
 
 })
 
-router.post('/admin/mod/:id', async(req,res)=>{                      //terminar
+router.post('/admin/mod/:id',authMiddleware, async(req,res)=>{                      //terminar
     console.log(req.body)
     const{dni,pass,nombrecompleto,direccion,localidad,email,celular,puesto,estado}=req.body
     let tipos_usuarios=["TECNICO","ADMINISTRADOR","RECEPCIONISTA","GERENTE","ADMIN. STOCK"]
@@ -708,10 +743,10 @@ router.post('/admin/mod/:id', async(req,res)=>{                      //terminar
             req.flash('exito_msg',"ERROR !!! El usuario no existe ")
             res.redirect('/admin')
         } else {
-            res.render('layouts/modificar_usuario',{error_orden})
+            req.flash('exito_msg',error_orden)
+            res.redirect(`/admin/mod/:${dni}`)
         }
     }
-
 
     if(error_orden.length==0){
         let dni_int=parseInt(dni)
@@ -719,7 +754,6 @@ router.post('/admin/mod/:id', async(req,res)=>{                      //terminar
         let estado_int=parseInt(estado)
 
         let usuario={
-            dni:dni_int,
             pass:pass,
             nombrecompleto:nombrecompleto,
             direccion:direccion,
@@ -731,7 +765,7 @@ router.post('/admin/mod/:id', async(req,res)=>{                      //terminar
         }
         validar_usuario_id(conect_sql,usuario,(respuesta)=>{  
             if(respuesta){ //si existe el usuario
-                update_usuario(conect_sql,"usuarios_general",usuario) //actualiza la tabla
+                update_usuario(conect_sql,"usuarios_general",dni_int,usuario) //actualiza la tabla
                 req.flash('exito_msg',"El usuario fue actualizado correctamente ")
                 res.redirect('/admin')
             }
@@ -743,10 +777,8 @@ router.post('/admin/mod/:id', async(req,res)=>{                      //terminar
     }
 })
 
-router.post('/admin/delete/:id', async(req,res)=>{ 
-
+router.post('/admin/delete/:id',authMiddleware, async(req,res)=>{  //ruta no usada por ahora (ya hay manera de desabilitar)
     if(!req.params.id || isNaN(parseInt(req.params.id))){
-        
     }
     else{
         let dato={
@@ -755,41 +787,48 @@ router.post('/admin/delete/:id', async(req,res)=>{
         await validar_usuario_id(conect_sql,dato.id_usuario,(respuesta)=>{
             if (respuesta) {
                 deshabilitar_usuario(conect_sql,dato.id_usuario)
-                req.flash('exito_msg',"Usuario eliminado con Exito ")
+                req.flash('exito_msg',"Usuario Desabilitado con Exito ")
                 res.redirect("/admin") 
             } 
             else {
-                
+                req.flash('exito_msg',"El usuario no existe")
+                res.redirect("/admin") 
             }
         })
     }
 })  
 
 
-router.get('/stock', async(req,res)=>{
-
-    await select_from(conect_sql,"repuestos",(resultado)=>{ //busca los repuestos y los envia al front
-        console.log(resultado[0])
+router.get('/stock',authMiddleware, async(req,res)=>{
+    console.log(res.locals)
+    await mostrar_repuestos_con_marca_modelo_stock(conect_sql,(resultado)=>{ //busca los repuestos y los envia al front
         res.render('layouts/lista_repuestos',{resultado})  //completar el front (hbs)
     }) 
 })
 
-router.get('/stock/mod/:dato', async(req,res)=>{   //completar ----------------------------------------------error--------------------
+router.get('/stock/mod/:dato',authMiddleware, async(req,res)=>{   //completar ----------------------------------------------error--------------------
     let dato=req.params.dato
-    console.log( "dato recibido en get :"+dato)
-    await validar_repuerto_id(conect_sql,dato,(dato_val)=>{
-        if (dato_val) {
-            mostrar_repuesto_id(conect_sql,dato,(respuesta)=>{
-                res.render('layouts/modificar_repuesto',{respuesta})
-            })
-        } else {
-            res.status(404).send('Respuesto no encontrado')
-        }
-    })
+    if(!dato || isNaN(parseInt(dato))){
+        req.flash('exito_msg','El repuesto no existe')
+        res.redirect('/stock')
+    }
+    else{
+        await validar_repuerto_id(conect_sql,dato,(dato_val)=>{
+            if (dato_val) {
+                mostrar_repuesto_id(conect_sql,dato,(respuesta)=>{
+                    res.render('layouts/modificar_repuesto',{respuesta})
+                })
+            } else {
+                req.flash('exito_msg','El repuesto no existe')
+                res.redirect('/stock')
+            }
+        })
+    }
+    
 
 })
 
-router.post('/stock/mod/:id',async(req,res)=>{  //terminar
+router.post('/stock/mod/:id',authMiddleware,async(req,res)=>{  //terminar
     console.log("datos post:",req.body)
     const{id,nombre,precio,distribuidor,descripcion}=req.body
     let id_int=parseInt(id);
@@ -814,11 +853,12 @@ router.post('/stock/mod/:id',async(req,res)=>{  //terminar
     
 })
 
-router.get('/stock/crear_repuesto',async(req,res)=>{
+router.get('/stock/crear_repuesto',authMiddleware,(req,res)=>{
+    console.log(res.locals)
     res.render('layouts/crear_repuesto')  
 })
 
-router.post('/stock/crear_repuesto',async (req,res)=>{  //terminar
+router.post('/stock/crear_repuesto',authMiddleware,async (req,res)=>{  //terminar
     let error_orden=[]
 
     const{ nombre,distribuidor,cantidad,precio,descripcion,marca,modelo }=req.body
@@ -862,14 +902,12 @@ router.post('/stock/crear_repuesto',async (req,res)=>{  //terminar
     if(error_orden.length>0){
         res.render('/stock/crear_repuesto',{error_orden})
     }
-            //si noexisten errores pasa a crear el repuesto
-
- 
-    else{
-        await validar_marca_nombre(conect_sql,marca_lower,(datos_val)=>{
+            
+    if(error_orden.length==0){               //si no existen errores pasa a crear el repuesto
+        await validar_marca_nombre(conect_sql,marca_lower,(datos_val)=>{ 
             console.log(datos_val)
-            if(datos_val){
-                buscar_marca_nombre(conect_sql,marca_lower,(respuesta)=>{
+            if(datos_val){                  //revisa si existe la marca sino la crea
+                buscar_marca_nombre(conect_sql,marca_lower,(respuesta)=>{ 
 
                     esquema.marca=respuesta[0].id_marca
                     console.log("esquema modelo "+esquema.marca)
@@ -883,23 +921,23 @@ router.post('/stock/crear_repuesto',async (req,res)=>{  //terminar
                                 console.log("esquema modelo "+esquema.modelo)
                                 console.log(respuesta2.id_modelo)
         
-                                crear_repuesto(conect_sql,esquema,respuesta[0].id_marca,respuesta2[0].id_modelo,(respuesta3)=>{
-                                    error_orden={text:'Repuesto creado con exito'}
-                                    res.render('layouts/crear_repuesto',{error_orden})
-                                })
+                                crear_repuesto(conect_sql,esquema,respuesta[0].id_marca,respuesta2[0].id_modelo)
+                                error_orden={text:'Repuesto creado con exito'}
+                                res.render('layouts/crear_repuesto',{error_orden})
+                                
                             })
                         }
                         else{
                             crear_modelo(conect_sql,modelo_lower)
                             buscar_modelo_nombre(conect_sql,modelo_lower,(respuesta2)=>{
-                            esquema.modelo=respuesta2[0].id_modelo
-                            crear_repuesto(conect_sql,esquema,respuesta[0].id_marca,respuesta2[0].id_modelo,(respuesta3=>{
-                                error_orden={text:'Repuesto creado con exito'}
-                                res.render('layouts/crear_repuesto',{error_orden})
-                            }))
+                                esquema.modelo=respuesta2[0].id_modelo
+                                crear_repuesto(conect_sql,esquema,respuesta[0].id_marca,respuesta2[0].id_modelo)
+                                req.flash('exito_msg','Repuesto creado con exito')
+                                res.redirect('/stock')
+                            })
                             
-                        })
                         }
+                        
                     })
                 })
             }
@@ -913,20 +951,19 @@ router.post('/stock/crear_repuesto',async (req,res)=>{  //terminar
                         if(datos_val2){
                             buscar_modelo_nombre(conect_sql,modelo_lower,(respuesta2)=>{
                                 esquema.modelo=respuesta2[0].id_modelo
-                                crear_repuesto(conect_sql,esquema,respuesta[0].id_marca,respuesta2[0].id_modelo,(respuesta3)=>{
-                                    error_orden={text:'Repuesto creado con exito'}
-                                    res.render('layouts/crear_repuesto',{error_orden})
-                                })
+                                crear_repuesto(conect_sql,esquema,respuesta[0].id_marca,respuesta2[0].id_modelo)
+                                req.flash('exito_msg','Repuesto creado con exito')
+                                res.redirect('/stock')
+                                
                             })
                         }
                         else{
                             crear_modelo(conect_sql,modelo_lower)
                             buscar_modelo_nombre(conect_sql,modelo_lower,(respuesta2)=>{
                                 esquema.modelo=respuesta2.id_modelo
-                                crear_repuesto(conect_sql,esquema,(respuesta3)=>{
-                                    error_orden={text:'Repuesto creado con exito'}
-                                    res.render('/stock/crear_repuesto',{error_orden})
-                                })
+                                crear_repuesto(conect_sql,esquema,respuesta[0].id_marca,respuesta2[0].id_modelo)
+                                req.flash('exito_msg','Repuesto creado con exito')
+                                res.redirect('/stock')
                             })
                         }
                     })
