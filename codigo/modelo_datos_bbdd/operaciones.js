@@ -51,7 +51,7 @@ function deshabilitar_usuario(coneccion,id){
 )}
 
 function login(coneccion,datos,callback){
-  let query=`SELECT nombrecompleto,puesto,dni  FROM usuarios_general WHERE dni = ${datos.usuario} AND pass =${datos.contraseña}`; 
+  let query=`SELECT nombrecompleto,puesto,dni  FROM usuarios_general WHERE dni = ${datos.usuario} AND pass =${datos.contraseña} AND estado =1`; 
   coneccion.query(query, function(err,data){
     if(err) throw err;
     callback(data)
@@ -101,33 +101,25 @@ function mostrar_repuestos_marca_modelo(coneccion,callback){
   })
 }
 
-
-function ingresar_stock (coneccion,datos,operacion,callback){ //trae la cantidad y suma o resta dependiento la "operacion"
-  console.log(datos)
-
-  //consultar cuanto hay en stock
-  let query_contar=`SELECT cantidad FROM repuestos WHERE id_repuesto =${datos.id_repuesto}`; //traigo la cantidad
-  coneccion.query(query_contar, function(err,data){
+function buscar_repuestos_marca_modelo_por_id(coneccion,id,callback){
+  let query=`SELECT repuestos.id_repuesto, repuestos.nombre, marca.marca, modelo.modelo FROM repuestos_orden JOIN repuestos ON repuestos.id_repuesto=repuestos_orden.fk_repuesto JOIN marca on marca.id_marca=repuestos.fk_marca JOIN modelo ON modelo.id_modelo=repuestos.fk_modelo WHERE repuestos_orden.fk_orden=${id} `; 
+  coneccion.query(query, function(err,data){
     if(err) throw err;
-
-    let cantidad_traida=data[0].cantidad
     callback(data) 
-
-    if(operacion=="suma"){
-      let query_sumar=`UPDATE repuestos SET cantidad=${cantidad_traida+datos.cantidad} WHERE id_repuesto=${datos.id_repuesto}`; 
-      coneccion.query(query_sumar, function(err,data){
-        if(err) throw err;
-        callback(data)
-      })
-    }
-    if(operacion=="resta"){
-      let query_sumar=`UPDATE repuestos SET cantidad=${cantidad_traida-datos.cantidad} WHERE id_repuesto=${datos.id_repuesto}`; 
-      coneccion.query(query_sumar, function(err,data){
-        if(err) throw err;
-        callback(data)
-      })
-    }
   })
+}
+function ingresar_stock (coneccion,datos,operacion){ //trae la cantidad y suma o resta dependiento la "operacion"
+
+  if(operacion=="suma"){
+    let query_sumar=`UPDATE repuestos SET cantidad= cantidad+${datos.cantidad} WHERE id_repuesto=${datos.id_repuesto}`; 
+    coneccion.query(query_sumar)
+  }
+
+  if(operacion=="resta"){
+    if (datos.cantidad==0){datos.cantidad=1}; //sino se le pasa nada se resta uno
+    let query_resta=`UPDATE repuestos SET cantidad=cantidad-${datos.cantidad} WHERE id_repuesto=${datos.id_repuesto}`; 
+    coneccion.query(query_resta)
+  }
 }
 
 function modificar_repuesto_id(coneccion,datos,callback){ //trae la cantidad y suma o resta dependiento la "operacion"
@@ -149,8 +141,6 @@ function crear_repuesto(coneccion,datos,marca,modelo){
 }
 
 function validar_repuerto_id(coneccion,id,callback){ //revisa por id (int) si el repuesto existe
-
-
   let query_validar=`SELECT COUNT(cantidad) AS cantidad FROM repuestos WHERE id_repuesto = ${id}`; 
   
   coneccion.query(query_validar, function(err,data){
@@ -250,11 +240,9 @@ function traer_orden_id(coneccion,datos,callback){
 }
 
 
-function tomar_orden(coneccion,datos,id_orden,callback){ //terminar
-    let x=new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '')
+function tomar_orden(coneccion,datos,id_orden,callback){ 
 
-    console.log(x)
-    coneccion.query(`UPDATE  orden_trabajo  set estado = 3,hora_inicio='${x}', fk_tecnico=${datos}   WHERE id_orden = ${id_orden}`  , function(err,data){
+    coneccion.query(`UPDATE  orden_trabajo  set estado = 3,hora_inicio=NOW(), fk_tecnico=${datos}   WHERE id_orden = ${id_orden}`  , function(err,data){
       if(err) throw err;
       callback(data)
     })
@@ -380,10 +368,20 @@ function insert (coneccion,tabla,datos){
   })
 }
 
+//---------------------------- REPUESTO_ORDEN---------------------
+
+function select_repuesto_orden_id_orden(coneccion,id,callback){
+  coneccion.query(`SELECT * FROM repuestos_orden WHERE fk_orden=${id}`,function(err,data){
+    if(err) throw err;
+    callback(data)
+  })
+}
+
 
 
 module.exports={crear_repuesto,ingresar_stock,validar_repuerto_id,validar_usuario_id,mostrar_ordenes_espera,mostrar_mis_ordenes,validar_orden_id,traer_orden_id,
 mostrar_estados,contar_repuerto_id,mostrar_repuesto_id,modificar_repuesto_id,crear_marca,crear_modelo,buscar_marca_nombre,buscar_modelo_nombre,validar_marca_nombre,
 validar_modelo_nombre,select_from,insert,mostrar_cliente_id,update_cliente,validar_cliente_id,mostrar_usuario_id,update_usuario,login,tipo_usuario,tomar_orden,
-deshabilitar_usuario,mostrar_ordenes_para_retirar,mostrar_repuestos_marca_modelo,traer_id_estado,mostrar_repuestos_con_marca_modelo_stock
+deshabilitar_usuario,mostrar_ordenes_para_retirar,mostrar_repuestos_marca_modelo,traer_id_estado,mostrar_repuestos_con_marca_modelo_stock,buscar_repuestos_marca_modelo_por_id,
+select_repuesto_orden_id_orden
 }

@@ -34,7 +34,6 @@ const authGuestMiddleware = (req, res, next) => {
 
 const authUserMiddleware = async (req, res, next) => {
     if (req.session && req.session.user) {
-        console.log("dato de usuario", req.session.user)
         let userLoggedId = req.session.user;
         if (userLoggedId) {
             let userLogged
@@ -48,7 +47,6 @@ const authUserMiddleware = async (req, res, next) => {
                 }
 
                 res.locals.userLogged = userLogged;
-                console.log("dato de res.locals", res.locals)
                 if(userLogged.puesto=="TECNICO"){
                     userLogged.tecnico=1
                 }
@@ -68,9 +66,6 @@ const authUserMiddleware = async (req, res, next) => {
     }
     next();
 }
-
-
-
 
 module.exports = {
     authMiddleware,

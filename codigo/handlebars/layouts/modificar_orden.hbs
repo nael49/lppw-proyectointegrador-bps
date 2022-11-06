@@ -1,8 +1,3 @@
-{{#each errores}}
-
-{{/each}}
-
-
 <div class="card mx-auto col-7 m-3">
     <div class="card-header titulos">
         Modificar Orden
@@ -24,8 +19,18 @@
                     <textarea class="form-control" name="" id="" cols="80" rows="5" placeholder="Datos importantes (opcional) " disabled>{{descripcion_falla}}</textarea>
                 {{/each}}
             </div>
-
-           
+              <div class="mt-3">
+                {{#if respuesta2}}
+                    <label for="repuesto2" class="form-label">Repuestos en uso</label>
+                    <select class="form-select" multiple="multiple" id="repuesto2" disabled>
+                    {{#each respuesta2}}
+                          <option value="{{id_repuesto}}"  selected >{{nombre}} - {{modelo}} - {{marca}}</option>
+                    {{/each}}
+                  </select>
+                  {{/if}}
+              </div>
+                
+               
               <label for="repuesto" class="form-label">Elegir repuesto/s usado/s</label>
               <select class="form-select" name="repuesto" multiple="multiple" id="repuesto">
                 <option value=""  disabled ></option>
@@ -36,14 +41,13 @@
             
             <div class=" mt-3">
 
-              <textarea class="form-control" name="datos_op" id="" cols="80" rows="10" placeholder="Datos importantes (opcional) ">{{#if respuesta}}{{datos_importantes}}{{/if}}</textarea>
+              <textarea class="form-control" name="datos_op" id="datos_op" cols="80" rows="10" maxlength="300" minlength="1" placeholder="Datos importantes (opcional) ">{{#each respuesta}}{{datos_importantes}}{{/each}}</textarea>
                 
             </div>
             
 
             <div class="mt-3">
               <label for="estado" class="form-label">Cambiar estado de la orden.</label>
-              <label for="estado" class="form-label">Estado actual -> </label>
               <select class="form-select" name="estado" id="estado" required>
                 <option value="{{#each respuesta}}{{nombre}}{{/each}}" selected>{{#each respuesta}}{{nombre}}{{/each}}</option>
 
@@ -53,9 +57,18 @@
               </select>
             
             </div>
-
-            <button type="submit" class=" mt-2 btn btn-primary">Guardar Cambios</button>
-
+            <div class="row g-3">
+                <div class="mt-3 col-4">
+                   <button type="submit" class=" mt-2 btn btn-primary">Guardar Cambios</button>
+              </div>
+                <div class="mt-3 col-4">
+                  <a class="btn mt-2  btn-danger" href="/tecnico/misordenes">Cancelar</a>
+                   
+              </div>
+                <div class="mt-3 col-4">
+                   <a class="btn mt-2  btn-secondary" href="/tecnico/orden/{{#each respuesta}}{{id_orden}}{{/each}}">Restablecer</a>
+              </div>
+            </div>
         </form>
     </div>
 </div>
