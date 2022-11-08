@@ -74,6 +74,31 @@
                             </li>
                         {{/if}}
                         {{#if userLogged.gerente}}
+                            <li class="nav-item">
+                                <a class="nav-link active" aria-current="page" href="informes">Informes</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false">Tecnico</a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#">Asignar tecnico</a></li>
+                                    <li><a class="dropdown-item" href="#">Ver ordenes de trabajo</a></li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false">Recepcionista</a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#">Crear Orden de trabajo</a></li>
+                                    <li><a class="dropdown-item" href="#">Ver facturas</a></li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false">Stock</a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#">Crear Stock</a></li>
+                                    <li><a class="dropdown-item" href="#">Ver Stock</a></li>
+                                </ul>
+                            </li>
+
 
                             <li class="nav-item">
                                 <a class="nav-link" href="/logout">Cerrar Sesion</a>
