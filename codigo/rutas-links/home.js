@@ -8,10 +8,10 @@ const conect_sql = require('../modelo_datos_bbdd/conexion_con_bbdd')
 const {crear_repuesto, ingresar_stock, validar_repuerto_id, mostrar_ordenes_espera, mostrar_mis_ordenes, validar_orden_id, traer_orden_id, mostrar_repuesto_id,
 crear_marca, buscar_marca_nombre, buscar_modelo_nombre, crear_modelo, validar_marca_nombre, validar_modelo_nombre, select_from, modificar_repuesto_id, insert, 
 mostrar_cliente_id, validar_cliente_id, update_cliente, validar_usuario_id, mostrar_usuario_id, update_usuario, login, tomar_orden, deshabilitar_usuario, 
-mostrar_ordenes_para_retirar, mostrar_repuestos_marca_modelo, mostrar_repuestos_con_marca_modelo_stock,buscar_repuestos_marca_modelo_por_id} = require('../modelo_datos_bbdd/operaciones')
+mostrar_ordenes_para_retirar, mostrar_repuestos_marca_modelo, mostrar_repuestos_con_marca_modelo_stock,buscar_repuestos_marca_modelo_por_id,graficos_tipo_equipo_mes} = require('../modelo_datos_bbdd/operaciones')
 
 
-router.get('/gerente',(req,res)=>{
+router.get('/gerente',authMiddleware,(req,res)=>{
     res.render('layouts/gerente_index')
 })
 
@@ -1067,7 +1067,14 @@ router.post('/stock/ingresar_stock',(req,res)=>{
 })
 
 
+//------------------------------------GRAFICOS
 
+router.get('/graficos/tipos_equipo',authMiddleware, async(req,res)=>{
+    await graficos_tipo_equipo_mes(conect_sql,(respuesta)=>{
+        
+        res.json(respuesta)
+    })
+})
 
 
 module.exports=router;

@@ -376,6 +376,15 @@ function select_repuesto_orden_id_orden(coneccion,id,callback){
     callback(data)
   })
 }
+//---------------------------------------------GRAFICOS-------------------------
+
+function graficos_tipo_equipo_mes(coneccion,callback){
+  let query= `SELECT tipo_equipo.tipo_equipo AS TIPO, COUNT(id_orden) as CANTIDAD FROM orden_trabajo JOIN tipo_equipo ON orden_trabajo.fk_tipo_equipo=tipo_equipo.id_tipo WHERE hora_inicio BETWEEN DATE_SUB(NOW(), INTERVAL 4 MONTH) AND NOW() GROUP BY fk_tipo_equipo DESC`
+  coneccion.query(query,function(err,data){
+    console.log(data)
+    callback(data)
+  })
+}
 
 
 
@@ -383,5 +392,5 @@ module.exports={crear_repuesto,ingresar_stock,validar_repuerto_id,validar_usuari
 mostrar_estados,contar_repuerto_id,mostrar_repuesto_id,modificar_repuesto_id,crear_marca,crear_modelo,buscar_marca_nombre,buscar_modelo_nombre,validar_marca_nombre,
 validar_modelo_nombre,select_from,insert,mostrar_cliente_id,update_cliente,validar_cliente_id,mostrar_usuario_id,update_usuario,login,tipo_usuario,tomar_orden,
 deshabilitar_usuario,mostrar_ordenes_para_retirar,mostrar_repuestos_marca_modelo,traer_id_estado,mostrar_repuestos_con_marca_modelo_stock,buscar_repuestos_marca_modelo_por_id,
-select_repuesto_orden_id_orden
+select_repuesto_orden_id_orden,graficos_tipo_equipo_mes
 }
