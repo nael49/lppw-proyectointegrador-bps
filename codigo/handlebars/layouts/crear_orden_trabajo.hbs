@@ -76,9 +76,17 @@
                 <div class="mb-3 col">
                     <button type="submit" class=" btn btn-primary">Crear Orden</button>
                 </div>
-                <div class="mb-3 col" >
-                    <a class="btn btn-secondary" href="/recepcionista">Cancelar</a>
-                </div>
+                {{#if userLogged.gerente}}
+                    <div class="mb-3 col" >
+                        <a class="btn btn-secondary" href="/gerente">Cancelar</a>
+                    </div>
+                {{/if}}
+
+                {{#if userLogged.recepcionista}}
+                    <div class="mb-3 col" >
+                        <a class="btn btn-secondary" href="/recepcionista">Cancelar</a>
+                    </div>
+                {{/if}}
             </div>
         </form>
     </div>

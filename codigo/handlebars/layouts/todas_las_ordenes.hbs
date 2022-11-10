@@ -1,0 +1,35 @@
+
+<div class="container rounded bg-light mt-4">
+  <h3 class="mx-auto titulos" >Equipos listos para retirar</h3><br>
+    <table class="table table-hover">
+        <thead>
+          <tr>
+            <th scope="col">N° DE ORDEN</th>
+            <th scope="col">fecha de ingreso</th>
+            <th scope="col">fecha de Retiro</th>
+            <th scope="col">Recepcionista </th>
+            <th scope="col">Tecnico Asignado</th>
+            <th scope="col">Tipo Equipo</th>
+            <th scope="col">Descripcion de Falla</th>
+            <th scope="col">DNI Cliente</th>
+            <th scope="col">Estado</th>
+          </tr>
+        </thead>
+        <tbody >
+          {{#each respuesta}}
+            <tr>
+                <td >{{id_orden}}</td>
+                <td >{{fecha_creacion}}</td>
+                <td >{{fecha_retiro}}</td>
+                <td >{{fk_recepcionista}}</td>
+                <td >{{fk_tecnico}}</td>
+                <td>{{tipo_equipo}}</td>
+                <td>{{descripcion_falla}}</td>
+                <td >{{fk_cliente}}</td> 
+                <td >{{estado}}</td>
+            </tr>
+          {{/each}}
+        </tbody>
+    </table>
+</div>
+

@@ -1,5 +1,4 @@
 const bodyParser = require('body-parser');
-const { Router } = require('express');
 const express=require('express');
 const router = express.Router();
 const { authGuestMiddleware, authMiddleware } = require('../auth');
@@ -9,7 +8,7 @@ const {crear_repuesto, ingresar_stock, validar_repuerto_id, mostrar_ordenes_espe
 crear_marca, buscar_marca_nombre, buscar_modelo_nombre, crear_modelo, validar_marca_nombre, validar_modelo_nombre, select_from, modificar_repuesto_id, insert, 
 mostrar_cliente_id, validar_cliente_id, update_cliente, validar_usuario_id, mostrar_usuario_id, update_usuario, login, tomar_orden, deshabilitar_usuario, 
 mostrar_ordenes_para_retirar, mostrar_repuestos_marca_modelo, mostrar_repuestos_con_marca_modelo_stock,buscar_repuestos_marca_modelo_por_id,graficos_tipo_equipo_mes,
-graficos_ingresos_por_año,repuestos_mas_usados} = require('../modelo_datos_bbdd/operaciones')
+graficos_ingresos_por_año,repuestos_mas_usados, mostrar_todas_las_ordenes, select_repuesto_orden_id_orden} = require('../modelo_datos_bbdd/operaciones')
 
 
 router.get('/gerente',authMiddleware,(req,res)=>{
@@ -109,12 +108,14 @@ router.post('/clientes/mod/:id',async(req,res)=>{
 })
 
 router.get('/crear_orden',authMiddleware, async(req,res)=>{
-    await select_from(conect_sql,"tipo_equipo",(respuesta)=>{
-        res.render('layouts/crear_orden_trabajo',{respuesta})
-    })
-    console.log(res.locals)
-    console.log(req.session)
-    
+    if(req.session.puesto=="GERENTE" ||req.session.puesto=="RECEPCIONISTA"){
+        await select_from(conect_sql,"tipo_equipo",(respuesta)=>{
+            res.render('layouts/crear_orden_trabajo',{respuesta})
+        })
+    }
+    else{
+        res.status(401).send("No esta Autorizado para ingresar aqui")
+    } 
 })
 
 router.post('/crear_orden',authMiddleware,async(req,res)=>{ 
@@ -200,17 +201,25 @@ router.post('/crear_orden',authMiddleware,async(req,res)=>{
                         insert(conect_sql,"clientes",cliente)
                         insert(conect_sql,"orden_trabajo",orden_trabajo)
                         req.flash('exito_msg','Orden de Trabajo creada con Exito')
-                        res.redirect('/recepcionista')
+                        if(req.session.puesto=="GERENTE"){
+                            res.redirect('/gerente')
+                            return
+                        }
+                        else{
+                            res.redirect('/recepcionista')
+                            return
+                        }
+                        
                     } 
                     catch (error) {
-                        
+                        res.send("Error con la bbdd")
                     }
                     
                 };
             })
         }
         catch (err) {
-            console.log("huno un error")
+            res.send("Error con la bbdd")
             throw err;
         }
 
@@ -218,14 +227,20 @@ router.post('/crear_orden',authMiddleware,async(req,res)=>{
 })
 
 router.get('/crear_orden_cliente_existe',authMiddleware,async(req,res)=>{
-    await select_from(conect_sql,"tipo_equipo",(respuesta)=>{
-        select_from(conect_sql,"clientes",(datos_dni)=>{
-            res.render('layouts/crear_orden_trabajo_cliente_existe',{respuesta,datos_dni})
+    if(req.session.puesto=="GERENTE" ||req.session.puesto=="RECEPCIONISTA"){
+
+        await select_from(conect_sql,"tipo_equipo",(respuesta)=>{
+            select_from(conect_sql,"clientes",(datos_dni)=>{
+                res.render('layouts/crear_orden_trabajo_cliente_existe',{respuesta,datos_dni})
+            })
         })
-    })
+    }
+    else{
+        res.status(401).send("No esta Autorizado para ingresar aqui")
+    }
 })
 
-router.post('/crear_orden_cliente_existe',authMiddleware,async(req,res)=>{  
+router.post('/crear_orden_cliente_existe',authMiddleware,async(req,res)=>{
     const{dni,descripcion_falla,tipo_equipo,pago,datos_importantes}= req.body
     const error_orden=[]
     if(!datos_importantes){
@@ -263,24 +278,35 @@ router.post('/crear_orden_cliente_existe',authMiddleware,async(req,res)=>{
             datos_importantes:datos_importantes
         }
         
-        try {
+        try{
             await validar_cliente_id(conect_sql,dni,(respuesta)=>{
                 if (respuesta) {
                     conect_sql.query(`INSERT INTO orden_trabajo set ?`,[orden_trabajo])
                     req.flash('exito_msg','Orden de Trabajo Creada')
-                    res.redirect('/recepcionista')
+                    if(req.session.puesto="RECEPCIONISTA"){
+                        res.redirect('/recepcionista')
+                    }
+                    else{
+                        res.redirect('/gerente')
+                    }
+                    
                 } else {
                     req.flash('exito_msg','El cliente no existe')
                     res.redirect('/crear_orden')
                 }
             })
                 
-        } catch (err) {
+        } 
+        catch (err) {
             if(err)throw err;
-            res.redirect('/recepcionista')
+            if(req.session.puesto="RECEPCIONISTA"){
+                res.redirect('/recepcionista')
+            }
+            else{
+                res.redirect('/gerente')
+            }
         }
-    }
-    
+    }   
 })
 
 
@@ -344,25 +370,96 @@ router.get('/logout',authMiddleware, (req, res) => {
 });
 
 router.get('/tecnico',authMiddleware, async(req,res)=>{
+    if (req.session.puesto=="GERENTE" || req.session.puesto=="TECNICO") {
+        await mostrar_ordenes_espera(conect_sql,(respuesta)=>{
+            if(respuesta[0]==undefined){
+                let error_orden=[]
+                error_orden.push({text:"No hay mas Ordenes en Espera"})
+                res.render('layouts/ordenes_trabajo_lista',{error_orden})
+            }
+            else{
+                respuesta[0].fecha_creacion=(respuesta[0].fecha_creacion).toString().substring(0,10) //convierte la fecha y hora en solo fecha para mostrar
+                res.render('layouts/ordenes_trabajo_lista',{respuesta})
+            }
+        })
+    } else {
+            res.status(401).send("No esta Autorizado")
+    }
 
-    console.log("datos globales: ",res.locals.userLogged)
+    
+})
 
-
-    await mostrar_ordenes_espera(conect_sql,(respuesta)=>{
-        if(respuesta[0]==undefined){
-            let error_orden=[]
-            error_orden.push({text:"No hay mas Ordenes en Espera"})
-            res.render('layouts/ordenes_trabajo_lista',{error_orden})
+router.get('/asignar/:id',authMiddleware, async(req,res)=>{  
+    let id
+    if (req.params.id) {
+        if(!isNaN(parseInt(req.params.id))){
+            id=parseInt(req.params.id)
         }
         else{
-            respuesta[0].fecha_creacion=(respuesta[0].fecha_creacion).toString().substring(0,10) //convierte la fecha y hora en solo fecha para mostrar
-            console.log(respuesta)
-            let user={
-                admin:1,
-            }
-            res.render('layouts/ordenes_trabajo_lista',{respuesta})
+            req.flash('exito_msg','Orden Invalida')
+            res.redirect('/gerente')
+            return
+        }
+    } 
+    else {
+        req.flash('exito_msg','Orden Invalida')
+        res.redirect('/gerente')
+        return
+    }
+    await validar_orden_id(conect_sql,dato.id_orden,(respuesta)=>{
+        if(respuesta){
+            traer_orden_id(conect_sql,id,(respuesta)=>{
+                select_from(conect_sql,"usuraios_general",(respuesta2)=>{
+                    res.render("layouts/asignar_tecnico",{respuesta,respuesta2}) 
+                })
+            })
+        }
+        else{
+            req.flash('exito_msg','Orden Invalida')
+            res.redirect('/gerente')
+            return
         }
     })
+})
+
+router.post('/asignar',authMiddleware, async(req,res)=>{ 
+    if(req.session.puesto=="GERENTE"){
+
+        const{id,tecnico}=req.body
+        let error_orden=[]
+        if(!id || isNaN(parseInt(id))){
+            error_orden.push({text:"Orden Invalida"})
+        }
+        if(!tecnico || isNaN(parseInt(tecnico))){
+            error_orden.push({text:"Error en el Dato 'Tecnico'"})
+        }
+        if(error_orden.length>0){
+
+        }
+        if(error_orden.length==0){
+            let int_id=parseInt(id)
+            let int_tecnico=parseInt(tecnico)
+            tomar_orden(conect_sql,int_tecnico,int_id,(respuesta)=>{
+                req.flash('exito_msg','Orden Asignada al Tecnico: '+int_tecnico)
+                res.redirect('/tecnico')
+                return
+            })
+        }
+    }
+    else{
+        res.status(401).send("No Esta Autorizado")
+    }
+})
+
+router.get('/lista_ordenes',authMiddleware, async(req,res)=>{  
+    if(req.session.puesto=="GERENTE" || req.session.puesto=="Recepcionista"){
+        mostrar_todas_las_ordenes(conect_sql,(respuesta)=>{
+            res.render('layouts/todas_las_ordenes',{respuesta})
+        })
+    }
+    else{
+        res.status(401).send("No Esta Autorizado")
+    }
 })
 
 router.get('/tecnico/add/:id',authMiddleware, async(req,res)=>{  
@@ -376,12 +473,11 @@ router.get('/tecnico/add/:id',authMiddleware, async(req,res)=>{
             res.redirect('/tecnico')
             return
         }
-        
     } 
     else {
         req.flash('exito_msg','Orden Invalida')
-        res.redirect('/tecnico')
-        return
+            res.redirect('/tecnico')
+            return
     }
 
     let dato={
@@ -390,7 +486,7 @@ router.get('/tecnico/add/:id',authMiddleware, async(req,res)=>{
     await validar_orden_id(conect_sql,dato.id_orden,(respuesta)=>{
         if(respuesta){
            
-            if(res.locals.userLogged.puesto=="TECNICO"){
+            if(req.session.puesto=="TECNICO"){
                 tomar_orden(conect_sql,res.locals.userLogged.dni,dato.id_orden,(respuesta2)=>{
                     console.log(respuesta2)
                     req.flash('exito_msg','has tomado esta Orden')
@@ -563,7 +659,7 @@ router.post('/tecnico/orden/:id',authMiddleware,async(req,res)=>{ //------------
                                 ingresar_stock(conect_sql,datos_sql,"resta") 
                             } 
                             catch (error) {
-                                req.flash("exito_msg","Error al cargar los repuestos!!! Contacte al Programador")
+                                req.flash("exito_msg","Error al catrgar los repuestos!!! Contace al Programador")
                                  res.redirect(`/tecnico/misordenes`)
                             }   
                         }

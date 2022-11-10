@@ -21,7 +21,7 @@
             <th scope="col">Modelo</th>
             <th scope="col">Descripcion de Falla</th>
             <th scope="col">Datos del cliente</th>
-            <th scope="col">AGREGAR / TOMAR</th>    <!-- cargar = tomar orden / asignar tecnico-->
+            {{#if userLogged.gerente}}<th scope="col">ASIGNAR</th>{{else}} <th scope="col">TOMAR</th>{{/if}}
           </tr>
         </thead>
         <tbody id="tbody_ordenes_trabajo">

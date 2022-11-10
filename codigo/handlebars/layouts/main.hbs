@@ -75,19 +75,23 @@
                         {{/if}}
                         {{#if userLogged.gerente}}
                             <li class="nav-item">
-                                <a class="nav-link active" aria-current="page" href="informes">Informes</a>
+                                <a class="nav-link active" aria-current="page" href="/gerente">Inicio</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link active" aria-current="page" href="/informes">Informes</a>
                             </li>
                             <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false">Tecnico</a>
+                                <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="/tecnico" role="button" aria-expanded="false">Tecnico</a>
                                 <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="#">Asignar tecnico</a></li>
-                                    <li><a class="dropdown-item" href="#">Ver ordenes de trabajo</a></li>
+                                    <li><a class="dropdown-item" href="/tecnico">Asignar tecnico</a></li>
+                                    <li><a class="dropdown-item" href="/lista_ordenes">Ver todas las ordenes de trabajo</a></li>
                                 </ul>
                             </li>
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false">Recepcionista</a>
                                 <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="#">Crear Orden de trabajo</a></li>
+                                    <li><a class="dropdown-item" href="/crear_orden">Crear Orden de trabajo</a></li>
+                                    <li><a class="dropdown-item" href="/crear_orden_cliente_existe">Crear Orden de trabajo (cliente existe)</a></li>
                                     <li><a class="dropdown-item" href="#">Ver facturas</a></li>
                                 </ul>
                             </li>
