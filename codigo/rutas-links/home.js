@@ -12,99 +12,133 @@ graficos_ingresos_por_año,repuestos_mas_usados, mostrar_todas_las_ordenes, sele
 
 
 router.get('/gerente',authMiddleware,(req,res)=>{
-    res.render('layouts/gerente_index')
+    if(req.session.puesto=="GERENTE"){
+        res.render('layouts/gerente_index')
+    }
+    else{
+        res.status(401).send("No esta Autorizado")
+    }
 })
 
 router.get('/recepcionista',authMiddleware,async(req,res)=>{
-    console.log(res.locals)
-    await mostrar_ordenes_para_retirar(conect_sql,(respuesta)=>{
-        res.render('layouts/index-recepcionista',{respuesta})
-    })
+    if(req.session.puesto=="RECEPCIONISTA"){
+        await mostrar_ordenes_para_retirar(conect_sql,(respuesta)=>{
+            res.render('layouts/index-recepcionista',{respuesta})
+        })
+    }
+    else{
+        res.status(401).send("No esta Autorizado")
+    }
 })
 
 router.get('/clientes',authMiddleware,(req,res)=>{
-    select_from(conect_sql,"clientes",(respuesta)=>{
-        res.render('layouts/lista_clientes',{respuesta})
-    })
-})
-
-router.get('/clientes/mod/:id',(req,res)=>{ //teminar
-    if(!req.params.id){
-
+    if(req.session.puesto=="RECEPCIONISTA" || req.session.puesto=="GERENTE"){
+        select_from(conect_sql,"clientes",(respuesta)=>{
+            res.render('layouts/lista_clientes',{respuesta})
+        })
     }
     else{
-        dni_int=parseInt(req.params.id)
-        mostrar_cliente_id(conect_sql,dni_int,(respuesta=>{
-            res.render('layouts/modificar_cliente',{respuesta})
-        }))
-    }
+        res.status(401).send("No esta Autorizado")
+    }  
 })
 
-router.post('/clientes/mod/:id',async(req,res)=>{
-    const{dni_cliente,nombrecompleto,celular,localidad,direccion,email}=req.body
-    let error_orden=[]
-    console.log(dni_cliente)
-    console.log(req.params.id)
-    if(!dni_cliente ||  parseInt(dni_cliente)!= 'number'){
-        error_orden.push({text:'Error en el DNI'})
-    }
-    if(!nombrecompleto){
-        error_orden.push({text:'Error en el Nombre'})
-    }
-    if(!celular){
-        error_orden.push({text:'Error en el numero de celular'})
-    }
-    if(!localidad){
-        error_orden.push({text:'Error en la Localidad'})
-    }
-    if(!direccion){
-        error_orden.push({text:'Error en la direccion'})
-    }
-    if(!email){
-        error_orden.push({text:'Eroor en el Email'})
-    }
-    if(error_orden>0){
-        if(!dni_cliente ||  parseInt(dni_cliente)!= 'number'){
-            req.flash('exito_msg','no existe el cliente')
+router.get('/clientes/mod/:id',authMiddleware,(req,res)=>{ 
+    if(req.session.puesto=="RECEPCIONISTA" || req.session.puesto=="GERENTE"){
+
+        let a=req.params.id
+        if(!a || isNaN(parseInt(a))){
+            req.flash('exito_msg','No Existe el Cliente')
             res.redirect('/clientes')
         }
         else{
-            res.render(`/clientes/mod/:${dni_cliente}`,{error_orden})
-        }
-        
-    }
-    else{
-        let dni_int=parseInt(dni_cliente)
-        let celular_int=parseInt(celular)
-
-        let cliente={
-            dni:dni_int,
-            nombrecompleto:nombrecompleto,
-            celular:celular_int,
-            direccion:direccion,
-            email:email,
-            localidad:localidad
-        }
-        console.log(cliente)
-
-        await validar_cliente_id(conect_sql,cliente.dni,(respuesta)=>{
-            if(respuesta){
-                try {
-                    update_cliente(conect_sql,cliente)
-                    req.flash('exito_msg','Cliente Modificado con exito')
-                    res.redirect('/clientes')
-                } catch (error) {
-                    req.flash('exito_msg','Error al crear cliente')
+            let dni_int=parseInt(a)
+            validar_cliente_id(conect_sql,dni_int,(vali)=>{
+                if(vali){
+                    mostrar_cliente_id(conect_sql,dni_int,(respuesta=>{
+                        res.render('layouts/modificar_cliente',{respuesta})
+                    }))
+                }
+                else {
+                    req.flash('exito_msg','No Existe el Cliente')
                     res.redirect('/clientes')
                 }
-            }
-            else{
+            })
+            
+        }
+    }
+    else{
+        res.status(401).send("No esta Autorizado")
+    }
+})
+
+router.post('/clientes/mod/:id',authMiddleware,async(req,res)=>{
+    if(req.session.puesto=="RECEPCIONISTA" || req.session.puesto=="GERENTE"){
+        const{dni_cliente,nombrecompleto,celular,localidad,direccion,email}=req.body
+        let error_orden=[]
+        console.log(req.params.id)
+        if(!dni_cliente ||  parseInt(dni_cliente)!= 'number'){
+            error_orden.push({text:'Error en el DNI'})
+        }
+        if(!nombrecompleto){
+            error_orden.push({text:'Error en el Nombre'})
+        }
+        if(!celular){
+            error_orden.push({text:'Error en el numero de celular'})
+        }
+        if(!localidad){
+            error_orden.push({text:'Error en la Localidad'})
+        }
+        if(!direccion){
+            error_orden.push({text:'Error en la direccion'})
+        }
+        if(!email){
+            error_orden.push({text:'Eroor en el Email'})
+        }
+        if(error_orden>0){
+            if(!dni_cliente ||  parseInt(dni_cliente)!= 'number'){
                 req.flash('exito_msg','no existe el cliente')
                 res.redirect('/clientes')
             }
-        })
+            else{
+                res.render(`/clientes/mod/:${dni_cliente}`,{error_orden})
+            }
+            
+        }
+        else{
+            let dni_int=parseInt(dni_cliente)
+            let celular_int=parseInt(celular)
+
+            let cliente={
+                dni:dni_int,
+                nombrecompleto:nombrecompleto,
+                celular:celular_int,
+                direccion:direccion,
+                email:email,
+                localidad:localidad
+            }
+            console.log(cliente)
+
+            await validar_cliente_id(conect_sql,cliente.dni,(respuesta)=>{
+                if(respuesta){
+                    try {
+                        update_cliente(conect_sql,cliente)
+                        req.flash('exito_msg','Cliente Modificado con exito')
+                        res.redirect('/clientes')
+                    } catch (error) {
+                        req.flash('exito_msg','Error al crear cliente')
+                        res.redirect('/clientes')
+                    }
+                }
+                else{
+                    req.flash('exito_msg','no existe el cliente')
+                    res.redirect('/clientes')
+                }
+            })
+        }
     }
-    
+    else{
+        res.status(401).send("No esta Autorizado")
+    }
 })
 
 router.get('/crear_orden',authMiddleware, async(req,res)=>{
@@ -119,110 +153,114 @@ router.get('/crear_orden',authMiddleware, async(req,res)=>{
 })
 
 router.post('/crear_orden',authMiddleware,async(req,res)=>{ 
-    console.log(req.body)
-    const { nombrecompleto , dni, localidad, direccion, celular, email, tipo_equipo, descripcion_falla, datos_importantes,pago } = req.body;
-    const error_orden=[]
+    let emailtest= /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/
 
+    if(req.session.puesto=="GERENTE" ||req.session.puesto=="RECEPCIONISTA"){
+        const { nombrecompleto , dni, localidad, direccion, celular, email, tipo_equipo, descripcion_falla, datos_importantes,pago } = req.body;
+        const error_orden=[]
 
-    if(!pago){
-        error_orden.push({text:'ingrese una seña o en su defecto "0"'})
-    }
-    if(!nombrecompleto){
-        error_orden.push({text:'ingrese nombre completo'})
-    }
-    if(!dni){
-        error_orden.push({text:'ingrese el dni'})
-    }
-    if(!localidad){
-        error_orden.push({text:'ingrese localidad'})
-    }
-    if(!email){
-        error_orden.push({text:'ingrese email'})
-    }
-    if(!direccion){
-        error_orden.push({text:'ingrese direccion'})
-    }
-    if(!celular){
-        error_orden.push({text:'ingrese numero de celular'})
-    }
-    if(!tipo_equipo){
-        error_orden.push({text:'ingrese tipo de equipo'})
-    }
-
-    if(!descripcion_falla){
-        error_orden.push({text:'ingrese descripcion de la falla'})
-    }
-    if(!datos_importantes){
-        error_orden.push({text:'ingrese datos importantes'})
-    }
-
-    if(error_orden.length>0){
-        await select_from(conect_sql,"tipo_equipo",(respuesta)=>{
-            res.render('layouts/crear_orden_trabajo',{respuesta,error_orden})
-        })
-    }
-
-    else{
-        let tipo_equipo_int=parseInt(tipo_equipo)
-        let celular_int=parseInt(celular)
-        let dni_int =parseInt(dni)
-        let pago_int =parseInt(pago)
-
-        let cliente={
-            dni : dni_int,
-            nombrecompleto: nombrecompleto,
-            celular : celular_int,
-            direccion:direccion,
-            email:email,
-            localidad:localidad
+        if(!pago){
+            error_orden.push({text:'ingrese una seña o en su defecto "0"'})
         }
-        let orden_trabajo={  //por ahora con esto sirve
-            fk_cliente:dni_int,
-            descripcion_falla:descripcion_falla,
-            fk_tipo_equipo:tipo_equipo_int,
-            fk_recepcionista:req.session.user,
-            datos_importantes:datos_importantes,
-            estado:2,
-            fk_tipo_equipo:tipo_equipo_int,
-            pago:pago_int
+        if(!nombrecompleto || nombrecompleto.length>50 || nombrecompleto.length<4){
+            error_orden.push({text:'ingrese nombre completo'})
+        }
+        if(!dni || isNaN(parseInt(dni))){
+            error_orden.push({text:'ingrese el dni'})
+        }
+        if(!localidad || localidad.length>50 || localidad.length<4){
+            error_orden.push({text:'ingrese localidad'})
+        }
+        if(!email || !emailtest.test(email)){
+            error_orden.push({text:'ingrese email'})
+        }
+        if(!direccion || direccion.length>50 || direccion.length<4){
+            error_orden.push({text:'ingrese direccion'})
+        }
+        if(!celular || isNaN(parseInt(celular)) || parseInt(celular).length<5 || parseInt(celular).length>13){
+            error_orden.push({text:'ingrese numero de celular'})
+        }
+        if(!tipo_equipo){
+            error_orden.push({text:'ingrese tipo de equipo'})
         }
 
-        try {
-            let query=`SELECT COUNT(dni) AS ID FROM clientes WHERE dni =${cliente.dni}`
-            await conect_sql.query(query,function(err, dato){           //---------------Revisa si ya existe el dni
-                if(err)throw err;
-                if(dato[0].ID!=0){ //si ya xiste
-                    req.flash('exito_msg','El cliente ya existe')
-                    re.redirect('/crear_orden_cliente_existe')
-                    return
-                }
-                else{ //si el cliente no existe
-                    try {
-                        insert(conect_sql,"clientes",cliente)
-                        insert(conect_sql,"orden_trabajo",orden_trabajo)
-                        req.flash('exito_msg','Orden de Trabajo creada con Exito')
-                        if(req.session.puesto=="GERENTE"){
-                            res.redirect('/gerente')
-                            return
-                        }
-                        else{
-                            res.redirect('/recepcionista')
-                            return
-                        }
-                        
-                    } 
-                    catch (error) {
-                        res.send("Error con la bbdd")
-                    }
-                    
-                };
+        if(!descripcion_falla){
+            error_orden.push({text:'ingrese descripcion de la falla'})
+        }
+        if(!datos_importantes){
+            error_orden.push({text:'ingrese datos importantes'})
+        }
+
+        if(error_orden.length>0){
+            await select_from(conect_sql,"tipo_equipo",(respuesta)=>{
+                res.render('layouts/crear_orden_trabajo',{respuesta,error_orden})
             })
         }
-        catch (err) {
-            res.send("Error con la bbdd")
-            throw err;
-        }
 
+        if(error_orden.length==0){
+            let tipo_equipo_int=parseInt(tipo_equipo)
+            let celular_int=parseInt(celular)
+            let dni_int =parseInt(dni)
+            let pago_int =parseInt(pago)
+
+            let cliente={
+                dni : dni_int,
+                nombrecompleto: nombrecompleto,
+                celular : celular_int,
+                direccion:direccion,
+                email:email,
+                localidad:localidad
+            }
+            let orden_trabajo={  
+                fk_cliente:dni_int,
+                descripcion_falla:descripcion_falla,
+                fk_tipo_equipo:tipo_equipo_int,
+                fk_recepcionista:req.session.user,
+                datos_importantes:datos_importantes,
+                estado:2,
+                fk_tipo_equipo:tipo_equipo_int,
+                pago:pago_int
+            }
+
+            try {
+                let query=`SELECT COUNT(dni) AS ID FROM clientes WHERE dni =${cliente.dni}`
+                await conect_sql.query(query,function(err, dato){           //---------------Revisa si ya existe el dni
+                    if(err)throw err;
+                    if(dato[0].ID!=0){ //si ya xiste
+                        req.flash('exito_msg','El cliente ya existe')
+                        re.redirect('/crear_orden_cliente_existe')
+                        return
+                    }
+                    else{ //si el cliente no existe
+                        try {
+                            insert(conect_sql,"clientes",cliente)
+                            insert(conect_sql,"orden_trabajo",orden_trabajo)
+                            req.flash('exito_msg','Orden de Trabajo creada con Exito')
+                            if(req.session.puesto=="GERENTE"){
+                                res.redirect('/gerente')
+                                return
+                            }
+                            else{
+                                res.redirect('/recepcionista')
+                                return
+                            }
+                            
+                        } 
+                        catch (error) {
+                            res.send("Error con la bbdd")
+                        }
+                        
+                    };
+                })
+            }
+            catch (err) {
+                res.send("Error con la bbdd")
+                throw err;
+            }
+        }
+    }
+    else{
+        res.status(401).send("No esta Autorizado para ingresar aqui")
     }
 })
 
@@ -241,72 +279,88 @@ router.get('/crear_orden_cliente_existe',authMiddleware,async(req,res)=>{
 })
 
 router.post('/crear_orden_cliente_existe',authMiddleware,async(req,res)=>{
-    const{dni,descripcion_falla,tipo_equipo,pago,datos_importantes}= req.body
-    const error_orden=[]
-    if(!datos_importantes){
-        error_orden.push({text:'Ingrese los datos del equipo'})
-    }
-    if(!pago || isNaN(parseInt(tipo_equipo))){
-        error_orden.push({text:'ingrese una seña o en su defecto "0"'})
-    }
-    if(!tipo_equipo || isNaN(parseInt(tipo_equipo))){
-        error_orden.push({text:'Tipo de equipo incorrecto'})
-    }
-    if(!dni || isNaN(parseInt(dni))){
-        error_orden.push({text:'Dni incorrecto'})
-    }
 
-    if(!descripcion_falla){
-        error_orden.push({text:'falta Descripcion'})
-    }
+    if(req.session.puesto=="GERENTE" ||req.session.puesto=="RECEPCIONISTA"){
 
-    if(error_orden.length>0){
-        req.render('layouts/crear_orden_trabajo_cliente_existe',{error_orden})
-    }
-    if(error_orden.length==0){
-        let int_dni=parseInt(dni)
-        let tipo_equipo_int=parseInt(tipo_equipo)
-        let int_pago=parseInt(pago)
-
-        let orden_trabajo={ //esquema para enviar a la base de datos
-            estado: 2,
-            descripcion_falla: descripcion_falla,
-            fk_cliente: int_dni,
-            fk_tipo_equipo:tipo_equipo_int,
-            fk_recepcionista:req.session.user,
-            pago:int_pago,
-            datos_importantes:datos_importantes
+        const{dni,descripcion_falla,tipo_equipo,pago,datos_importantes}= req.body
+        const error_orden=[]
+        if(!datos_importantes || datos_importantes.length>300 ||datos_importantes.length<5){
+            error_orden.push({text:'Ingrese los datos del equipo'})
         }
-        
-        try{
-            await validar_cliente_id(conect_sql,dni,(respuesta)=>{
-                if (respuesta) {
-                    conect_sql.query(`INSERT INTO orden_trabajo set ?`,[orden_trabajo])
-                    req.flash('exito_msg','Orden de Trabajo Creada')
-                    if(req.session.puesto="RECEPCIONISTA"){
-                        res.redirect('/recepcionista')
+        if(!pago || isNaN(parseInt(pago)) || parseInt(pago)<0){
+            error_orden.push({text:'ingrese una seña o en su defecto "0"'})
+        }
+        if(!tipo_equipo || isNaN(parseInt(tipo_equipo))){
+            error_orden.push({text:'Tipo de equipo incorrecto'})
+        }
+        if(!dni || isNaN(parseInt(dni))){
+            error_orden.push({text:'Dni incorrecto'})
+        }
+
+        if(!descripcion_falla || descripcion_falla.length>250 ||descripcion_falla.length<5){
+            error_orden.push({text:'falta Descripcion o se supero los 250 caracteres'})
+        }
+
+        if(error_orden.length>0){
+            req.render('layouts/crear_orden_trabajo_cliente_existe',{error_orden})
+        }
+        if(error_orden.length==0){
+            let int_dni=parseInt(dni)
+            let tipo_equipo_int=parseInt(tipo_equipo)
+            let int_pago=parseInt(pago)
+
+            let orden_trabajo={ //esquema para enviar a la base de datos
+                estado: 2,
+                descripcion_falla: descripcion_falla,
+                fk_cliente: int_dni,
+                fk_tipo_equipo:tipo_equipo_int,
+                fk_recepcionista:req.session.user,
+                pago:int_pago,
+                datos_importantes:datos_importantes
+            }
+            
+            try{
+                await validar_cliente_id(conect_sql,dni,(respuesta)=>{
+                    if (respuesta) {
+                        insert(conect_sql,"orden_trabajo",orden_trabajo)
+                        //conect_sql.query(`INSERT INTO orden_trabajo set ?`,[orden_trabajo])
+                        req.flash('exito_msg','Orden de Trabajo Creada')
+                        if(req.session.puesto="RECEPCIONISTA"){
+                            res.redirect('/recepcionista')
+                            return
+                        }
+                        else{
+                            res.redirect('/gerente')
+                            return
+                        }
+                        
+                    } 
+                    else {
+                        req.flash('exito_msg','El cliente no existe')
+                        res.redirect('/crear_orden')
+                        return
                     }
-                    else{
-                        res.redirect('/gerente')
-                    }
+                })
                     
-                } else {
-                    req.flash('exito_msg','El cliente no existe')
-                    res.redirect('/crear_orden')
+            } 
+            catch (err) {
+                if(err)throw err;
+                if(req.session.puesto="RECEPCIONISTA"){
+                    req.flash('exito_msg','Error en la BBDD (Contate con el programador)')
+                    res.redirect('/recepcionista')
+                    return
                 }
-            })
-                
-        } 
-        catch (err) {
-            if(err)throw err;
-            if(req.session.puesto="RECEPCIONISTA"){
-                res.redirect('/recepcionista')
-            }
-            else{
-                res.redirect('/gerente')
+                else{
+                    req.flash('exito_msg','Error en la BBDD (Contate con el programador')
+                    res.redirect('/gerente')
+                    return
+                }
             }
         }
-    }   
+    }
+    else{
+        res.status(401).send("No esta Autorizado para ingresar aqui")
+    }
 })
 
 
@@ -339,12 +393,10 @@ router.post('/sigin',authGuestMiddleware,async(req,res)=>{
     
         await login(conect_sql,nuevo_usuario,(respuesta)=>{
             if(respuesta[0]){
-                console.log('existe el usuario')
                 if(respuesta[0].dni==nuevo_usuario.usuario){
                     req.session.user = nuevo_usuario.usuario;
                     req.session.puesto=respuesta[0].puesto
                     req.session.nombre=respuesta[0].nombrecompleto
-                    console.log("sesion creada", req.session)
                     res.redirect('/sigin')
                     return
                 }
@@ -355,7 +407,6 @@ router.post('/sigin',authGuestMiddleware,async(req,res)=>{
                 }
             }
             else{
-                console.log('no existe el usuario')
                 req.flash('exito_msg','Usuario y/o contraseña invalido')
                 res.redirect('/sigin')
                 return
@@ -371,55 +422,66 @@ router.get('/logout',authMiddleware, (req, res) => {
 
 router.get('/tecnico',authMiddleware, async(req,res)=>{
     if (req.session.puesto=="GERENTE" || req.session.puesto=="TECNICO") {
-        await mostrar_ordenes_espera(conect_sql,(respuesta)=>{
-            if(respuesta[0]==undefined){
-                let error_orden=[]
-                error_orden.push({text:"No hay mas Ordenes en Espera"})
-                res.render('layouts/ordenes_trabajo_lista',{error_orden})
-            }
-            else{
-                respuesta[0].fecha_creacion=(respuesta[0].fecha_creacion).toString().substring(0,10) //convierte la fecha y hora en solo fecha para mostrar
-                res.render('layouts/ordenes_trabajo_lista',{respuesta})
-            }
-        })
-    } else {
-            res.status(401).send("No esta Autorizado")
+        try {
+            await mostrar_ordenes_espera(conect_sql,(respuesta)=>{
+                if(respuesta[0]==undefined){
+                    let error_orden=[]
+                    error_orden.push({text:"No hay mas Ordenes en Espera"})
+                    res.render('layouts/ordenes_trabajo_lista',{error_orden})
+                }
+                else{
+                    respuesta[0].fecha_creacion=(respuesta[0].fecha_creacion).toString().substring(0,10) //convierte la fecha y hora en solo fecha para mostrar
+                    res.render('layouts/ordenes_trabajo_lista',{respuesta})
+                }
+            })
+        } 
+        catch (error) {
+            if (error) throw error;
+            res.send('Error al cargar la pagina')
+        }
+    } 
+    else {
+        res.status(401).send("No esta Autorizado")
     }
-
-    
 })
 
 router.get('/asignar/:id',authMiddleware, async(req,res)=>{  
     let id
-    if (req.params.id) {
-        if(!isNaN(parseInt(req.params.id))){
-            id=parseInt(req.params.id)
-        }
-        else{
+    if (req.session.puesto=="GERENTE"){
+
+        if (req.params.id) {
+            if(!isNaN(parseInt(req.params.id))){
+                id=parseInt(req.params.id)
+            }
+            else{
+                req.flash('exito_msg','Orden Invalida')
+                res.redirect('/gerente')
+                return
+            }
+        } 
+        else {
             req.flash('exito_msg','Orden Invalida')
             res.redirect('/gerente')
             return
         }
-    } 
-    else {
-        req.flash('exito_msg','Orden Invalida')
-        res.redirect('/gerente')
-        return
-    }
-    await validar_orden_id(conect_sql,dato.id_orden,(respuesta)=>{
-        if(respuesta){
-            traer_orden_id(conect_sql,id,(respuesta)=>{
-                select_from(conect_sql,"usuraios_general",(respuesta2)=>{
-                    res.render("layouts/asignar_tecnico",{respuesta,respuesta2}) 
+        await validar_orden_id(conect_sql,dato.id_orden,(respuesta)=>{
+            if(respuesta){
+                traer_orden_id(conect_sql,id,(respuesta)=>{
+                    select_from(conect_sql,"usuraios_general",(respuesta2)=>{
+                        res.render("layouts/asignar_tecnico",{respuesta,respuesta2}) 
+                    })
                 })
-            })
-        }
-        else{
-            req.flash('exito_msg','Orden Invalida')
-            res.redirect('/gerente')
-            return
-        }
-    })
+            }
+            else{
+                req.flash('exito_msg','Orden Invalida')
+                res.redirect('/gerente')
+                return
+            }
+        })
+    }
+    else{
+        res.status(401).send("No esta Autorizado")
+    }
 })
 
 router.post('/asignar',authMiddleware, async(req,res)=>{ 
@@ -462,74 +524,85 @@ router.get('/lista_ordenes',authMiddleware, async(req,res)=>{
     }
 })
 
-router.get('/tecnico/add/:id',authMiddleware, async(req,res)=>{  
-    let id
-    if (req.params.id) {
-        if(!isNaN(parseInt(req.params.id))){
-            id=parseInt(req.params.id)
-        }
-        else{
-            req.flash('exito_msg','Orden Invalida')
-            res.redirect('/tecnico')
-            return
-        }
-    } 
-    else {
-        req.flash('exito_msg','Orden Invalida')
-            res.redirect('/tecnico')
-            return
-    }
-
-    let dato={
-        id_orden:id
-    }
-    await validar_orden_id(conect_sql,dato.id_orden,(respuesta)=>{
-        if(respuesta){
-           
-            if(req.session.puesto=="TECNICO"){
-                tomar_orden(conect_sql,res.locals.userLogged.dni,dato.id_orden,(respuesta2)=>{
-                    console.log(respuesta2)
-                    req.flash('exito_msg','has tomado esta Orden')
-                    res.redirect('/tecnico')
-                })
+router.get('/tecnico/add/:id',authMiddleware, async(req,res)=>{
+    if(req.session.puesto=="TECNICO"){
+        let id
+        if (req.params.id) {
+            if(!isNaN(parseInt(req.params.id))){
+                id=parseInt(req.params.id)
             }
             else{
-                req.flash('exito_msg','Usuario no es Tecnico')
+                req.flash('exito_msg','Orden Invalida')
+                res.redirect('/tecnico')
+                return
+            }
+        } 
+        else {
+            req.flash('exito_msg','Orden Invalida')
+                res.redirect('/tecnico')
+                return
+        }
+
+        let dato={
+            id_orden:id
+        }
+        await validar_orden_id(conect_sql,dato.id_orden,(respuesta)=>{
+            if(respuesta){
+            
+                if(req.session.puesto=="TECNICO"){
+                    tomar_orden(conect_sql,res.locals.userLogged.dni,dato.id_orden,(respuesta2)=>{
+                        console.log(respuesta2)
+                        req.flash('exito_msg','has tomado esta Orden')
+                        res.redirect('/tecnico')
+                    })
+                }
+                else{
+                    req.flash('exito_msg','Usuario no es Tecnico')
+                    res.redirect('/tecnico')
+                }
+            }
+            else{
+                req.flash('exito_msg','Orden Invalida')
                 res.redirect('/tecnico')
             }
-        }
-        else{
-            req.flash('exito_msg','Orden Invalida')
-            res.redirect('/tecnico')
-        }
-    })
+        })
+    }
+    else{
+        res.status(401).send("No Esta Autorizado")
+    } 
+    
 })
 
 
 router.get('/tecnico/misordenes',authMiddleware,async(req,res)=>{
-    try {
-        console.log(req.session.user) 
-        await mostrar_mis_ordenes(conect_sql,req.session.user,(respuesta)=>{ 
-            console.log("respuesta: ",respuesta) 
-            if(respuesta==undefined){        //si no tiene ordenes asignadas
-                req.flash('exito_msg','No Tienes Ordenes Asignadas')
-                res.redirect('/tecnico/misordenes')
-            }
-            else{
-                for (let index = 0; index < respuesta.length; index++) {
-                    respuesta[index].fecha_creacion=(respuesta[index].fecha_creacion).toString().substring(0,10) //convierte la fecha y hora en solo fecha para mostrar
-                    
+    if(req.session.puesto=="TECNICO"){
+        try {
+            await mostrar_mis_ordenes(conect_sql,req.session.user,(respuesta)=>{ 
+                console.log("respuesta: ",respuesta) 
+                if(respuesta==undefined){        //si no tiene ordenes asignadas
+                    req.flash('exito_msg','No Tienes Ordenes Asignadas')
+                    res.redirect('/tecnico/misordenes')
                 }
-                res.render('layouts/mis_ordenes_trabajo',{respuesta})
-            }  
-        })
-    } 
-    catch (error) {
-        res.send('Error en la BBDD')
+                else{
+                    for (let index = 0; index < respuesta.length; index++) {
+                        respuesta[index].fecha_creacion=(respuesta[index].fecha_creacion).toString().substring(0,10) //convierte la fecha y hora en solo fecha para mostrar
+                        
+                    }
+                    res.render('layouts/mis_ordenes_trabajo',{respuesta})
+                }  
+            })
+        } 
+        catch (error) {
+            res.send('Error en la BBDD')
+        }
     }
+    else{
+        res.status(401).send("No Esta Autorizado")
+    }
+   
 })
 
-router.get('/tecnico/orden/:id',authMiddleware,async(req,res)=>{ 
+router.get('/tecnico/orden/:id',authMiddleware,async(req,res)=>{   // terminar autorizacion
     let lista_estados=["Cancelado","En Espera","En Revision","En Reparacion","Reparado","Finalizado"]        
     let listfilter
     let lista_enviar=[]
@@ -696,99 +769,112 @@ router.post('/tecnico/orden/:id',authMiddleware,async(req,res)=>{ //------------
 })
 
 router.get('/admin',authMiddleware,async (req,res)=>{
-    select_from(conect_sql,"usuarios_general",(respuesta)=>{
+    if (req.session.puesto=="ADMIN") {
+        select_from(conect_sql,"usuarios_general",(respuesta)=>{
         
-        for (let index = 0; index < respuesta.length; index++) {
-            respuesta[index].fecha_inicio=respuesta[index].fecha_inicio.substring(0, 10);
-                if(respuesta[index].estado==1){
-                    respuesta[index].estado="Habilitado"
-                }
-                else{
-                    respuesta[index].estado="Desabilitado"
-                }
-            console.log(respuesta[index].fecha_inicio)
-        }
-
-        res.render('layouts/lista_usuario',{respuesta})
-    })
+            for (let index = 0; index < respuesta.length; index++) {
+                respuesta[index].fecha_inicio=respuesta[index].fecha_inicio.substring(0, 10);
+                    if(respuesta[index].estado==1){
+                        respuesta[index].estado="Habilitado"
+                    }
+                    else{
+                        respuesta[index].estado="Desabilitado"
+                    }
+                console.log(respuesta[index].fecha_inicio)
+            }
+    
+            res.render('layouts/lista_usuario',{respuesta})
+        })
+    } 
+    else {
+        res.status(401).send("No Esta Autorizado")
+    }
 })
 
 router.get('/admin/crear_usuario',authMiddleware,(req,res)=>{
-    res.render('layouts/crear_usuario')
+    if (req.session.puesto=="ADMIN") {
+        res.render('layouts/crear_usuario')
+    }
+    else {
+        res.status(401).send("No Esta Autorizado")
+    }
 })
 
 router.post('/admin/crear_usuario',authMiddleware, async(req,res)=>{
-    console.log(req.body)
-    const {puesto,direccion,localidad,DNI,nombreyapellido,fecha_ingreso,numerocelular,email,pass}= req.body
-
-    const error_orden=[]
-
-    if(!pass){
-        error_orden.push({text:'Contraseña incorrecta'})
-    }
-    if(!direccion){
-        error_orden.push({text:'Dni incorrecto'})
-    }
-    if(!localidad){
-        error_orden.push({text:'Dni incorrecto'})
-    }
-    if(!DNI){
-        error_orden.push({text:'Dni incorrecto'})
-    }
-    if(!puesto){
-        error_orden.push({text:'Puesto incorrecto'})
-    }
-    if(!nombreyapellido){
-        error_orden.push({text:'Nombre Y Apellido incorrecto'})
-    }
-    if(!fecha_ingreso){
-        error_orden.push({text:'falta Fecha de Ingreso'})
-    }
-    if(!numerocelular){
-        error_orden.push({text:'Falta Numero de Celular'})
-    }
-    if(!email){
-        error_orden.push({text:'Email Incorrecto o no Ingresado'})
-    }
-
-    if(error_orden.length>0){
-        res.render('/admin/crear_usuario',{error_orden})
-        return
-    }
-
-    let dni_int =parseInt(DNI)
-    let numero_int=parseInt(numerocelular)
-
-    let nuevo_usuario_g={ //esquema para enviar a la base de datos (general)
-        dni: dni_int,
-        direccion:direccion,
-        localidad:localidad,
-        puesto: puesto,
-        nombrecompleto: nombreyapellido,
-        fecha_inicio: fecha_ingreso,
-        celular: numero_int,
-        email:email,
-        estado:1,
-        pass:pass
-    }
+    if (req.session.puesto=="ADMIN"){
+        const {puesto,direccion,localidad,DNI,nombreyapellido,fecha_ingreso,numerocelular,email,pass}= req.body
+        const error_orden=[]
+        if(!pass || pass.length>20 || pass.length<4){
+            error_orden.push({text:'Contraseña incorrecta'})
+        }
+        if(!direccion || direccion.length>50 || direccion.length<4){
+            error_orden.push({text:'Dni incorrecto'})
+        }
+        if(!localidad || localidad.length>50 || localidad.length<4){
+            error_orden.push({text:'Dni incorrecto'})
+        }
+        if(!DNI || isNaN(parseInt(DNI))){
+            error_orden.push({text:'Dni incorrecto'})
+        }
+        if(!puesto){
+            error_orden.push({text:'Puesto incorrecto'})
+        }
+        if(!nombreyapellido){
+            error_orden.push({text:'Nombre Y Apellido incorrecto'})
+        }
+        if(!fecha_ingreso){
+            error_orden.push({text:'falta Fecha de Ingreso'})
+        }
+        if(!numerocelular){
+            error_orden.push({text:'Falta Numero de Celular'})
+        }
+        if(!email){
+            error_orden.push({text:'Email Incorrecto o no Ingresado'})
+        }
     
-    try {
-        await validar_usuario_id(conect_sql,nuevo_usuario_g.dni,(respuesta)=>{
-            if (respuesta) {
-                req.flash('exito_msg',"ERROR !!! El usuario ya existe ")
-                res.redirect("/admin/crear_usuario") //completar con redirect
-            } 
-            else {
-                conect_sql.query(`INSERT INTO usuarios_general set ?`,[nuevo_usuario_g])
-                req.flash('exito_msg',"Usuario Creado con Exito ")
-                res.redirect("/admin") 
-            }
-        })
-     
-
-    } catch (err) {
-        if(err)throw err;
+        if(error_orden.length>0){
+            res.render('/admin/crear_usuario',{error_orden})
+            return
+        }
+    
+        let dni_int =parseInt(DNI)
+        let numero_int=parseInt(numerocelular)
+    
+        let nuevo_usuario_g={ //esquema para enviar a la base de datos (general)
+            dni: dni_int,
+            direccion:direccion,
+            localidad:localidad,
+            puesto: puesto,
+            nombrecompleto: nombreyapellido,
+            fecha_inicio: fecha_ingreso,
+            celular: numero_int,
+            email:email,
+            estado:1,
+            pass:pass
+        } 
+        try {
+            await validar_usuario_id(conect_sql,nuevo_usuario_g.dni,(respuesta)=>{
+                if (respuesta) {
+                    req.flash('exito_msg',"ERROR !!! El usuario ya existe ")
+                    res.redirect("/admin/crear_usuario") //completar con redirect
+                } 
+                else {
+                    insert(conect_sql,"usuarios_general",nuevo_usuario_g)
+                    //conect_sql.query(`INSERT INTO usuarios_general set ?`,[nuevo_usuario_g])
+                    req.flash('exito_msg',"Usuario Creado con Exito ")
+                    res.redirect("/admin") 
+                }
+            })
+        } 
+        catch (err) {
+            if(err)throw err;
+            res.send("Erroe en la BBDD")
+        }
     }
+    else{
+        res.status(401).send("No Esta Autorizado")
+    }
+   
 })
 
 router.get('/admin/mod/:id',authMiddleware, async(req,res)=>{   //terminar
@@ -933,233 +1019,291 @@ router.post('/admin/delete/:id',authMiddleware, async(req,res)=>{  //ruta no usa
 })  
 
 
-router.get('/stock',authMiddleware, async(req,res)=>{
-    console.log(res.locals)
-    await mostrar_repuestos_con_marca_modelo_stock(conect_sql,(resultado)=>{ //busca los repuestos y los envia al front
-        res.render('layouts/lista_repuestos',{resultado})  //completar el front (hbs)
-    }) 
-})
 
-router.get('/stock/mod/:dato',authMiddleware, async(req,res)=>{   //completar ----------------------------------------------error--------------------
-    let dato=req.params.dato
-    if(!dato || isNaN(parseInt(dato))){
-        req.flash('exito_msg','El repuesto no existe')
-        res.redirect('/stock')
+router.get('/stock',authMiddleware, async(req,res)=>{
+    if(req.session.puesto=="ADMINISTRADOR_DE_DEPOSITO"||req.session.puesto=="GERENTE"){
+        await mostrar_repuestos_con_marca_modelo_stock(conect_sql,(resultado)=>{ //busca los repuestos y los envia al front
+            res.render('layouts/lista_repuestos',{resultado})  //completar el front (hbs)
+        }) 
     }
     else{
-        await validar_repuerto_id(conect_sql,dato,(dato_val)=>{
-            if (dato_val) {
-                mostrar_repuesto_id(conect_sql,dato,(respuesta)=>{
-                    res.render('layouts/modificar_repuesto',{respuesta})
-                })
-            } else {
-                req.flash('exito_msg','El repuesto no existe')
-                res.redirect('/stock')
-            }
-        })
+        res.status(401).send("No esta Autorizado")
     }
-    
-
 })
 
-router.post('/stock/mod/:id',authMiddleware,async(req,res)=>{  //terminar
-    console.log("datos post:",req.body)
-    const{id,nombre,precio,distribuidor,descripcion}=req.body
-    let id_int=parseInt(id);
-    let precio_int=parseInt(precio);
-    let datos={
-        id:id_int,
-        nombre:nombre,
-        precio:precio_int,
-        distribuidor:distribuidor,
-        descripcion:descripcion
-    }
-    await validar_repuerto_id(conect_sql,datos.id,(respuesta)=>{
-        if(respuesta){ //si existe
-            modificar_repuesto_id(conect_sql,datos,(respuesta2)=>{
-                res.redirect("/stock")
+router.get('/stock/mod/:dato',authMiddleware, async(req,res)=>{  
+    if(req.session.puesto=="ADMINISTRADOR_DE_DEPOSITO"||req.session.puesto=="GERENTE"){
+
+        let dato=req.params.dato
+        if(!dato || isNaN(parseInt(dato))){
+            req.flash('exito_msg','El repuesto no existe')
+            res.redirect('/stock')
+        }
+        else{
+            await validar_repuerto_id(conect_sql,dato,(dato_val)=>{
+                if (dato_val) {
+                    mostrar_repuesto_id(conect_sql,dato,(respuesta)=>{
+                        res.render('layouts/modificar_repuesto',{respuesta})
+                    })
+                } else {
+                    req.flash('exito_msg','El repuesto no existe')
+                    res.redirect('/stock')
+                }
             })
         }
-        else{   //si el repesto no existe
-            res.status(404).send("no es encontro el repuesto")
+    }
+    else{
+        res.status(401).send("No esta Autorizado")
+    }
+})
+
+router.post('/stock/mod/:id',authMiddleware,async(req,res)=>{ 
+
+    const{id,nombre,precio,distribuidor,descripcion}=req.body
+    var error_orden=[]
+
+    if(req.session.puesto=="ADMINISTRADOR_DE_DEPOSITO"||req.session.puesto=="GERENTE"){
+
+        if(!id|| isNaN(parseInt(id))){
+            error_orden.push({text:'EL REPUESTO NO ES VALIDO'})
         }
-    })
-    
+        if(!nombre|| nombre.length>50 || nombre.length<4){
+            error_orden.push({text:'Nombre incorrecto'})
+        }
+        if(!precio|| isNaN(parseInt(precio)) || parseInt(precio)<1){
+            error_orden.push({text:'Precio invlaido'})
+        }
+        if(!distribuidor || distribuidor.length>50 ||distribuidor.length<4){
+            error_orden.push({text:'no ingreso un puesto valido'})
+        }
+        if(!descripcion || descripcion.length>50 ||descripcion.length<4){
+            error_orden.push({text:'no ingreso un puesto valido'})
+        }
+        if(error_orden.length>0){
+            error_orden.forEach(element => {
+                req.flash('exito_msg',element)
+            });
+            res.redirect('/stock')
+        }
+        if(error_orden.length==0){
+            let id_int=parseInt(id);
+            let precio_int=parseInt(precio);
+            let datos={
+                id:id_int,
+                nombre:nombre,
+                precio:precio_int,
+                distribuidor:distribuidor,
+                descripcion:descripcion
+            }
+            await validar_repuerto_id(conect_sql,datos.id,(respuesta)=>{
+                if(respuesta){ //si existe
+                    modificar_repuesto_id(conect_sql,datos,(respuesta2)=>{
+                        req.flash('exito_msg','Repuesto modificado !!!')
+                        res.redirect("/stock")
+                    })
+                }
+                else{   //si el repesto no existe
+                    res.status(404).send("no es encontro el repuesto")
+                }
+            })
+        }
+    }   
+    else{
+        res.status(401).send("No esta Autorizado")
+    }
 })
 
 router.get('/stock/crear_repuesto',authMiddleware,(req,res)=>{
-    console.log(res.locals)
-    res.render('layouts/crear_repuesto')  
+    if(req.session.puesto=="ADMINISTRADOR_DE_DEPOSITO"||req.session.puesto=="GERENTE"){
+        res.render('layouts/crear_repuesto')  
+    }
+    else{
+        res.status(401).send("No esta Autorizado")
+    }
 })
 
 router.post('/stock/crear_repuesto',authMiddleware,async (req,res)=>{  //terminar
-    let error_orden=[]
 
-    const{ nombre,distribuidor,cantidad,precio,descripcion,marca,modelo }=req.body
+    if(req.session.puesto=="ADMINISTRADOR_DE_DEPOSITO"||req.session.puesto=="GERENTE"){
+        let error_orden=[]
 
-    let cantidad_int= parseInt(cantidad)
-    let precio_int= parseInt(precio)
-    let modelo_lower=modelo.toLocaleLowerCase()
-    let marca_lower=marca.toLocaleLowerCase()
+        const{nombre,distribuidor,cantidad,precio,descripcion,marca,modelo}=req.body
 
-    let esquema={
-        marca,
-        modelo,
-        nombre:nombre,
-        distribuidor:distribuidor,
-        cantidad:cantidad_int,
-        precio:precio_int,
-        descripcion:descripcion
-    }
-    if (!nombre || nombre.length<3){
-        error_orden.push({text:"error en el nombre"})
-    }
-    if (!distribuidor || distribuidor.length<3){
-        error_orden.push({text:"error en el distribuidor"})
-    }
-    if (!cantidad_int || cantidad_int<0 || typeof cantidad_int != 'number'){
-        error_orden.push({text:"error en la cantidad"})
-    }
-    if (!precio_int || precio_int<0 || typeof precio_int != 'number'){
-        error_orden.push({text:"error en el precio"})
-    }
-    if (!descripcion || descripcion.length<3){
-        error_orden.push({text:"error en la descripcion"})
-    }
-    if (!marca_lower || marca_lower.length<3){
-        error_orden.push({text:"error en la marca"})
-    }
-    if (!modelo_lower || modelo_lower.length<3){
-        error_orden.push({text:"error en el modelo"})
-    }
+        let cantidad_int= parseInt(cantidad)
+        let precio_int= parseInt(precio)
+        let modelo_lower=modelo.toLocaleLowerCase()
+        let marca_lower=marca.toLocaleLowerCase()
 
-    if(error_orden.length>0){
-        res.render('/stock/crear_repuesto',{error_orden})
-    }
-            
-    if(error_orden.length==0){               //si no existen errores pasa a crear el repuesto
-        await validar_marca_nombre(conect_sql,marca_lower,(datos_val)=>{ 
-            console.log(datos_val)
-            if(datos_val){                  //revisa si existe la marca sino la crea
-                buscar_marca_nombre(conect_sql,marca_lower,(respuesta)=>{ 
-
-                    esquema.marca=respuesta[0].id_marca
-                    console.log("esquema modelo "+esquema.marca)
-                    console.log(respuesta)
-                    console.log(respuesta[0].id_marca)
-                    
-                    validar_modelo_nombre(conect_sql,modelo_lower,(datos_val2)=>{
-                        if(datos_val2){
-                            buscar_modelo_nombre(conect_sql,modelo_lower,(respuesta2)=>{
-                                esquema.modelo=respuesta2[0].id_modelo
-                                console.log("esquema modelo "+esquema.modelo)
-                                console.log(respuesta2.id_modelo)
         
-                                crear_repuesto(conect_sql,esquema,respuesta[0].id_marca,respuesta2[0].id_modelo)
-                                error_orden={text:'Repuesto creado con exito'}
-                                res.render('layouts/crear_repuesto',{error_orden})
-                                
-                            })
-                        }
-                        else{
-                            crear_modelo(conect_sql,modelo_lower)
-                            buscar_modelo_nombre(conect_sql,modelo_lower,(respuesta2)=>{
-                                esquema.modelo=respuesta2[0].id_modelo
-                                crear_repuesto(conect_sql,esquema,respuesta[0].id_marca,respuesta2[0].id_modelo)
-                                req.flash('exito_msg','Repuesto creado con exito')
-                                res.redirect('/stock')
-                            })
-                            
-                        }
-                        
-                    })
-                })
+        if (!nombre || nombre.length<3){
+            error_orden.push({text:"error en el nombre"})
+        }
+        if (!distribuidor || distribuidor.length<3){
+            error_orden.push({text:"error en el distribuidor"})
+        }
+        if (!cantidad_int || cantidad_int<0 || typeof cantidad_int != 'number'){
+            error_orden.push({text:"error en la cantidad"})
+        }
+        if (!precio_int || precio_int<0 || typeof precio_int != 'number'){
+            error_orden.push({text:"error en el precio"})
+        }
+        if (!descripcion || descripcion.length<3){
+            error_orden.push({text:"error en la descripcion"})
+        }
+        if (!marca_lower || marca_lower.length<3){
+            error_orden.push({text:"error en la marca"})
+        }
+        if (!modelo_lower || modelo_lower.length<3){
+            error_orden.push({text:"error en el modelo"})
+        }
+        if(error_orden.length>0){
+            res.render('/stock/crear_repuesto',{error_orden})
+        }
+                
+        if(error_orden.length==0){               //si no existen errores pasa a crear el repuesto
+            let esquema={
+                marca,
+                modelo,
+                nombre:nombre,
+                distribuidor:distribuidor,
+                cantidad:cantidad_int,
+                precio:precio_int,
+                descripcion:descripcion
             }
             
-            else{
-                crear_marca(conect_sql,marca_lower)
-                buscar_marca_nombre(conect_sql,marca_lower,(respuesta)=>{ 
-                    esquema.marca=respuesta[0].id_marca
+            await validar_marca_nombre(conect_sql,marca_lower,(datos_val)=>{ 
+                if(datos_val){                                  //revisa si existe la marca sino la crea
+                    buscar_marca_nombre(conect_sql,marca_lower,(respuesta)=>{ 
 
-                    validar_modelo_nombre(conect_sql,modelo_lower,(datos_val2)=>{
-                        if(datos_val2){
-                            buscar_modelo_nombre(conect_sql,modelo_lower,(respuesta2)=>{
-                                esquema.modelo=respuesta2[0].id_modelo
-                                crear_repuesto(conect_sql,esquema,respuesta[0].id_marca,respuesta2[0].id_modelo)
-                                req.flash('exito_msg','Repuesto creado con exito')
-                                res.redirect('/stock')
+                        esquema.marca=respuesta[0].id_marca
+                        console.log("esquema modelo "+esquema.marca)
+                        console.log(respuesta)
+                        console.log(respuesta[0].id_marca)
+                        
+                        validar_modelo_nombre(conect_sql,modelo_lower,(datos_val2)=>{
+                            if(datos_val2){
+                                buscar_modelo_nombre(conect_sql,modelo_lower,(respuesta2)=>{
+                                    esquema.modelo=respuesta2[0].id_modelo
+                                    console.log("esquema modelo "+esquema.modelo)
+                                    console.log(respuesta2.id_modelo)
+            
+                                    crear_repuesto(conect_sql,esquema,respuesta[0].id_marca,respuesta2[0].id_modelo)
+                                    error_orden={text:'Repuesto creado con exito'}
+                                    res.render('layouts/crear_repuesto',{error_orden})
+                                    
+                                })
+                            }
+                            else{
+                                crear_modelo(conect_sql,modelo_lower)
+                                buscar_modelo_nombre(conect_sql,modelo_lower,(respuesta2)=>{
+                                    esquema.modelo=respuesta2[0].id_modelo
+                                    crear_repuesto(conect_sql,esquema,respuesta[0].id_marca,respuesta2[0].id_modelo)
+                                    req.flash('exito_msg','Repuesto creado con exito')
+                                    res.redirect('/stock')
+                                })
                                 
-                            })
-                        }
-                        else{
-                            crear_modelo(conect_sql,modelo_lower)
-                            buscar_modelo_nombre(conect_sql,modelo_lower,(respuesta2)=>{
-                                esquema.modelo=respuesta2.id_modelo
-                                crear_repuesto(conect_sql,esquema,respuesta[0].id_marca,respuesta2[0].id_modelo)
-                                req.flash('exito_msg','Repuesto creado con exito')
-                                res.redirect('/stock')
-                            })
-                        }
+                            }
+                            
+                        })
                     })
-                }) 
-            }
-        })     
+                }
+                
+                else{
+                    crear_marca(conect_sql,marca_lower)
+                    buscar_marca_nombre(conect_sql,marca_lower,(respuesta)=>{ 
+                        esquema.marca=respuesta[0].id_marca
+
+                        validar_modelo_nombre(conect_sql,modelo_lower,(datos_val2)=>{
+                            if(datos_val2){
+                                buscar_modelo_nombre(conect_sql,modelo_lower,(respuesta2)=>{
+                                    esquema.modelo=respuesta2[0].id_modelo
+                                    crear_repuesto(conect_sql,esquema,respuesta[0].id_marca,respuesta2[0].id_modelo)
+                                    req.flash('exito_msg','Repuesto creado con exito')
+                                    res.redirect('/stock')
+                                    
+                                })
+                            }
+                            else{
+                                crear_modelo(conect_sql,modelo_lower)
+                                buscar_modelo_nombre(conect_sql,modelo_lower,(respuesta2)=>{
+                                    esquema.modelo=respuesta2.id_modelo
+                                    crear_repuesto(conect_sql,esquema,respuesta[0].id_marca,respuesta2[0].id_modelo)
+                                    req.flash('exito_msg','Repuesto creado con exito')
+                                    res.redirect('/stock')
+                                })
+                            }
+                        })
+                    }) 
+                }
+            })     
+        }
+    }
+    else{
+        res.status(401).send("No esta Autorizado")
     }
 })
 
 router.get('/stock/ingresar_stock',(req,res)=>{  //carga los repuestos y los manda al front
-    select_from(conect_sql ,"repuestos",(respuesta)=>{
-        console.log(respuesta)
-        res.render('layouts/sumar_repuesto',{repuestos_de_bbdd:respuesta})
-    })
+    if (req.session.puesto=="ADMINISTRADOR_DE_DEPOSITO"||req.session.puesto=="GERENTE") {
+        select_from(conect_sql ,"repuestos",(respuesta)=>{
+            res.render('layouts/sumar_repuesto',{repuestos_de_bbdd:respuesta})
+        })
+    } 
+    else {
+        res.status(401).send("No esta Autorizado")
+    }
+    
 })
 
 router.post('/stock/ingresar_stock',(req,res)=>{
-    const{repuesto,cantidad}=req.body
+    if (req.session.puesto=="ADMINISTRADOR_DE_DEPOSITO"||req.session.puesto=="GERENTE"){
+        const{repuesto,cantidad}=req.body
+        const error_orden=[]
 
-    console.log("repuesto "+typeof repuesto+"   cantidad"+typeof cantidad)
-    const error_orden=[]
+        if(!repuesto) {
+            error_orden.push({text:'Error al ingresar Repuesto'})
+        }
+        if(!cantidad ){
+            error_orden.push({text:'Error al ingresar Cantidad'})
+        }
 
-    if(!repuesto) {
-        error_orden.push({text:'Error al ingresar Repuesto'})
-    }
-    if(!cantidad ){
-        error_orden.push({text:'Error al ingresar Cantidad'})
-    }
+        if(error_orden.length>0){
+            res.redirect('/stock/ingresar_stock',{error_orden})
+            return
+        }
+        else{
+            let id_int=parseInt(repuesto)
+            let cantidad_int=parseInt(cantidad)
 
-    if(error_orden.length>0){
-        res.redirect('/stock/ingresar_stock',{error_orden})
-        return
+            let datos={
+                id_repuesto: id_int,
+                cantidad: cantidad_int
+            };
+
+            validar_repuerto_id(conect_sql,datos.id_repuesto,(validador)=>{   //el repuesto existe? 
+                if(validador){
+                    try {
+                        ingresar_stock(conect_sql,datos,"suma")
+                        error_orden.push({text:"stock agregado"})
+                        select_from(conect_sql ,"repuestos",(respuesta)=>{
+                            res.render('layouts/sumar_repuesto',{repuestos_de_bbdd:respuesta,error_orden})
+                        })
+                    } 
+                    catch (error) {
+                        console.log("si existe error: "+error)
+                    }
+                }
+                else{
+                    error_orden.push({text:'El repuesto no existe '})
+                    select_from(conect_sql ,"repuestos",(respuesta)=>{
+                    res.render('layouts/sumar_repuesto',{repuestos_de_bbdd:respuesta,error_orden})
+                    })
+                }
+            }) 
+        }
     }
     else{
-        let id_int=parseInt(repuesto)
-        let cantidad_int=parseInt(cantidad)
-
-        let datos={
-            id_repuesto: id_int,
-            cantidad: cantidad_int
-        };
-
-        validar_repuerto_id(conect_sql,datos.id_repuesto,(validador)=>{   //el repuesto existe? 
-            if(validador){
-                try {
-                    ingresar_stock(conect_sql,datos,"suma")
-                    error_orden.push({text:"stock agregado"})
-                    select_from(conect_sql ,"repuestos",(respuesta)=>{
-                        res.render('layouts/sumar_repuesto',{repuestos_de_bbdd:respuesta,error_orden})
-                    })
-                } 
-                catch (error) {
-                    console.log("si existe error: "+error)
-                }
-            }
-            else{
-                error_orden.push({text:'El repuesto no existe '})
-                select_from(conect_sql ,"repuestos",(respuesta)=>{
-                res.render('layouts/sumar_repuesto',{repuestos_de_bbdd:respuesta,error_orden})
-                })
-            }
-        }) 
+        res.status(401).send("No esta Autorizado")
     }
 })
 
