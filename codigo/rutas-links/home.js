@@ -154,6 +154,7 @@ router.get('/crear_orden',authMiddleware, async(req,res)=>{
 
 router.post('/crear_orden',authMiddleware,async(req,res)=>{ 
     let emailtest= /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/
+    let tipo=["pc","tv","notebook","celular"]
 
     if(req.session.puesto=="GERENTE" ||req.session.puesto=="RECEPCIONISTA"){
         const { nombrecompleto , dni, localidad, direccion, celular, email, tipo_equipo, descripcion_falla, datos_importantes,pago } = req.body;
@@ -233,8 +234,15 @@ router.post('/crear_orden',authMiddleware,async(req,res)=>{
                     }
                     else{ //si el cliente no existe
                         try {
+                            let notificacion={
+                                de:req.session.user,
+                                para:"TECNICO",
+                                tipo:"Se a Creado una nueva orden para un: "+tipo[orden_trabajo.fk_tipo_equipo]+" con: "+orden_trabajo.descripcion_falla,
+                                leido:0
+                            }
                             insert(conect_sql,"clientes",cliente)
                             insert(conect_sql,"orden_trabajo",orden_trabajo)
+                            insert(conect_sql,"notificaciones",notificacion)
                             req.flash('exito_msg','Orden de Trabajo creada con Exito')
                             if(req.session.puesto=="GERENTE"){
                                 res.redirect('/gerente')
@@ -877,48 +885,51 @@ router.post('/admin/crear_usuario',authMiddleware, async(req,res)=>{
    
 })
 
-router.get('/admin/mod/:id',authMiddleware, async(req,res)=>{   //terminar
-    let id=req.params.id
-    let tipos_usuarios=["TECNICO","ADMINISTRADOR","RECEPCIONISTA","GERENTE","ADMIN. STOCK"]
-    let listfilter
-    let lista_enviar=[]
-
-    if(!req.params.id ||isNaN(parseInt(id))) {
-        req.flash('exito_msg',"ERROR !!! El usuario no existe ")
-        res.redirect("/admin") 
-    } 
-    else {
-        validar_usuario_id(conect_sql,id,(respuesta)=>{
-            if(respuesta){
-                mostrar_usuario_id(conect_sql,id,(respuesta2)=>{
-                    
-                        for (let index = 0; index < tipos_usuarios.length; index++) {
-                            if (respuesta2[0].puesto==tipos_usuarios[index]) {
-                                listfilter= tipos_usuarios.filter((item) => item !== respuesta2[0].puesto)  
+router.get('/admin/mod/:id',authMiddleware, async(req,res)=>{   //terminar (REVISAR)
+    if (req.session.puesto=="ADMIN") {
+        let id=req.params.id
+        let tipos_usuarios=["TECNICO","ADMINISTRADOR","RECEPCIONISTA","GERENTE","ADMIN. STOCK"]
+        let listfilter
+        let lista_enviar=[]
     
-                                for (let index = 0; index < listfilter.length; index++) {
-                                    lista_enviar.push({puesto:listfilter[index]})
-                                    
+        if(!id ||isNaN(parseInt(id))) {
+            req.flash('exito_msg',"ERROR !!! El usuario no existe ")
+            res.redirect("/admin") 
+        } 
+        else {
+            validar_usuario_id(conect_sql,id,(respuesta)=>{
+                if(respuesta){
+                    mostrar_usuario_id(conect_sql,id,(respuesta2)=>{
+                        
+                            for (let index = 0; index < tipos_usuarios.length; index++) {
+                                if (respuesta2[0].puesto==tipos_usuarios[index]) {
+                                    listfilter= tipos_usuarios.filter((item) => item !== respuesta2[0].puesto)  
+        
+                                    for (let index = 0; index < listfilter.length; index++) {
+                                        lista_enviar.push({puesto:listfilter[index]})
+                                        
+                                    }
                                 }
                             }
-                        }
-                        if(respuesta2[0].estado==1){
-                            let estado={lalala:1}
-                            res.render('layouts/modificar_usuario',{respuesta:respuesta2,lista_enviar,estado})
-                        }
-                        else{
-                            res.render('layouts/modificar_usuario',{respuesta:respuesta2,lista_enviar})
-                        }
-                })
-            }
-            else{
-                req.flash('exito_msg',"ERROR !!! El usuario no existe ")
-                res.redirect("/admin") //completar con redirect
-            }
-        })
+                            if(respuesta2[0].estado==1){
+                                let estado={lalala:1} //aunque no lo paresca es necesario
+                                res.render('layouts/modificar_usuario',{respuesta:respuesta2,lista_enviar,estado})
+                            }
+                            else{
+                                res.render('layouts/modificar_usuario',{respuesta:respuesta2,lista_enviar})
+                            }
+                    })
+                }
+                else{
+                    req.flash('exito_msg',"ERROR !!! El usuario no existe ")
+                    res.redirect("/admin") //completar con redirect
+                }
+            })
+        }
+    } 
+    else {
+        res.status(401).send("No Esta Autorizado")
     }
-    
-
 })
 
 router.post('/admin/mod/:id',authMiddleware, async(req,res)=>{                      //terminar

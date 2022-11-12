@@ -17,8 +17,6 @@
           <tr>
             <th scope="col">fecha de ingreso</th>
             <th scope="col">Recepcionista </th>
-            <th scope="col">Marca</th>
-            <th scope="col">Modelo</th>
             <th scope="col">Descripcion de Falla</th>
             <th scope="col">Datos del cliente</th>
             {{#if userLogged.gerente}}<th scope="col">ASIGNAR</th>{{else}} <th scope="col">TOMAR</th>{{/if}}
@@ -29,8 +27,6 @@
             <tr>
                 <td >{{fecha_creacion}}</td>
                 <td >{{fk_recepcionista}}</td>
-                <td>{{marca}}</td>
-                <td>{{modelo}}</td> 
                 <td>{{descripcion_falla}}</td>
                 <td >{{fk_cliente}}</td>         
                 <td><a href="tecnico/add/{{id_orden}}">Asignar/Tomar</a></td> <!-- cargar = tomar orden / asignar tecnico (se requiere sesion) -->
