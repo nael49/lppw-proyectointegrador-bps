@@ -8,7 +8,7 @@ const {crear_repuesto, ingresar_stock, validar_repuerto_id, mostrar_ordenes_espe
 crear_marca, buscar_marca_nombre, buscar_modelo_nombre, crear_modelo, validar_marca_nombre, validar_modelo_nombre, select_from, modificar_repuesto_id, insert, 
 mostrar_cliente_id, validar_cliente_id, update_cliente, validar_usuario_id, mostrar_usuario_id, update_usuario, login, tomar_orden, deshabilitar_usuario, 
 mostrar_ordenes_para_retirar, mostrar_repuestos_marca_modelo, mostrar_repuestos_con_marca_modelo_stock,buscar_repuestos_marca_modelo_por_id,graficos_tipo_equipo_mes,
-graficos_ingresos_por_año,repuestos_mas_usados, mostrar_todas_las_ordenes, select_repuesto_orden_id_orden} = require('../modelo_datos_bbdd/operaciones')
+graficos_ingresos_por_año,repuestos_mas_usados, mostrar_todas_las_ordenes, select_repuesto_orden_id_orden, mostrar_notificaciones, marcar_como_leido} = require('../modelo_datos_bbdd/operaciones')
 
 
 router.get('/gerente',authMiddleware,(req,res)=>{
@@ -438,7 +438,9 @@ router.get('/tecnico',authMiddleware, async(req,res)=>{
                     res.render('layouts/ordenes_trabajo_lista',{error_orden})
                 }
                 else{
-                    respuesta[0].fecha_creacion=(respuesta[0].fecha_creacion).toString().substring(0,10) //convierte la fecha y hora en solo fecha para mostrar
+                    for (let index = 0; index < respuesta.length; index++) {
+                        respuesta[index].fecha_creacion=(respuesta[0].fecha_creacion).toString().substring(0,10)  //convierte la fecha y hora en solo fecha para mostrar
+                    }
                     res.render('layouts/ordenes_trabajo_lista',{respuesta})
                 }
             })
@@ -673,8 +675,15 @@ router.post('/tecnico/orden/:id',authMiddleware,async(req,res)=>{ //------------
         }
         if(error_orden.length==0){
             try {
-                let query=`UPDATE orden_trabajo SET  datos_importantes="${datos_op}",estado=5,hora_fin=NOW() WHERE id_orden=${id}`        
+                let notificacion={
+                    de:req.session.user,
+                    para:"RECEPCIONISTA",
+                    tipo:"Se a Reparado la Orden: "+id,
+                    leido:0
+                }
+                let query=`UPDATE orden_trabajo SET  datos_importantes="${datos_op}",estado=5,hora_fin=NOW() WHERE id_orden=${id}`
                 conect_sql.query(query)
+                insert(conect_sql,"notificaciones",notificacion) //inserta la notificacions
                 req.flash("exito_msg","La orden de trabajo se envio correctamente")
                 res.redirect(`/tecnico/misordenes`)
                 return
@@ -867,8 +876,15 @@ router.post('/admin/crear_usuario',authMiddleware, async(req,res)=>{
                     res.redirect("/admin/crear_usuario") //completar con redirect
                 } 
                 else {
+                    let notificacion={
+                        de:req.session.user,
+                        para:"GERENTE",
+                        tipo:"Se a Creado un Nuevo Usuario: "+nuevo_usuario_g.nombrecompleto+" Para el puesto: "+nuevo_usuario_g.puesto,
+                        leido:0
+                    }
                     insert(conect_sql,"usuarios_general",nuevo_usuario_g)
                     //conect_sql.query(`INSERT INTO usuarios_general set ?`,[nuevo_usuario_g])
+                    insert(conect_sql,"notificaciones",notificacion)
                     req.flash('exito_msg',"Usuario Creado con Exito ")
                     res.redirect("/admin") 
                 }
@@ -994,9 +1010,16 @@ router.post('/admin/mod/:id',authMiddleware, async(req,res)=>{                  
             puesto:puesto,
             estado:estado_int
         }
-        validar_usuario_id(conect_sql,usuario,(respuesta)=>{  
+        validar_usuario_id(conect_sql,usuario,(respuesta)=>{ 
+            let notificacion={
+                de:req.session.user,
+                para:"GERENTE",
+                tipo:"Se Modifico el Usuario: "+usuario.nombrecompleto+"Puesto: "+usuario.puesto,
+                leido:0
+            } 
             if(respuesta){ //si existe el usuario
                 update_usuario(conect_sql,"usuarios_general",dni_int,usuario) //actualiza la tabla
+                insert(conect_sql,"usuarios_general",notificacion)
                 req.flash('exito_msg',"El usuario fue actualizado correctamente ")
                 res.redirect('/admin')
             }
@@ -1016,8 +1039,16 @@ router.post('/admin/delete/:id',authMiddleware, async(req,res)=>{  //ruta no usa
             id_usuario:parseInt(req.params.id)
         }
         await validar_usuario_id(conect_sql,dato.id_usuario,(respuesta)=>{
+            let notificacion={
+                de:req.session.user,
+                para:"GERENTE",
+                tipo:"Se Desabilito el Usuario: "+id_usuario,
+                leido:0
+            } 
+
             if (respuesta) {
                 deshabilitar_usuario(conect_sql,dato.id_usuario)
+                insert(conect_sql,"usuarios_general",notificacion)
                 req.flash('exito_msg',"Usuario Desabilitado con Exito ")
                 res.redirect("/admin") 
             } 
@@ -1146,16 +1177,16 @@ router.post('/stock/crear_repuesto',authMiddleware,async (req,res)=>{  //termina
         let marca_lower=marca.toLocaleLowerCase()
 
         
-        if (!nombre || nombre.length<3){
+        if (!nombre || nombre.length<3 || nombre.length>50){
             error_orden.push({text:"error en el nombre"})
         }
-        if (!distribuidor || distribuidor.length<3){
+        if (!distribuidor || distribuidor.length<3 || distribuidor.length>50){
             error_orden.push({text:"error en el distribuidor"})
         }
-        if (!cantidad_int || cantidad_int<0 || typeof cantidad_int != 'number'){
+        if (!cantidad_int || cantidad_int<0 || cantidad_int>999999 || typeof cantidad_int != 'number'){
             error_orden.push({text:"error en la cantidad"})
         }
-        if (!precio_int || precio_int<0 || typeof precio_int != 'number'){
+        if (!precio_int || precio_int<0 || precio_int>999999 || typeof precio_int != 'number'){
             error_orden.push({text:"error en el precio"})
         }
         if (!descripcion || descripcion.length<3){
@@ -1181,6 +1212,13 @@ router.post('/stock/crear_repuesto',authMiddleware,async (req,res)=>{  //termina
                 precio:precio_int,
                 descripcion:descripcion
             }
+
+            let notificacion={
+                de:req.session.user,
+                para:"GERENTE",
+                tipo:"Se a Creado el Repuesto: "+esquema.nombre+" Modelo: "+ modelo_lower,
+                leido:0
+            }
             
             await validar_marca_nombre(conect_sql,marca_lower,(datos_val)=>{ 
                 if(datos_val){                                  //revisa si existe la marca sino la crea
@@ -1199,6 +1237,7 @@ router.post('/stock/crear_repuesto',authMiddleware,async (req,res)=>{  //termina
                                     console.log(respuesta2.id_modelo)
             
                                     crear_repuesto(conect_sql,esquema,respuesta[0].id_marca,respuesta2[0].id_modelo)
+                                    insert(conect_sql,"notidicaciones",notificacion)
                                     error_orden={text:'Repuesto creado con exito'}
                                     res.render('layouts/crear_repuesto',{error_orden})
                                     
@@ -1209,6 +1248,7 @@ router.post('/stock/crear_repuesto',authMiddleware,async (req,res)=>{  //termina
                                 buscar_modelo_nombre(conect_sql,modelo_lower,(respuesta2)=>{
                                     esquema.modelo=respuesta2[0].id_modelo
                                     crear_repuesto(conect_sql,esquema,respuesta[0].id_marca,respuesta2[0].id_modelo)
+                                    insert(conect_sql,"notidicaciones",notificacion)
                                     req.flash('exito_msg','Repuesto creado con exito')
                                     res.redirect('/stock')
                                 })
@@ -1229,6 +1269,7 @@ router.post('/stock/crear_repuesto',authMiddleware,async (req,res)=>{  //termina
                                 buscar_modelo_nombre(conect_sql,modelo_lower,(respuesta2)=>{
                                     esquema.modelo=respuesta2[0].id_modelo
                                     crear_repuesto(conect_sql,esquema,respuesta[0].id_marca,respuesta2[0].id_modelo)
+                                    insert(conect_sql,"notidicaciones",notificacion)
                                     req.flash('exito_msg','Repuesto creado con exito')
                                     res.redirect('/stock')
                                     
@@ -1239,6 +1280,7 @@ router.post('/stock/crear_repuesto',authMiddleware,async (req,res)=>{  //termina
                                 buscar_modelo_nombre(conect_sql,modelo_lower,(respuesta2)=>{
                                     esquema.modelo=respuesta2.id_modelo
                                     crear_repuesto(conect_sql,esquema,respuesta[0].id_marca,respuesta2[0].id_modelo)
+                                    insert(conect_sql,"notidicaciones",notificacion)
                                     req.flash('exito_msg','Repuesto creado con exito')
                                     res.redirect('/stock')
                                 })
@@ -1337,5 +1379,26 @@ router.get('/graficos/repuestos_mas_usados',authMiddleware, async(req,res)=>{
         res.json(respuesta)
     })
 })
+
+//-------------------------------------------------   NOTIFICACIONES    ---------------------------------------------
+
+router.get('/notificaciones',authMiddleware, async(req,res)=>{
+    await mostrar_notificaciones(conect_sql,req.session.puesto,(respuesta)=>{
+        console.log("puesto: "+req.session.puesto)
+        console.log("datos de la notidicacions", respuesta)
+        res.json(respuesta)
+    })
+})
+
+router.post('/leido',authMiddleware, async(req,res)=>{
+   try {
+    marcar_como_leido(conect_sql,req.session.puesto)
+    res.status(200).send('hola')
+   } 
+   catch (error) {
+    res.status(500).send('Error al conectarse a la BBDD')
+   }
+})
+
 
 module.exports=router;

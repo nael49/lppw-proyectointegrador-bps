@@ -399,10 +399,24 @@ function repuestos_mas_usados(coneccion,callback){
   })
 }
 
+//---------------------------------------------  NOTIFICACIONES ------------------------------------------------------- 
+
+function mostrar_notificaciones(coneccion,puesto,callback){   //(MEJORAR EL ORDENAMIENTO)
+  let query= `SELECT id,tipo,leido,fecha FROM notificaciones WHERE para ="${puesto}"`
+  coneccion.query(query,function(err,data){
+    callback(data)
+  })
+}
+
+function marcar_como_leido(coneccion,puesto){
+  let query= `UPDATE notificaciones set leido=1 WHERE para ="${puesto}"`
+  coneccion.query(query)
+  
+}
 
 module.exports={crear_repuesto,ingresar_stock,validar_repuerto_id,validar_usuario_id,mostrar_ordenes_espera,mostrar_mis_ordenes,validar_orden_id,traer_orden_id,
 mostrar_estados,contar_repuerto_id,mostrar_repuesto_id,modificar_repuesto_id,crear_marca,crear_modelo,buscar_marca_nombre,buscar_modelo_nombre,validar_marca_nombre,
 validar_modelo_nombre,select_from,insert,mostrar_cliente_id,update_cliente,validar_cliente_id,mostrar_usuario_id,update_usuario,login,tipo_usuario,tomar_orden,
 deshabilitar_usuario,mostrar_ordenes_para_retirar,mostrar_repuestos_marca_modelo,traer_id_estado,mostrar_repuestos_con_marca_modelo_stock,buscar_repuestos_marca_modelo_por_id,
-select_repuesto_orden_id_orden,graficos_tipo_equipo_mes,graficos_ingresos_por_año,repuestos_mas_usados,mostrar_todas_las_ordenes
+select_repuesto_orden_id_orden,graficos_tipo_equipo_mes,graficos_ingresos_por_año,repuestos_mas_usados,mostrar_todas_las_ordenes,mostrar_notificaciones,marcar_como_leido
 }

@@ -1,5 +1,6 @@
 
 function inicio(){
+
     var ctx1=document.getElementById('myChart1').getContext('2d');
     var ctx2=document.getElementById('myChart2').getContext('2d');
     //var ctx3=document.getElementById('myChart3').getContext('2d');
@@ -81,7 +82,6 @@ function inicio(){
     myChart2.update()
     }
 
-
 //------------------------------------------------------------------------------------------------
 
     const myChart4=new Chart(ctx4,{
@@ -124,7 +124,8 @@ function inicio(){
         });
         
     myChart4.update()
-    console.log(myChart4.data)
     }
+    
+
 }
 window.onload=inicio
