@@ -36,7 +36,9 @@ function validar(e){
         distribuidor.classList.add('is-invalid')
         error[4]=false
     }
-
+    
+    var x=descripcion.value.replace(/(\r\n|\n|\r)/gm, " ").replace(/(")/gm, "'")
+    document.getElementById('descripcion').value=x
 
     if(error[1]==true && error[0]==true  && error[2]==true  && error[3]==true  && error[4]==true){
         this.submit()

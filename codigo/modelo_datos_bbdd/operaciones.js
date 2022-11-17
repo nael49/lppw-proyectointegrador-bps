@@ -94,7 +94,7 @@ function mostrar_usuario_id(coneccion,id,callback){ //revisa por id (int) si el 
 
 // -------------------------------------------------------   REPUESTOS ------------------------------------------------------- 
 function mostrar_repuestos_marca_modelo(coneccion,callback){
-  let query=`SELECT id_repuesto,nombre,marca,modelo FROM repuestos JOIN marca ON repuestos.fk_marca=marca.id_marca JOIN modelo ON repuestos.fk_modelo=modelo.id_modelo WHERE repuestos.cantidad != 0 `; 
+  let query=`SELECT cantidad,id_repuesto,nombre,marca,modelo FROM repuestos JOIN marca ON repuestos.fk_marca=marca.id_marca JOIN modelo ON repuestos.fk_modelo=modelo.id_modelo WHERE repuestos.cantidad != 0 `; 
   coneccion.query(query, function(err,data){
     if(err) throw err;
     callback(data) 
@@ -116,7 +116,7 @@ function ingresar_stock (coneccion,datos,operacion){ //trae la cantidad y suma o
   }
 
   if(operacion=="resta"){
-    if (datos.cantidad==0){datos.cantidad=1}; //sino se le pasa nada se resta uno
+    if (datos.cantidad==0 ||datos.cantidad==undefined){datos.cantidad=1}; //sino se le pasa nada se resta uno
     let query_resta=`UPDATE repuestos SET cantidad=cantidad-${datos.cantidad} WHERE id_repuesto=${datos.id_repuesto}`; 
     coneccion.query(query_resta)
   }
@@ -163,6 +163,8 @@ function contar_repuerto_id(coneccion,id,calllback){ //revisa por id (int) si el
     calllback(data)
   })
 }
+
+
 
 function mostrar_repuesto_id(coneccion,id,callback){ //revisa por id (int) si el repuesto existe
   let query=`SELECT id_repuesto, nombre, distribuidor,cantidad, precio, descripcion, marca.marca, modelo.modelo FROM repuestos JOIN marca ON repuestos.fk_marca=marca.id_marca JOIN modelo ON repuestos.fk_modelo= modelo.id_modelo WHERE id_repuesto = ${id}`; 
@@ -372,6 +374,20 @@ function select_repuesto_orden_id_orden(coneccion,id,callback){
     callback(data)
   })
 }
+
+
+function repuesto_orden_exite_el_repuesto(coneccion,data,callback){
+  coneccion.query(`SELECT COUNT(cantidad) AS cantidad FROM repuestos_orden WHERE fk_orden=${data.orden} AND fk_repuesto= ${data.repuesto}` ,function(err,data){
+    if(err) throw err;
+    if(data.cantidad==0){
+      callback(false)
+    }
+    else{
+      callback(true)
+    }
+    
+  })
+}
 //---------------------------------------------  GRAFICOS ------------------------------------------------------- 
 
 function graficos_tipo_equipo_mes(coneccion,callback){
@@ -418,5 +434,6 @@ module.exports={crear_repuesto,ingresar_stock,validar_repuerto_id,validar_usuari
 mostrar_estados,contar_repuerto_id,mostrar_repuesto_id,modificar_repuesto_id,crear_marca,crear_modelo,buscar_marca_nombre,buscar_modelo_nombre,validar_marca_nombre,
 validar_modelo_nombre,select_from,insert,mostrar_cliente_id,update_cliente,validar_cliente_id,mostrar_usuario_id,update_usuario,login,tipo_usuario,tomar_orden,
 deshabilitar_usuario,mostrar_ordenes_para_retirar,mostrar_repuestos_marca_modelo,traer_id_estado,mostrar_repuestos_con_marca_modelo_stock,buscar_repuestos_marca_modelo_por_id,
-select_repuesto_orden_id_orden,graficos_tipo_equipo_mes,graficos_ingresos_por_año,repuestos_mas_usados,mostrar_todas_las_ordenes,mostrar_notificaciones,marcar_como_leido
+select_repuesto_orden_id_orden,graficos_tipo_equipo_mes,graficos_ingresos_por_año,repuestos_mas_usados,mostrar_todas_las_ordenes,mostrar_notificaciones,marcar_como_leido,
+repuesto_orden_exite_el_repuesto
 }

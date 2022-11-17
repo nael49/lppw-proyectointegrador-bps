@@ -28,21 +28,26 @@
                     {{/each}}
                   </select>
                   {{/if}}
-              </div>
+            </div>
                 
-               
-              <label for="repuesto" class="form-label">Elegir repuesto/s usado/s</label>
-              <select class="form-select" name="repuesto" multiple="multiple" id="repuesto">
-                <option value=""  disabled ></option>
-                {{#each datos}}
-                     <option value="{{id_repuesto}}">{{nombre}} - {{modelo}} - {{marca}}</option>
-                {{/each}}
-              </select>
-            
-            <div class=" mt-3">
+            <div class="row g-3">
+                <div class="col mt-3">
+                    <label for="repuesto" class="form-label">Elegir repuesto/s usado/s</label>
+                    <select class="form-select" name="repuesto"  id="repuesto">
+                      <option value=""  disabled selected></option>
+                      {{#each datos}}
+                          <option value="{{id_repuesto}}">{{nombre}} - {{modelo}} - {{marca}}</option>
+                      {{/each}}
+                    </select>
+                </div>
+                <div class="col mt-3">
+                  <label for="cantidad" id="label_cantidad" class="form-label">Cantidad</label>
+                  <input type="number" class="form-control" name="cantidad" id="cantidad" required min="1" value="1" max="1000">
+                </div>
+            </div>
 
-              <textarea class="form-control" name="datos_op" id="datos_op" cols="80" rows="10" maxlength="300" minlength="1" placeholder="Datos importantes (opcional) ">{{#each respuesta}}{{datos_importantes}}{{/each}}</textarea>
-                
+            <div class=" mt-3">
+              <textarea class="form-control" name="datos_op" id="datos_op" cols="80" rows="10" maxlength="300" minlength="1" placeholder="Datos importantes (opcional) ">{{#each respuesta}}{{datos_importantes}}{{/each}}</textarea> 
             </div>
             
 

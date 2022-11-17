@@ -8,7 +8,7 @@ const {crear_repuesto, ingresar_stock, validar_repuerto_id, mostrar_ordenes_espe
 crear_marca, buscar_marca_nombre, buscar_modelo_nombre, crear_modelo, validar_marca_nombre, validar_modelo_nombre, select_from, modificar_repuesto_id, insert, 
 mostrar_cliente_id, validar_cliente_id, update_cliente, validar_usuario_id, mostrar_usuario_id, update_usuario, login, tomar_orden, deshabilitar_usuario, 
 mostrar_ordenes_para_retirar, mostrar_repuestos_marca_modelo, mostrar_repuestos_con_marca_modelo_stock,buscar_repuestos_marca_modelo_por_id,graficos_tipo_equipo_mes,
-graficos_ingresos_por_año,repuestos_mas_usados, mostrar_todas_las_ordenes, select_repuesto_orden_id_orden, mostrar_notificaciones, marcar_como_leido} = require('../modelo_datos_bbdd/operaciones')
+graficos_ingresos_por_año,repuestos_mas_usados, mostrar_todas_las_ordenes, select_repuesto_orden_id_orden, mostrar_notificaciones, marcar_como_leido, contar_repuerto_id, repuesto_orden_exite_el_repuesto} = require('../modelo_datos_bbdd/operaciones')
 
 
 router.get('/gerente',authMiddleware,(req,res)=>{
@@ -75,7 +75,7 @@ router.post('/clientes/mod/:id',authMiddleware,async(req,res)=>{
     if(req.session.puesto=="RECEPCIONISTA" || req.session.puesto=="GERENTE"){
         const{dni_cliente,nombrecompleto,celular,localidad,direccion,email}=req.body
         let error_orden=[]
-        console.log(req.params.id)
+
         if(!dni_cliente ||  parseInt(dni_cliente)!= 'number'){
             error_orden.push({text:'Error en el DNI'})
         }
@@ -613,10 +613,10 @@ router.get('/tecnico/misordenes',authMiddleware,async(req,res)=>{
 })
 
 router.get('/tecnico/orden/:id',authMiddleware,async(req,res)=>{   // terminar autorizacion
-    let lista_estados=["Cancelado","En Espera","En Revision","En Reparacion","Reparado","Finalizado"]        
+    let lista_estados=["En Espera","En Revision","En Reparacion","Reparado","Finalizado"]        
     let listfilter
     let lista_enviar=[]
-    if (isNaN(parseInt(req.params.id))) {
+    if (isNaN(req.params.id)){
         req.flash('exito_msg','Orden invalida')
         res.redirect('/tecnico')
     } 
@@ -655,7 +655,7 @@ router.get('/tecnico/orden/:id',authMiddleware,async(req,res)=>{   // terminar a
 router.post('/tecnico/orden/:id',authMiddleware,async(req,res)=>{ //--------------------------------------------casi
     let id=req.params.id
     let lista_estados=["En Espera","En Revision","En Reparacion","Reparado","Finalizado"]  
-    const{repuesto,estado,datos_op,id_orden}=req.body
+    const{repuesto,estado,datos_op,id_orden,cantidad}=req.body
     let error_orden=[]
     let validador=true
 
@@ -704,7 +704,7 @@ router.post('/tecnico/orden/:id',authMiddleware,async(req,res)=>{ //------------
         }
         if(error_orden.length==0){
             try {
-                let query=`UPDATE orden_trabajo SET estado=2,datos_importantes=${datos_op},hora_inicio=NULL,fk_tecnico=NULL WHERE id_orden=${id}`
+                let query=`UPDATE orden_trabajo SET estado=2,datos_importantes="${datos_op}",hora_inicio=NULL,fk_tecnico=NULL WHERE id_orden=${id}`
                 await conect_sql.query(query)
                 req.flash("exito_msg","Se ha desvinculado de la orden de trabajo con exito")
                 res.redirect(`/tecnico/misordenes`)
@@ -717,14 +717,16 @@ router.post('/tecnico/orden/:id',authMiddleware,async(req,res)=>{ //------------
             }  
         }
     }
-    if(validador){                   //si el equipo todavia necesita cambios
+    if(validador && lista_estados.includes(estado)){                   //si el equipo todavia necesita cambios
         if(!repuesto && estado==lista_estados[2]){
             error_orden.push({text:"error al elegir repuestos "})
         }
         if(!estado || !lista_estados.includes(estado)){
             error_orden.push({text:"error al elegir estado"})
         }
-    
+        if(!cantidad || isNaN(cantidad) || parseInt(cantidad)<1){
+            error_orden.push({text:"Eroor en cantidad"})
+        }
         if(error_orden.length>0){
             req.flash("exito_msg","Error en repuestos o el estado")
             req.flash("exito_msg","Solo al terminar la reparacion se acepta el recuadro 'repuestos' vacio")
@@ -734,43 +736,49 @@ router.post('/tecnico/orden/:id',authMiddleware,async(req,res)=>{ //------------
         if(error_orden.length==0){
             await validar_orden_id(conect_sql,id,(respuesta)=>{
                 if(respuesta){
-                    if(typeof repuesto =='object'){                 //si repuestos trae varias cosas
-                        
-                        for (let index = 0; index < repuesto.length; index++) {
-                            try {
-
-                                let query=`INSERT INTO repuestos_orden (fk_orden,fk_repuesto) VALUES (${id_orden},${repuesto[index]})`
-                                conect_sql.query(query)
-
-                                let datos_sql={
-                                    cantidad:0,
-                                    id_repuesto:parseInt(id_orden)
-                                }  
-                                ingresar_stock(conect_sql,datos_sql,"resta") 
-                            } 
-                            catch (error) {
-                                req.flash("exito_msg","Error al catrgar los repuestos!!! Contace al Programador")
-                                 res.redirect(`/tecnico/misordenes`)
-                            }   
-                        }
-                    }
-                    if(typeof repuesto =='string'){        //repuesto solo tiene un repuesto
-                        if(parseInt(repuesto)>0){
-                            let datos_insert={
-                                fk_orden:parseInt(id_orden),
-                                fk_repuesto:parseInt(repuesto)
-                            }         
-                            insert(conect_sql,"repuestos_orden",datos_insert)
-    
-                            let datos_stock={
-                                cantidad:0,
-                                id_repuesto:parseInt(id_orden)
-                            }  
-                            ingresar_stock(conect_sql,datos_stock,"resta") 
-                        }
-                        
-                    }
-                    let query2=`UPDATE orden_trabajo SET estado = 4,datos_importantes=${datos_op} WHERE id_orden=${id_orden}`
+                    validar_repuerto_id(conect_sql,parseInt(repuesto),(val)=>{
+                        if (val) {
+                            contar_repuerto_id(conect_sql,parseInt(repuesto),(cantidadbbdd)=>{
+                                if (cantidadbbdd.cantidad >= parseInt(cantidad)) {
+                                    repuesto_orden_exite_el_repuesto(conect_sql,parseInt(repuesto),(exite)=>{
+                                        let datos_insert={
+                                            fk_orden:parseInt(id_orden),
+                                            fk_repuesto:parseInt(repuesto),
+                                            cantidad:parseInt(cantidad)
+                                        }      
+                                        if(exite){
+                                            try {
+                                                let query2=`UPDATE repuestos_orden SET cantidad =${datos_insert.cantidad} WHERE fk_orden=${datos_insert.fk_orden} AND fk_repuesto=${datos_insert.fk_repuesto} `
+                                                conect_sql.query(query2)
+                                                ingresar_stock(conect_sql,datos_insert,"resta")
+                                            } 
+                                            catch (error) {
+                                                res.send("Error en la actualizacion de un repuesto-orden")
+                                                return
+                                            }
+                                            
+                                        }
+                                        else{     
+                                            insert(conect_sql,"repuestos_orden",datos_insert)
+                                            ingresar_stock(conect_sql,datos_insert,"resta")
+                                        }
+                                    })
+                                     
+                                } 
+                                else {
+                                    error_orden.push({text:"La cantidad ingresada supera el stock"})
+                                    error_orden.forEach(element => {
+                                        req.flash("exito_msg",element)
+                                    });
+                                    res.redirect('/tecnico/orden/'+parseInt(id_orden))
+                                }
+                            })    
+                        } 
+                        else {
+                            
+                        }       
+                    })
+                    let query2=`UPDATE orden_trabajo SET estado = 4,datos_importantes="${datos_op}" WHERE id_orden=${id_orden}`
                     conect_sql.query(query2)
                     req.flash("exito_msg","La orden de trabajo fue actualizada correctamente")
                     res.redirect(`/tecnico/misordenes`)
@@ -782,6 +790,11 @@ router.post('/tecnico/orden/:id',authMiddleware,async(req,res)=>{ //------------
             })
             
         }
+    }
+    else{
+        req.flash("exito_msg","error al elegir estado")
+        res.redirect('/tecnico/orden/'+parseInt(id))
+        //se altero el estado
     }
 })
 
@@ -1380,7 +1393,7 @@ router.get('/graficos/repuestos_mas_usados',authMiddleware, async(req,res)=>{
     })
 })
 
-//-------------------------------------------------   NOTIFICACIONES    ---------------------------------------------
+//-------------------------------------------------   AJAXS    ---------------------------------------------
 
 router.get('/notificaciones',authMiddleware, async(req,res)=>{
     await mostrar_notificaciones(conect_sql,req.session.puesto,(respuesta)=>{
@@ -1400,5 +1413,17 @@ router.post('/leido',authMiddleware, async(req,res)=>{
    }
 })
 
+router.post('/cantidad',authMiddleware, async(req,res)=>{
+    let a=req.body
+
+    try {
+        await mostrar_repuesto_id(conect_sql,a.id,(respuesta)=>{
+            res.json(respuesta)
+        })
+    } catch (error) {
+        if(error) throw error;
+    }
+    
+})
 
 module.exports=router;
