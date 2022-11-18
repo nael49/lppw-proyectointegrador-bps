@@ -1,4 +1,5 @@
 
+const env = require('./config/env');
 const express = require ('express');
 const exphlb = require('express-handlebars');
 const path= require('path');
@@ -13,7 +14,6 @@ const { authUserMiddleware } = require('./auth');
 const app = express();
 
 //configuracion
-
 
 app.set('port',process.env.PORT||3000);
 app.set('views',path.join(__dirname,'handlebars'));
@@ -56,7 +56,7 @@ app.use(express.static(path.join(__dirname,'publico')))
 
 //Server lanzado
 app.listen(app.get('port'),()=>{
-    console.log('server on port',app.get('port'))
+    console.log('Server on port ',app.get('port'))
 });
 
 
