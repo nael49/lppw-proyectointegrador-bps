@@ -1,0 +1,28 @@
+<div class="container rounded bg-light mt-4 col-8">
+    <div class=" mt-3">
+        <h3 class="mx-auto titulos pt-3">Crear pedido de Repuestos</h3>
+    </div>
+
+    <form class="m-5 pb-5 " action="" method="post" id="crear_pedido_repuesto_nuevo">
+
+      <div class=" mb-3">
+        <label for="nombre" class="form-label">Nombre del repuesto</label>
+        <input type="text" class="form-control" name="nombre" id="nombre"  pattern="[A-Z a-záéíóúÁÉÍÓÚÑñ.0-9]{3,50}" required>
+        <div class="feedback-invalid"></div>
+     </div>
+     <div class=" mb-3">
+        <label for="modelo" class="form-label">Modelo del repuesto</label>
+        <input type="text" class="form-control" name="modelo" id="modelo" pattern="[A-Z a-záéíóúÁÉÍÓÚÑñ.0-9]{3,50}" required>
+        <div class="feedback-invalid"></div>
+     </div>
+
+    <div class="mb-3">
+      <label class="form-label" for="cantidad">Cantidad</label>
+      <input type="number" name="cantidad" class="form-control" id="cantidad" min="1" max="9999" required>
+      <div class="feedback-invalid"></div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Crear Pedido</button>
+  </form>
+  
+</div>

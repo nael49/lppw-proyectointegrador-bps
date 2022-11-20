@@ -9,7 +9,9 @@ const {crear_repuesto, ingresar_stock, validar_repuerto_id, mostrar_ordenes_espe
 crear_marca, buscar_marca_nombre, buscar_modelo_nombre, crear_modelo, validar_marca_nombre, validar_modelo_nombre, select_from, modificar_repuesto_id, insert, 
 mostrar_cliente_id, validar_cliente_id, update_cliente, validar_usuario_id, mostrar_usuario_id, update_usuario, login, tomar_orden, deshabilitar_usuario, 
 mostrar_ordenes_para_retirar, mostrar_repuestos_marca_modelo, mostrar_repuestos_con_marca_modelo_stock,buscar_repuestos_marca_modelo_por_id,graficos_tipo_equipo_mes,
-graficos_ingresos_por_año,repuestos_mas_usados, mostrar_todas_las_ordenes, select_repuesto_orden_id_orden, mostrar_notificaciones, marcar_como_leido, contar_repuerto_id, repuesto_orden_exite_el_repuesto, informe_tecnico_id, informe_pagos} = require('../modelo_datos_bbdd/operaciones')
+graficos_ingresos_por_año,repuestos_mas_usados, mostrar_todas_las_ordenes, select_repuesto_orden_id_orden, mostrar_notificaciones, marcar_como_leido, contar_repuerto_id, 
+repuesto_orden_exite_el_repuesto, informe_tecnico_id, informe_pagos, mostrar_repuestos_marca_modelo_para_pedidos, select_from_where_id, validar_pedido_id, 
+update_pedidos} = require('../modelo_datos_bbdd/operaciones')
 
 
 router.get('/gerente',authMiddleware,(req,res)=>{
@@ -918,7 +920,7 @@ router.post('/admin/crear_usuario',authMiddleware, async(req,res)=>{
 router.get('/admin/mod/:id',authMiddleware, async(req,res)=>{   //terminar (REVISAR)
     if (req.session.puesto=="ADMIN") {
         let id=req.params.id
-        let tipos_usuarios=["TECNICO","ADMINISTRADOR","RECEPCIONISTA","GERENTE","ADMIN. STOCK"]
+        let tipos_usuarios=["TECNICO","ADMINISTRADOR","RECEPCIONISTA","GERENTE","ADMINISTRADOR_DE_DEPOSITO"]
         let listfilter
         let lista_enviar=[]
     
@@ -965,7 +967,7 @@ router.get('/admin/mod/:id',authMiddleware, async(req,res)=>{   //terminar (REVI
 router.post('/admin/mod/:id',authMiddleware, async(req,res)=>{                      //terminar
     console.log(req.body)
     const{dni,pass,nombrecompleto,direccion,localidad,email,celular,puesto,estado}=req.body
-    let tipos_usuarios=["TECNICO","ADMINISTRADOR","RECEPCIONISTA","GERENTE","ADMIN. STOCK"]
+    let tipos_usuarios=["TECNICO","ADMINISTRADOR","RECEPCIONISTA","GERENTE","ADMINISTRADOR_DE_DEPOSITO"]
     let error_orden=[]
 
 
@@ -1310,7 +1312,7 @@ router.post('/stock/crear_repuesto',authMiddleware,async (req,res)=>{  //termina
     }
 })
 
-router.get('/stock/ingresar_stock',(req,res)=>{  //carga los repuestos y los manda al front
+router.get('/stock/ingresar_stock',authMiddleware,(req,res)=>{  //carga los repuestos y los manda al front
     if (req.session.puesto=="ADMINISTRADOR_DE_DEPOSITO"||req.session.puesto=="GERENTE") {
         select_from(conect_sql ,"repuestos",(respuesta)=>{
             res.render('layouts/sumar_repuesto',{repuestos_de_bbdd:respuesta})
@@ -1322,7 +1324,7 @@ router.get('/stock/ingresar_stock',(req,res)=>{  //carga los repuestos y los man
     
 })
 
-router.post('/stock/ingresar_stock',(req,res)=>{
+router.post('/stock/ingresar_stock',authMiddleware,(req,res)=>{
     if (req.session.puesto=="ADMINISTRADOR_DE_DEPOSITO"||req.session.puesto=="GERENTE"){
         const{repuesto,cantidad}=req.body
         const error_orden=[]
@@ -1374,40 +1376,311 @@ router.post('/stock/ingresar_stock',(req,res)=>{
     }
 })
 
-router.get('/informes/horas/:id', async(req,res)=>{  //tiempo de trabajo por tecnico------------- terminar !!!!!!!!!!!
-    let id =req.params.id
-    await informe_tecnico_id(conect_sql,id,(respuesta)=>{
-        let lista = []
-        for (let index = 0; index < respuesta.length; index++) {
-            let esquema={
-                fk_tecnico:0,
-                id_orden:0,
-                hora_inicio:"",
-                tiempo_total:0,
-                tipo_equipo:"",
+router.get('/informes/horas/:id',authMiddleware, async(req,res)=>{  //tiempo de trabajo por tecnico------------- terminar !!!!!!!!!!!
+    if(req.session.puesto=="GERENTE"){
+        let id =req.params.id
+        await informe_tecnico_id(conect_sql,id,(respuesta)=>{
+            let lista = []
+            for (let index = 0; index < respuesta.length; index++) {
+                let esquema={
+                    fk_tecnico:0,
+                    id_orden:0,
+                    hora_inicio:"",
+                    tiempo_total:0,
+                    tipo_equipo:"",
+                }
+                
+                esquema.tipo_equipo=respuesta[index].tipo_equipo
+                esquema.id_orden=respuesta[index].id_orden
+                esquema.hora_inicio=respuesta[index].hora_inicio
+                esquema.fk_tecnico=parseInt(respuesta[index].fk_tecnico)
+
+                let x=new Date(respuesta[index].hora_fin)
+                let y=new Date(respuesta[index].hora_inicio)
+
+                
+                esquema.tiempo_total=((x.getTime())-(y.getTime()))/1000
+                esquema.tiempo_total/=(60*60)
+                esquema.tiempo_total=Math.abs(Math.round(esquema.tiempo_total))
+                lista.push(esquema)
             }
-            
-            esquema.tipo_equipo=respuesta[index].tipo_equipo
-            esquema.id_orden=respuesta[index].id_orden
-            esquema.hora_inicio=respuesta[index].hora_inicio
-            esquema.fk_tecnico=parseInt(respuesta[index].fk_tecnico)
-
-            let x=new Date(respuesta[index].hora_fin)
-            let y=new Date(respuesta[index].hora_inicio)
-
-            
-            esquema.tiempo_total=((x.getTime())-(y.getTime()))/1000
-            esquema.tiempo_total/=(60*60)
-            esquema.tiempo_total=Math.abs(Math.round(esquema.tiempo_total))
-            lista.push(esquema)
-        }
-        res.render("layouts/informe_horas",{respuesta:lista,id:lista[0].fk_tecnico})
-    })
+            res.render("layouts/informe_horas",{respuesta:lista,id:lista[0].fk_tecnico})
+        })
+    }
+    else{
+        res.redirect("/sigin")
+    }
+    
 })
 
 
-router.get('/informes/ventas', (req,res)=>{  //terminar !!!!!!!!!!!!!!!!!!
+router.get('/informes/ventas',authMiddleware, (req,res)=>{  //terminar !!!!!!!!!!!!!!!!!!
         res.render("layouts/informe_pagos")
+})
+
+router.get('/pedido/crear_existente',authMiddleware, async(req,res)=>{
+    await mostrar_repuestos_marca_modelo_para_pedidos((respuesta)=>{
+        res.render("layouts/crear_pedido_stock_existente",{respuesta})
+    })
+})
+
+router.post('/pedido/crear_existente',authMiddleware, async(req,res)=>{
+    const{repuesto,cantidad}=req.body
+    let error_orden=[]
+    if(!repuesto || !cantidad){
+        error_orden.push({text:"No ingreso datos"})
+    }
+    if (repuesto) {
+        if (isNaN(repuesto)){
+            error_orden.push({text:"Eroor en repuesto elegido"})
+        }
+    }
+    if (cantidad) {
+        if (isNaN(cantidad)){
+            error_orden.push({text:"la cantidad debe ser numerica"})
+        }
+        if (parseInt(cantidad)<1 || parseInt(cantidad)>9999){
+            error_orden.push({text:"la cantidad minima es 1 y la maxima de 9999"})
+        }
+        if (parseInt(cantidad) != parseFloat(cantidad)){
+            error_orden.push({text:"La cantidad debe ser un numero entero"})
+        }
+    }
+    if(error_orden.length>0){
+        await mostrar_repuestos_marca_modelo_para_pedidos((respuesta)=>{
+            res.render("layouts/crear_pedido_stock_existente",{respuesta,error_orden})
+        })
+    }
+    else{
+        await validar_repuerto_id(conect_sql,esquema.repuesto,(respuesta)=>{
+            let esquema={
+                nombre:"",
+                modelo:"",
+                cantidad:parseInt(cantidad),
+                estado:"espera"
+            }
+            
+            if (respuesta) {
+                buscar_repuestos_marca_modelo_por_id(conect_sql,parseInt(repuesto),(respuesta2)=>{
+                    esquema.nombre=respuesta2.nombre
+                    esquema.modelo=respuesta2.modelo
+
+                    let notificacion={
+                        de:req.session.user,
+                        para:"GERENTE",
+                        tipo:"Se a Creado un Nuevo Pedido: "+esquema.nombre+" -- Modelo: "+esquema.modelo,
+                        leido:0
+                    }
+                    
+                    insert(conect_sql,"pedidos",esquema)
+                    insert(conect_sql,"notificaciones",notificacion)
+                    req.flash("exito_msg","Pedido creado con exito")
+                    res.redirect("/stock")
+                })
+            } 
+            else {
+                mostrar_repuestos_marca_modelo_para_pedidos((respuesta)=>{
+                    error_orden.push({text:"No existe el id del repuesto"})
+                    res.render("layouts/crear_pedido_stock_existente",{respuesta,error_orden})
+                })
+            }  
+        })
+    }
+})
+
+router.get('/pedido/crear',authMiddleware,(req,res)=>{
+    if(req.session.puesto=="TECNICO" || req.session.puesto=="ADMINISTRADOR_DE_DEPOSITO"){
+        res.render("layouts/crear_pedido_repuesto_nuevo")
+    }
+    else{
+        res.redirect("/sigin")  
+    }
+    
+})
+
+router.post('/pedido/crear',authMiddleware, async(req,res)=>{
+    console.log(req.session.puesto)
+    if(req.session.puesto=="TECNICO" || req.session.puesto=="ADMINISTRADOR_DE_DEPOSITO"){
+        const{cantidad,nombre,modelo}=req.body
+        let error_orden=[]
+        if(!nombre || !modelo){
+            error_orden.push({text:"No ingreso datos en nombre y/o modelo"})
+        }
+        if (nombre) {
+            if(nombre.length<3 || nombre.length>50){
+                error_orden.push({text:"El nombre debe temer entre 3 y 50 caracteres"})
+            }
+        }
+
+        if (modelo) {
+            if(modelo.length<3 || modelo.length>50){
+                error_orden.push({text:"El modelo debe temer entre 3 y 50 caracteres"})
+            }
+        }
+
+        if (cantidad) {
+            if (isNaN(cantidad)){
+                error_orden.push({text:"la cantidad debe ser numerica"})
+            }
+            if (parseInt(cantidad)<1 || parseInt(cantidad)>9999){
+                error_orden.push({text:"la cantidad minima es 1 y la maxima de 9999"})
+            }
+            if (parseInt(cantidad) != parseFloat(cantidad)){
+                error_orden.push({text:"La cantidad debe ser un numero entero"})
+            }
+
+        }
+        if(error_orden.length>0){
+            await mostrar_repuestos_marca_modelo_para_pedidos((respuesta)=>{
+                res.render("layouts/crear_pedido_stock_nuevo",{respuesta,error_orden})
+            })
+        }
+        else{
+            let esquema={
+                nombre:nombre,
+                modelo:modelo,
+                cantidad:parseInt(cantidad),
+                estado:"espera"
+            }
+            let notificacion={
+                de:req.session.user,
+                para:"GERENTE",
+                tipo:"Se a Creado un Nuevo Pedido: "+esquema.nombre+" -- Modelo: "+esquema.modelo,
+                leido:0
+                }
+            try {
+                if (req.session.puesto=="TECNICO" ) {
+                    notificacion.para="ADMINISTRADOR_DE_DEPOSITO"
+                    notificacion.tipo="Tecnico Requiere stock de: "+esquema.nombre+" -- Modelo: "+esquema.modelo
+
+                    await insert(conect_sql,"notificaciones",notificacion)
+                    req.flash("exito_msg","Pedido creado con exito")
+                    res.redirect("/tecnico")
+                } 
+                else {
+                    await insert(conect_sql,"pedidos",esquema)
+                    await insert(conect_sql,"notificaciones",notificacion)
+                    req.flash("exito_msg","Pedido creado con exito")
+                    res.redirect("/stock")
+                }
+                    
+            } 
+            catch (error) {
+                if(error) throw error;
+                await mostrar_repuestos_marca_modelo_para_pedidos((respuesta)=>{
+                    res.render("layouts/crear_pedido_stock_nuevo",{respuesta,error_orden})
+                })
+            }      
+                        
+        }
+    }
+    else{
+        res.redirect("/sigin")
+    }
+})
+
+
+router.get('/pedido/lista',authMiddleware,async(req,res)=>{
+    if (req.session.puesto=="GERENTE") {
+        await select_from_where_id("pedidos","estado","espera",(respuesta)=>{
+            res.render("layouts/lista_pedidos",{respuesta})
+        })
+    } 
+    else {
+        res.redirect("/sigin")
+    }
+})
+
+router.get('/pedido/mod/:id',authMiddleware,(req,res)=>{
+    if (req.session.puesto=="GERENTE") {
+        let id=req.params.id
+        let error=[]
+
+        if(!id){
+            error.push(1)
+        }
+        if(id){
+            if(isNaN(id)){
+                error.push(2)
+            }
+            else{
+                if (parseInt(id)!=parseFloat(id)) {
+                    error.push(3)
+                }
+            }
+        }
+        if(error.length>0){
+            req.flash("exito_msg","Error al buscar el Pedido")
+            res.redirect('/pedido/lista')
+        }
+        else{
+            select_from_where_id("pedidos","id",parseInt(id),(respuesta)=>{
+                res.render("layouts/pedido",{respuesta})
+            })
+        }
+    } 
+    else {
+        req.flash("exito_msg","Usuario no autorizado")
+        res.redirect("/sigin")
+    }
+})
+
+router.post('/pedido/mod',authMiddleware, async(req,res)=>{
+    if (req.session.puesto=="GERENTE") {
+        const{repuesto,estado}=req.body
+        let error_orden=[]
+        if(!repuesto || !estado){
+            error_orden.push(1)
+        }
+        if(repuesto){
+            if(isNaN(repuesto)){
+                error.push(2)
+            }
+            else{
+                if(parseInt(repuesto)!=parseFloat(repuesto)) {
+                    error.push(3)
+                }
+            }
+        }
+        if(estado){
+            if(estado!="rechazado" && estado!="aceptado"){
+                error.push(3)
+            }
+        }
+
+        if(error_orden.length>0){
+
+        }
+        else{
+            await validar_pedido_id(parseInt(repuesto),(respuesta)=>{
+                if(respuesta){
+                    let datos={
+                        estodo:estado
+                    }
+                    try {
+                        update_pedidos("pedidos",parseInt(repuesto),datos)
+                        req.flash("exito_msg","Pedido Modificado")
+                        res.redirect("/pedido/lista")
+                    } 
+                    catch (error) {
+                        if(error) throw error
+                        req.flash("exito_msg","Error en la coneccion de la BBDD")
+                        res.redirect("/pedido/lista")
+                    }
+                } 
+                else {
+                    req.flash("exito_msg","El pedido no existe")
+                    res.redirect("/pedido/lista")
+                }
+            })
+        }
+    } 
+    else {
+        req.flash("exito_msg","No esta Autorizado")
+        res.redirect("/sigin")
+    }
+    
+    
 })
 
 
@@ -1435,7 +1708,7 @@ router.get('/graficos/repuestos_mas_usados',authMiddleware, async(req,res)=>{
 router.get('/notificaciones',authMiddleware, async(req,res)=>{
     await mostrar_notificaciones(conect_sql,req.session.puesto,(respuesta)=>{
         console.log("puesto: "+req.session.puesto)
-        console.log("datos de la notidicacions", respuesta)
+        console.log("datos de la notificaciones", respuesta)
         res.json(respuesta)
     })
 })
@@ -1495,16 +1768,15 @@ router.post('/ordenar_pagos', async(req,res)=>{
                 } catch (error) {
                     if(error) throw error;
                 }
-            }
-            
+            } 
         }
         else{
-            console.log("error al hacer isnan")
+            console.log("error al hacer IsNaN")
         }
 
     }
     else{
-        console.log("no se envio datos")
+        console.log("no se envio datos desde el formulario")
     }
 })
 

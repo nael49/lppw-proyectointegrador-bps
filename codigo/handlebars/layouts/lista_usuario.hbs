@@ -1,8 +1,18 @@
-<div class="card mx-auto col-12 mt-3">
-    <div class="card-header titulos">
-        Lista de todos los usuarios
+
+<div class="container rounded bg-light mt-4">
+    <div class="row mt-3">
+        <div class="col-9">
+             Lista de todos los usuarios
+        </div>
+        <div class="col-3">
+            <nav class="navbar navbar-light bg-light">
+                <form class="form-inline" action="/buscar_usuario" method="post">
+                    <input class="form-control mr-sm-2" type="search" placeholder="Buscar por Dni" aria-label="Search">
+                    <button class="btn btn-outline-success my-2 my-sm-0" type="submit">BUSCAR</button>
+                </form>
+            </nav>
+        </div>
     </div>
-    <div class="card-body">
         <table class="table table-hover">
             <thead>
                 <tr>
@@ -21,19 +31,18 @@
             <tbody id="">
               {{#each respuesta}}
                 <tr>
-                    <td >{{dni}}</td>
-                    <td >{{nombrecompleto}}</td>
-                    <td >{{estado}}</td>
-                    <td >{{puesto}}</td>
-                    <td >{{fecha_inicio}}</td>
-                    <td >{{celular}}</td>
-                    <td >{{email}}</td>
-                    <td >{{direccion}}</td>
-                    <td >{{localidad}}</td>
+                    <td scope="col">{{dni}}</td>
+                    <td scope="col">{{nombrecompleto}}</td>
+                    <td scope="col">{{estado}}</td>
+                    <td scope="col">{{puesto}}</td>
+                    <td scope="col">{{fecha_inicio}}</td>
+                    <td scope="col">{{celular}}</td>
+                    <td scope="col">{{email}}</td>
+                    <td scope="col">{{direccion}}</td>
+                    <td scope="col">{{localidad}}</td>
                     <td><a class="btn btn-primary" href="admin/mod/{{dni}}">Modificar</a></td>     <!-- BOTON MODIFICAR USUARIO-->
                 </tr>
               {{/each}}
             </tbody>
         </table>
-    </div>
 </div>

@@ -101,6 +101,14 @@ function mostrar_repuestos_marca_modelo(coneccion,callback){
   })
 }
 
+function mostrar_repuestos_marca_modelo_para_pedidos(callback){
+  let query=`SELECT cantidad,id_repuesto,nombre,marca,modelo FROM repuestos JOIN marca ON repuestos.fk_marca=marca.id_marca JOIN modelo ON repuestos.fk_modelo=modelo.id_modelo`; 
+  conect_sql.query(query, function(err,data){
+    if(err) throw err;
+    callback(data) 
+  })
+}
+
 function buscar_repuestos_marca_modelo_por_id(coneccion,id,callback){
   let query=`SELECT repuestos.id_repuesto, repuestos.nombre, marca.marca, modelo.modelo FROM repuestos_orden JOIN repuestos ON repuestos.id_repuesto=repuestos_orden.fk_repuesto JOIN marca on marca.id_marca=repuestos.fk_marca JOIN modelo ON modelo.id_modelo=repuestos.fk_modelo WHERE repuestos_orden.fk_orden=${id} `; 
   coneccion.query(query, function(err,data){
@@ -353,16 +361,37 @@ function select_from(coneccion,tabla,callback){
   let query=`SELECT * FROM ${tabla}`; 
   coneccion.query(query, function(err,data){
     if(err) throw err;
-    console.log("select * from: ", data)
     callback(data)
   })
 }
 
 function insert (coneccion,tabla,datos){
-
   coneccion.query(`INSERT INTO ${tabla} set ?`,[datos],function(err,data){
     if(err) throw err;
-    console.log(data)
+  })
+}
+
+function select_from_where_condicion(tabla,columna,condicion,dato,callback){
+  let query
+  if (condicion==1) {
+    query=`SELECT * FROM ${tabla} WHERE ${columna}<${dato}`; 
+  }
+  if (condicion==2) {
+    query=`SELECT * FROM ${tabla} WHERE ${columna}>${dato}`
+  }
+  conect_sql.query(query, function(err,data){
+    if(err) throw err;
+    console.log("select * from: ", data)
+    callback(data)
+  })
+}
+
+function select_from_where_id(tabla,columna,id,callback){
+  let query=`SELECT * FROM ${tabla} WHERE ${columna}=${id}`; 
+  conect_sql.query(query, function(err,data){
+    if(err) throw err;
+    console.log("select * from: ", data)
+    callback(data)
   })
 }
 
@@ -444,7 +473,6 @@ function informe_tecnico_id(coneccion,id,callback){
 
 function informe_pagos(coneccion,filtro,callback){ // terminar y cambiar estado a 6
   let query
-  console.log(filtro+"   asdsad")
   if(filtro=="dia"){
     query= `SELECT DAY(hora_fin) AS DIA,MONTH(hora_fin) AS MES, SUM(pago) AS PAGO FROM orden_trabajo WHERE estado=5 AND YEAR(NOW())=YEAR(hora_fin) GROUP BY DAY(hora_fin) ORDER BY MONTH(hora_fin)`
   }
@@ -459,10 +487,36 @@ function informe_pagos(coneccion,filtro,callback){ // terminar y cambiar estado 
   })
 }
 
+
+//--------------------------------------------------------PEDIDOS--------------------------------------
+
+function validar_pedido_id(id,callback){ //revisa por id (int) si el repuesto existe
+  let query_validar=`SELECT COUNT(cantidad) AS cantidad FROM pedidos WHERE id = ${id}`; 
+  
+  conect_sql.query(query_validar, function(err,data){
+    if(err) throw err;
+    if(data[0].cantidad==0){
+      callback(false)
+    }
+    else{
+      callback(true)
+    }
+  })
+}
+
+function update_pedidos(tabla,id,datos){
+
+  conect_sql.query(`update ${tabla} set ? WHERE id=${id}`,[datos],function(err){
+    if(err) throw err;
+  })
+}
+
+
 module.exports={crear_repuesto,ingresar_stock,validar_repuerto_id,validar_usuario_id,mostrar_ordenes_espera,mostrar_mis_ordenes,validar_orden_id,traer_orden_id,
 mostrar_estados,contar_repuerto_id,mostrar_repuesto_id,modificar_repuesto_id,crear_marca,crear_modelo,buscar_marca_nombre,buscar_modelo_nombre,validar_marca_nombre,
 validar_modelo_nombre,select_from,insert,mostrar_cliente_id,update_cliente,validar_cliente_id,mostrar_usuario_id,update_usuario,login,tipo_usuario,tomar_orden,
 deshabilitar_usuario,mostrar_ordenes_para_retirar,mostrar_repuestos_marca_modelo,traer_id_estado,mostrar_repuestos_con_marca_modelo_stock,buscar_repuestos_marca_modelo_por_id,
 select_repuesto_orden_id_orden,graficos_tipo_equipo_mes,graficos_ingresos_por_año,repuestos_mas_usados,mostrar_todas_las_ordenes,mostrar_notificaciones,marcar_como_leido,
-repuesto_orden_exite_el_repuesto,informe_tecnico_id,informe_pagos
+repuesto_orden_exite_el_repuesto,informe_tecnico_id,informe_pagos,select_from_where_condicion,select_from_where_id,mostrar_repuestos_marca_modelo_para_pedidos,validar_pedido_id,
+update_pedidos
 }
