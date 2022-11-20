@@ -1,0 +1,37 @@
+<div class="container rounded bg-light mt-4">
+<div class="row m-3">
+    <div class="col-9 mt-3">
+          <h3 class="mx-auto titulos" >Horas de trabajo por ordenes de {{#if id}}{{id}}{{/if}}</h3>
+    </div>
+    <div class="col-3">
+        <label for="filtro_horas">Ordenamiento</label>
+        <select class="form-select"  id="filtro_horas">
+            <option value="" selected></option>
+            <option value="1">Fecha</option>
+            <option value="2">Tipo de equipo</option>
+        </select>
+    </div>
+</div>
+
+  <table class="table table-hover">
+    <thead>
+      <tr>
+        <th scope="col" class="text-center">Orden de trabajo</th>
+        <th scope="col" class="text-center">Tipo de Equipo</th>
+        <th scope="col" class="text-center">Fecha de inicio</th>
+        <th scope="col" class="text-center"><strong>Horas de trabajo</strong> </th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each respuesta}}
+      <tr>
+          <td  class="text-center">{{id_orden}}</td>
+          <td class="text-center">{{tipo_equipo}}</td>
+          <td class="text-center">{{hora_inicio}}</td>
+          <td class="text-center">{{tiempo_total}}</td>
+      </tr>
+      {{/each}}
+      
+    </tbody>
+  </table>
+</div>

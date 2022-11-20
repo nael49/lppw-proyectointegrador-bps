@@ -1,3 +1,4 @@
+const { json } = require('body-parser');
 const bodyParser = require('body-parser');
 const express=require('express');
 const router = express.Router();
@@ -8,7 +9,7 @@ const {crear_repuesto, ingresar_stock, validar_repuerto_id, mostrar_ordenes_espe
 crear_marca, buscar_marca_nombre, buscar_modelo_nombre, crear_modelo, validar_marca_nombre, validar_modelo_nombre, select_from, modificar_repuesto_id, insert, 
 mostrar_cliente_id, validar_cliente_id, update_cliente, validar_usuario_id, mostrar_usuario_id, update_usuario, login, tomar_orden, deshabilitar_usuario, 
 mostrar_ordenes_para_retirar, mostrar_repuestos_marca_modelo, mostrar_repuestos_con_marca_modelo_stock,buscar_repuestos_marca_modelo_por_id,graficos_tipo_equipo_mes,
-graficos_ingresos_por_año,repuestos_mas_usados, mostrar_todas_las_ordenes, select_repuesto_orden_id_orden, mostrar_notificaciones, marcar_como_leido, contar_repuerto_id, repuesto_orden_exite_el_repuesto} = require('../modelo_datos_bbdd/operaciones')
+graficos_ingresos_por_año,repuestos_mas_usados, mostrar_todas_las_ordenes, select_repuesto_orden_id_orden, mostrar_notificaciones, marcar_como_leido, contar_repuerto_id, repuesto_orden_exite_el_repuesto, informe_tecnico_id, informe_pagos} = require('../modelo_datos_bbdd/operaciones')
 
 
 router.get('/gerente',authMiddleware,(req,res)=>{
@@ -1373,8 +1374,44 @@ router.post('/stock/ingresar_stock',(req,res)=>{
     }
 })
 
+router.get('/informes/horas/:id', async(req,res)=>{  //tiempo de trabajo por tecnico------------- terminar !!!!!!!!!!!
+    let id =req.params.id
+    await informe_tecnico_id(conect_sql,id,(respuesta)=>{
+        let lista = []
+        for (let index = 0; index < respuesta.length; index++) {
+            let esquema={
+                fk_tecnico:0,
+                id_orden:0,
+                hora_inicio:"",
+                tiempo_total:0,
+                tipo_equipo:"",
+            }
+            
+            esquema.tipo_equipo=respuesta[index].tipo_equipo
+            esquema.id_orden=respuesta[index].id_orden
+            esquema.hora_inicio=respuesta[index].hora_inicio
+            esquema.fk_tecnico=parseInt(respuesta[index].fk_tecnico)
 
-//------------------------------------GRAFICOS
+            let x=new Date(respuesta[index].hora_fin)
+            let y=new Date(respuesta[index].hora_inicio)
+
+            
+            esquema.tiempo_total=((x.getTime())-(y.getTime()))/1000
+            esquema.tiempo_total/=(60*60)
+            esquema.tiempo_total=Math.abs(Math.round(esquema.tiempo_total))
+            lista.push(esquema)
+        }
+        res.render("layouts/informe_horas",{respuesta:lista,id:lista[0].fk_tecnico})
+    })
+})
+
+
+router.get('/informes/ventas', (req,res)=>{  //terminar !!!!!!!!!!!!!!!!!!
+        res.render("layouts/informe_pagos")
+})
+
+
+//------------------------------------GRAFICOS ------------------------------------
 
 router.get('/graficos/tipos_equipo',authMiddleware, async(req,res)=>{
     await graficos_tipo_equipo_mes(conect_sql,(respuesta)=>{
@@ -1425,5 +1462,52 @@ router.post('/cantidad',authMiddleware, async(req,res)=>{
     }
     
 })
+
+router.post('/ordenar_pagos', async(req,res)=>{
+    const {id}=req.body
+    console.log(id)
+    if(id){
+        if (!isNaN(id)) {
+            if(parseInt(id)==1){
+                try {
+                    await informe_pagos(conect_sql,"dia",(respuesta)=>{
+                        console.log(JSON.stringify (respuesta))
+                        res.json(respuesta)
+                    })
+                } catch (error) {
+                    if(error) throw error;
+                }
+            }
+            if(parseInt(id)==2){
+                try {
+                    await informe_pagos(conect_sql,"mes",(respuesta)=>{
+                        res.json(respuesta)
+                    })
+                } catch (error) {
+                    if(error) throw error;
+                }
+            }
+            if(parseInt(id)==3){
+                try {
+                    await informe_pagos(conect_sql,"año",(respuesta)=>{
+                        res.json(respuesta)
+                    })
+                } catch (error) {
+                    if(error) throw error;
+                }
+            }
+            
+        }
+        else{
+            console.log("error al hacer isnan")
+        }
+
+    }
+    else{
+        console.log("no se envio datos")
+    }
+})
+
+ 
 
 module.exports=router;

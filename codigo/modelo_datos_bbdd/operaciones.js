@@ -430,10 +430,39 @@ function marcar_como_leido(coneccion,puesto){
   
 }
 
+
+//---------------------------------------- INFORMES --------------------------------------------------
+
+function informe_tecnico_id(coneccion,id,callback){
+  let query= `SELECT fk_tecnico,hora_inicio,hora_fin,id_orden,tipo_equipo.tipo_equipo FROM orden_trabajo JOIN tipo_equipo ON tipo_equipo.id_tipo=orden_trabajo.fk_tipo_equipo WHERE fk_tecnico =${id} AND estado =5`
+  coneccion.query(query,function(err,data){
+    callback(data)
+  })
+}
+
+
+
+function informe_pagos(coneccion,filtro,callback){ // terminar y cambiar estado a 6
+  let query
+  console.log(filtro+"   asdsad")
+  if(filtro=="dia"){
+    query= `SELECT DAY(hora_fin) AS DIA,MONTH(hora_fin) AS MES, SUM(pago) AS PAGO FROM orden_trabajo WHERE estado=5 AND YEAR(NOW())=YEAR(hora_fin) GROUP BY DAY(hora_fin) ORDER BY MONTH(hora_fin)`
+  }
+  if(filtro=="mes"){
+    query= `SELECT MONTH(hora_fin) AS MES,YEAR(hora_fin) AS AÑO, SUM(pago) AS PAGO FROM orden_trabajo WHERE estado=5 AND YEAR(NOW())=YEAR(hora_fin) GROUP BY MONTH(hora_fin) ORDER BY YEAR(hora_fin)`
+  }
+  if(filtro=="año"){
+    query= `SELECT YEAR(hora_fin) AS AÑO, SUM(pago) AS PAGO FROM orden_trabajo WHERE estado=5  GROUP BY YEAR(hora_fin) ORDER BY YEAR(hora_fin)`
+  }
+  coneccion.query(query,function(err,data){
+    callback(data)
+  })
+}
+
 module.exports={crear_repuesto,ingresar_stock,validar_repuerto_id,validar_usuario_id,mostrar_ordenes_espera,mostrar_mis_ordenes,validar_orden_id,traer_orden_id,
 mostrar_estados,contar_repuerto_id,mostrar_repuesto_id,modificar_repuesto_id,crear_marca,crear_modelo,buscar_marca_nombre,buscar_modelo_nombre,validar_marca_nombre,
 validar_modelo_nombre,select_from,insert,mostrar_cliente_id,update_cliente,validar_cliente_id,mostrar_usuario_id,update_usuario,login,tipo_usuario,tomar_orden,
 deshabilitar_usuario,mostrar_ordenes_para_retirar,mostrar_repuestos_marca_modelo,traer_id_estado,mostrar_repuestos_con_marca_modelo_stock,buscar_repuestos_marca_modelo_por_id,
 select_repuesto_orden_id_orden,graficos_tipo_equipo_mes,graficos_ingresos_por_año,repuestos_mas_usados,mostrar_todas_las_ordenes,mostrar_notificaciones,marcar_como_leido,
-repuesto_orden_exite_el_repuesto
+repuesto_orden_exite_el_repuesto,informe_tecnico_id,informe_pagos
 }
