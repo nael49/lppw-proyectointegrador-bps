@@ -21,8 +21,25 @@
       <input type="number" name="cantidad" class="form-control" id="cantidad" min="1" max="9999" required>
       <div class="feedback-invalid"></div>
     </div>
+    <div class="row">
+      <div class="col-6">
+        <button type="submit" class="btn btn-primary">Crear Pedido</button>
+      </div>
+      <div class="col-6">
+          <div class="col-6">
+            {{#if userLogged.tecnico}}
+            <a class="btn btn-secondary" href="/tecnico">Cancelar</a>
+            {{/if}}
+            {{#if userLogged.stock}}
+            <a class="btn btn-secondary" href="/stock">Cancelar</a>
+            {{/if}}
+          </div>
+      </div>
+    </div>
+    
 
-    <button type="submit" class="btn btn-primary">Crear Pedido</button>
+    
+
+
   </form>
-  
 </div>
