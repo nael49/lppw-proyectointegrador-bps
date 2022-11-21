@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 12-11-2022 a las 01:12:49
+-- Tiempo de generación: 21-11-2022 a las 23:10:02
 -- Versión del servidor: 10.4.25-MariaDB
 -- Versión de PHP: 8.1.10
 
@@ -148,7 +148,8 @@ CREATE TABLE `notificaciones` (
 --
 
 INSERT INTO `notificaciones` (`id`, `de`, `para`, `tipo`, `leido`, `fecha`) VALUES
-(1, '123456123', 'TECNICO', 'Se a Creado una nueva orden para un: celular con: cambio de bateria', 0, '2022-11-12 00:12:33');
+(1, '123456123', 'TECNICO', 'Se a Creado una nueva orden para un: celular con: cambio de bateria', 0, '2022-11-21 20:17:18'),
+(2, '12312123', 'GERENTE', 'Se a Creado un Nuevo Usuario: nuevo usuario Para el puesto: RECEPCIONISTA', 0, '2022-11-21 20:17:21');
 
 -- --------------------------------------------------------
 
@@ -181,8 +182,23 @@ INSERT INTO `orden_trabajo` (`id_orden`, `fecha_creacion`, `fecha_retiro`, `hora
 (2, '2022-11-08 21:35:40', NULL, '2022-11-02 18:24:20', '2022-11-05 19:49:10', NULL, 35122299, 123456123, 35122245, 5, 'pantalla rota', 'tv samsung', 1, 2),
 (4, '2022-11-08 23:18:30', NULL, '2022-09-01 20:49:51', '2022-09-14 22:51:26', NULL, 56789328, 123456123, 7645903, 5, 'no emite sonido', 'hisense 55\' h-dfghh2155. x1 pantalla x2 resistencia x1 tira led', 20, 2),
 (5, '2022-11-08 21:35:52', NULL, '2022-11-02 21:55:12', '2022-11-05 20:49:38', NULL, 35122299, 123456123, 12345652, 5, 'no carga la bateria', 'noblex  a-345, 4gb ram 128 disco diro', 2000, 3),
-(6, '2022-11-11 21:05:34', NULL, NULL, NULL, NULL, NULL, 123456123, 37125456, 2, 'la pantalla \"pixelea\" las imagenes', 'LG 43\" L4220ARJ', 0, 2),
-(7, '2022-11-12 00:08:41', NULL, NULL, NULL, NULL, NULL, 123456123, 89562347, 2, 'cambio de bateria', 'Samsung A-33 ', 0, 4);
+(6, '2022-11-21 20:52:02', NULL, NULL, NULL, NULL, NULL, 123456123, 37125456, 2, 'la pantalla \"pixelea\" las imagenes', 'LG 43\' L4220ARJ', 0, 2),
+(7, '2022-11-21 20:35:59', NULL, '2022-11-15 20:35:42', NULL, NULL, 35122299, 123456123, 89562347, 4, 'cambio de bateria', 'Samsung A-33 ', 0, 4);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `pedidos`
+--
+
+CREATE TABLE `pedidos` (
+  `id` int(11) NOT NULL,
+  `nombre` varchar(50) NOT NULL,
+  `marca` varchar(50) NOT NULL,
+  `cantidad` int(11) NOT NULL,
+  `estado` varchar(50) NOT NULL,
+  `fecha_creacion` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
@@ -220,20 +236,21 @@ INSERT INTO `repuestos` (`id_repuesto`, `nombre`, `distribuidor`, `cantidad`, `p
 CREATE TABLE `repuestos_orden` (
   `id` int(11) NOT NULL,
   `fk_orden` int(11) NOT NULL,
-  `fk_repuesto` int(11) NOT NULL
+  `fk_repuesto` int(11) NOT NULL,
+  `cantidad` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Volcado de datos para la tabla `repuestos_orden`
 --
 
-INSERT INTO `repuestos_orden` (`id`, `fk_orden`, `fk_repuesto`) VALUES
-(3, 2, 32),
-(4, 5, 8),
-(5, 5, 32),
-(6, 4, 8),
-(7, 4, 34),
-(8, 4, 35);
+INSERT INTO `repuestos_orden` (`id`, `fk_orden`, `fk_repuesto`, `cantidad`) VALUES
+(3, 2, 32, 1),
+(4, 5, 8, 1),
+(5, 5, 32, 1),
+(6, 4, 8, 1),
+(7, 4, 34, 1),
+(8, 4, 35, 1);
 
 -- --------------------------------------------------------
 
@@ -283,6 +300,7 @@ INSERT INTO `usuarios_general` (`dni`, `nombrecompleto`, `fecha_inicio`, `puesto
 (12312123, 'juan pedro', '2022-11-05 15:12:32', 'ADMIN', 1, 'asdr@gmail.com', 'calle falsa 568', 'sprindfield', 1231231254, '1234'),
 (12345678, 'adasdasd asdasdas', '2022-11-05 15:11:23', 'GERENTE', 1, 'nelson@gmail.com', 'las 213', 'sadsad', 12121212, '1234'),
 (35122299, 'nelson', '2022-11-05 15:11:23', 'TECNICO', 1, 'NELSON@GMAIL.COM', 'SPEGA 123', 'SPEGA', 1558122345, '1234'),
+(39658632, 'nuevo usuario', '2022-11-12 03:00:00', 'RECEPCIONISTA', 1, 'asdr@gmail.com', 'calle falsa 123', 'sprindfield', 1188475927, '1234'),
 (56789328, 'osvaldo asd', '2022-11-08 23:18:10', 'TECNICO', 1, 'luca@gmail.com', 'corrientes 2345', 'palermo CF', 1265456523, '1234'),
 (85741963, 'admin deposito', '2022-11-05 15:11:23', 'ADMINISTRADOR_DE_DEPOSITO', 1, 'shdfkjbdssad123@gmail.com', 'calle falsa 321', 'monte grande', 12345678, '1234'),
 (123456123, 'adasdasd asdasdas', '2022-11-05 15:11:23', 'RECEPCIONISTA', 1, 'asdr@gmail.com', 'calle falsa 123', 'sprindfield', 1512345216, '1234');
@@ -338,6 +356,12 @@ ALTER TABLE `orden_trabajo`
   ADD KEY `fk_cliente` (`fk_cliente`),
   ADD KEY `estado` (`estado`),
   ADD KEY `fk_modelo` (`fk_tipo_equipo`);
+
+--
+-- Indices de la tabla `pedidos`
+--
+ALTER TABLE `pedidos`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indices de la tabla `repuestos`
@@ -399,13 +423,19 @@ ALTER TABLE `modelo`
 -- AUTO_INCREMENT de la tabla `notificaciones`
 --
 ALTER TABLE `notificaciones`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `orden_trabajo`
 --
 ALTER TABLE `orden_trabajo`
   MODIFY `id_orden` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+
+--
+-- AUTO_INCREMENT de la tabla `pedidos`
+--
+ALTER TABLE `pedidos`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `repuestos`
