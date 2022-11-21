@@ -406,7 +406,7 @@ function select_repuesto_orden_id_orden(coneccion,id,callback){
 
 
 function repuesto_orden_exite_el_repuesto(coneccion,data,callback){
-  coneccion.query(`SELECT COUNT(cantidad) AS cantidad FROM repuestos_orden WHERE fk_orden=${data.orden} AND fk_repuesto= ${data.repuesto}` ,function(err,data){
+  coneccion.query(`SELECT COUNT(cantidad) AS cantidad FROM repuestos_orden WHERE fk_orden=${data.id_orden} AND fk_repuesto= ${data.id_repuesto}` ,function(err,data){
     if(err) throw err;
     if(data.cantidad==0){
       callback(false)

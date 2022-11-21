@@ -656,7 +656,6 @@ router.get('/tecnico/orden/:id',authMiddleware,async(req,res)=>{   // terminar a
 })
 
 router.post('/tecnico/orden/:id',authMiddleware,async(req,res)=>{ //--------------------------------------------casi
-    let id=req.params.id
     let lista_estados=["En Espera","En Revision","En Reparacion","Reparado","Finalizado"]  
     const{repuesto,estado,datos_op,id_orden,cantidad}=req.body
     let error_orden=[]
@@ -681,19 +680,19 @@ router.post('/tecnico/orden/:id',authMiddleware,async(req,res)=>{ //------------
                 let notificacion={
                     de:req.session.user,
                     para:"RECEPCIONISTA",
-                    tipo:"Se a Reparado la Orden: "+id,
+                    tipo:"Se a Reparado la Orden: "+id_orden,
                     leido:0
                 }
-                let query=`UPDATE orden_trabajo SET  datos_importantes="${datos_op}",estado=5,hora_fin=NOW() WHERE id_orden=${id}`
+                let query=`UPDATE orden_trabajo SET  datos_importantes="${datos_op}",estado=5,hora_fin=NOW() WHERE id_orden=${parseInt(id_orden)}`
                 conect_sql.query(query)
                 insert(conect_sql,"notificaciones",notificacion) //inserta la notificacions
                 req.flash("exito_msg","La orden de trabajo se envio correctamente")
-                res.redirect(`/tecnico/misordenes`)
+                res.redirect('/tecnico/misordenes')
                 return
             } 
             catch (error) {
                 req.flash("exito_msg","Error en la orden de trabajo")
-                res.redirect(`/tecnico/misordenes`)
+                res.redirect('/tecnico/misordenes')
                 return
             }  
         }
@@ -702,20 +701,20 @@ router.post('/tecnico/orden/:id',authMiddleware,async(req,res)=>{ //------------
         validador=false
         if(error_orden.length>0){
             req.flash("exito_msg","Error en repuestos o el estado")
-            res.redirect(`/tecnico/misordenes`)
+            res.redirect("/tecnico/misordenes")
             return
         }
         if(error_orden.length==0){
             try {
-                let query=`UPDATE orden_trabajo SET estado=2,datos_importantes="${datos_op}",hora_inicio=NULL,fk_tecnico=NULL WHERE id_orden=${id}`
+                let query=`UPDATE orden_trabajo SET estado=2,datos_importantes="${datos_op}",hora_inicio=NULL,fk_tecnico=NULL WHERE id_orden=${parseInt(id_orden)}`
                 await conect_sql.query(query)
                 req.flash("exito_msg","Se ha desvinculado de la orden de trabajo con exito")
-                res.redirect(`/tecnico/misordenes`)
+                res.redirect("/tecnico/misordenes")
                 return
             } 
             catch (error) {
                 req.flash("exito_msg","Error en la orden de trabajo")
-                res.redirect(`/tecnico/misordenes`)
+                res.redirect('/tecnico/misordenes')
                 return
             }  
         }
@@ -731,27 +730,30 @@ router.post('/tecnico/orden/:id',authMiddleware,async(req,res)=>{ //------------
             error_orden.push({text:"Eroor en cantidad"})
         }
         if(error_orden.length>0){
-            req.flash("exito_msg","Error en repuestos o el estado")
             req.flash("exito_msg","Solo al terminar la reparacion se acepta el recuadro 'repuestos' vacio")
-            res.redirect(`/tecnico/orden/${id}`)
+            res.redirect('/tecnico/orden/'+parseInt(id_orden))
             return
         }
         if(error_orden.length==0){
-            await validar_orden_id(conect_sql,id,(respuesta)=>{
+            await validar_orden_id(conect_sql,parseInt(id_orden),(respuesta)=>{
                 if(respuesta){
                     validar_repuerto_id(conect_sql,parseInt(repuesto),(val)=>{
                         if (val) {
                             contar_repuerto_id(conect_sql,parseInt(repuesto),(cantidadbbdd)=>{
-                                if (cantidadbbdd.cantidad >= parseInt(cantidad)) {
-                                    repuesto_orden_exite_el_repuesto(conect_sql,parseInt(repuesto),(exite)=>{
-                                        let datos_insert={
-                                            fk_orden:parseInt(id_orden),
-                                            fk_repuesto:parseInt(repuesto),
-                                            cantidad:parseInt(cantidad)
-                                        }      
+                                console.log("bbdd:"+cantidadbbdd[0].cantidad)
+                                console.log("front:"+parseInt(cantidad))
+
+                                if (cantidadbbdd[0].cantidad >= parseInt(cantidad)){
+                                    let datos_insert={
+                                        id_orden:parseInt(id_orden),
+                                        id_repuesto:parseInt(repuesto),
+                                        cantidad:parseInt(cantidad)
+                                    }  
+                                    repuesto_orden_exite_el_repuesto(conect_sql,datos_insert,(exite)=>{
+                                            
                                         if(exite){
                                             try {
-                                                let query2=`UPDATE repuestos_orden SET cantidad =${datos_insert.cantidad} WHERE fk_orden=${datos_insert.fk_orden} AND fk_repuesto=${datos_insert.fk_repuesto} `
+                                                let query2=`UPDATE repuestos_orden SET cantidad =${datos_insert.cantidad} WHERE fk_orden=${datos_insert.id_orden} AND fk_repuesto=${datos_insert.id_repuesto} `
                                                 conect_sql.query(query2)
                                                 ingresar_stock(conect_sql,datos_insert,"resta")
                                             } 
@@ -770,25 +772,27 @@ router.post('/tecnico/orden/:id',authMiddleware,async(req,res)=>{ //------------
                                 } 
                                 else {
                                     error_orden.push({text:"La cantidad ingresada supera el stock"})
-                                    error_orden.forEach(element => {
-                                        req.flash("exito_msg",element)
-                                    });
-                                    res.redirect('/tecnico/orden/'+parseInt(id_orden))
+                                    req.flash("exito_msg","error");
+                                    res.redirect("/tecnico/misordenes");
+                                    return
                                 }
                             })    
                         } 
                         else {
-                            
+                            req.flash("exito_msg","El repuesto no existe");
+                            res.redirect("/tecnico/misordenes");
+                            return
                         }       
                     })
                     let query2=`UPDATE orden_trabajo SET estado = 4,datos_importantes="${datos_op}" WHERE id_orden=${id_orden}`
                     conect_sql.query(query2)
                     req.flash("exito_msg","La orden de trabajo fue actualizada correctamente")
-                    res.redirect(`/tecnico/misordenes`)
+                    res.redirect("/tecnico/misordenes")
+                    return
                 }
                 else{
                     req.flash("exito_msg","La orden de trabajo no existe")
-                    res.redirect(`/tecnico/misordenes`)
+                    res.redirect('/tecnico/misordenes')
                 }
             })
             
@@ -796,7 +800,7 @@ router.post('/tecnico/orden/:id',authMiddleware,async(req,res)=>{ //------------
     }
     else{
         req.flash("exito_msg","error al elegir estado")
-        res.redirect('/tecnico/orden/'+parseInt(id))
+        res.redirect('/tecnico/orden/'+parseInt(id_orden))
         //se altero el estado
     }
 })
