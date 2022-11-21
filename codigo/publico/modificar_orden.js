@@ -5,7 +5,7 @@ function inicio(){
     form.addEventListener('submit',validar)
     let repuesto =document.getElementById('repuesto')
     repuesto.addEventListener('change',mostrar_cantidad)
-
+    $("#repuesto2").select2()
     form.addEventListener('submit',validar)
 }
 

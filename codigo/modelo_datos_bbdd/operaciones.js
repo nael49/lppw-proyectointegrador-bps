@@ -179,7 +179,6 @@ function mostrar_repuesto_id(coneccion,id,callback){ //revisa por id (int) si el
   
   coneccion.query(query, function(err,data){
     if(err) throw err;
-    console.log("repuesto: ", data)
     callback(data)
   })
 }
@@ -405,10 +404,12 @@ function select_repuesto_orden_id_orden(coneccion,id,callback){
 }
 
 
-function repuesto_orden_exite_el_repuesto(coneccion,data,callback){
-  coneccion.query(`SELECT COUNT(cantidad) AS cantidad FROM repuestos_orden WHERE fk_orden=${data.id_orden} AND fk_repuesto= ${data.id_repuesto}` ,function(err,data){
+function repuesto_orden_exite_el_repuesto(coneccion,datos,callback){
+  let query=`SELECT COUNT(cantidad) AS cantidad FROM repuestos_orden WHERE fk_orden=${datos.id_orden} AND fk_repuesto= ${datos.id_repuesto}`
+  console.log("query: "+query)
+  coneccion.query( query,function(err,data){
     if(err) throw err;
-    if(data.cantidad==0){
+    if(data[0].cantidad==0){
       callback(false)
     }
     else{
@@ -456,7 +457,6 @@ function mostrar_notificaciones(coneccion,puesto,callback){   //(MEJORAR EL ORDE
 function marcar_como_leido(coneccion,puesto){
   let query= `UPDATE notificaciones set leido=1 WHERE para ="${puesto}"`
   coneccion.query(query)
-  
 }
 
 

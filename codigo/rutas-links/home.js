@@ -636,12 +636,11 @@ router.get('/tecnico/orden/:id',authMiddleware,async(req,res)=>{   // terminar a
 
                                 for (let index = 0; index < listfilter.length; index++) {
                                     lista_enviar.push({estado:listfilter[index]})
-                                    
                                 }
                             }
                         }
                         buscar_repuestos_marca_modelo_por_id(conect_sql,id_int,(respuesta2)=>{
-                            console.log(respuesta2)
+                            console.log("datos cargados en el get", respuesta2)
                             res.render('layouts/modificar_orden',{respuesta,datos,lista_enviar,respuesta2})
                         })
                     })
@@ -662,7 +661,6 @@ router.post('/tecnico/orden/:id',authMiddleware,async(req,res)=>{ //------------
     let validador=true
 
     console.log("datos de modificar orden",req.body)
-    console.log("tipo de dato repuesto", typeof repuesto)
 
     if(!id_orden || isNaN(parseInt(id_orden))){
         error_orden.push({text:"error al elegir repuestos"})
@@ -735,13 +733,13 @@ router.post('/tecnico/orden/:id',authMiddleware,async(req,res)=>{ //------------
             return
         }
         if(error_orden.length==0){
+            console.log("ingreso a mod sin errores(en revision/en reparacion)")
             await validar_orden_id(conect_sql,parseInt(id_orden),(respuesta)=>{
                 if(respuesta){
                     validar_repuerto_id(conect_sql,parseInt(repuesto),(val)=>{
                         if (val) {
                             contar_repuerto_id(conect_sql,parseInt(repuesto),(cantidadbbdd)=>{
-                                console.log("bbdd:"+cantidadbbdd[0].cantidad)
-                                console.log("front:"+parseInt(cantidad))
+                                
 
                                 if (cantidadbbdd[0].cantidad >= parseInt(cantidad)){
                                     let datos_insert={
@@ -750,8 +748,9 @@ router.post('/tecnico/orden/:id',authMiddleware,async(req,res)=>{ //------------
                                         cantidad:parseInt(cantidad)
                                     }  
                                     repuesto_orden_exite_el_repuesto(conect_sql,datos_insert,(exite)=>{
-                                            
+                                            console.log(exite)
                                         if(exite){
+                                            console.log("existe")
                                             try {
                                                 let query2=`UPDATE repuestos_orden SET cantidad =${datos_insert.cantidad} WHERE fk_orden=${datos_insert.id_orden} AND fk_repuesto=${datos_insert.id_repuesto} `
                                                 conect_sql.query(query2)
@@ -763,9 +762,22 @@ router.post('/tecnico/orden/:id',authMiddleware,async(req,res)=>{ //------------
                                             }
                                             
                                         }
-                                        else{     
-                                            insert(conect_sql,"repuestos_orden",datos_insert)
-                                            ingresar_stock(conect_sql,datos_insert,"resta")
+                                        else{ 
+                                            console.log(" no existe")
+                                            let datos_insert2={
+                                                fk_orden:parseInt(id_orden),
+                                                fk_repuesto:parseInt(repuesto),
+                                                cantidad:parseInt(cantidad)
+                                            }
+                                            try {
+                                                console.log("datos 2"+ datos_insert2)
+                                                insert(conect_sql,"repuestos_orden",datos_insert2)
+                                                ingresar_stock(conect_sql,datos_insert,"resta")
+                                            } catch (error) {
+                                                if (error) throw error
+                                                res.redirect("/tecnico")
+                                            }    
+                                            
                                         }
                                     })
                                      
@@ -1711,8 +1723,6 @@ router.get('/graficos/repuestos_mas_usados',authMiddleware, async(req,res)=>{
 
 router.get('/notificaciones',authMiddleware, async(req,res)=>{
     await mostrar_notificaciones(conect_sql,req.session.puesto,(respuesta)=>{
-        console.log("puesto: "+req.session.puesto)
-        console.log("datos de la notificaciones", respuesta)
         res.json(respuesta)
     })
 })
