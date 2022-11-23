@@ -396,7 +396,6 @@ function select_from_where_id(tabla,columna,id,callback){
   
   conect_sql.query(query, function(err,data){
     if(err) throw err;
-    console.log("select * from: ", data)
     callback(data)
   })
 }

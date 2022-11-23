@@ -24,7 +24,7 @@
                     <td scope="col">{{cantidad}}</td>
                     <td scope="col">{{fecha_creacion}}</td>
                     <td scope="col">{{estado}}</td>
-                    {{#if userLogged.gerente}}<td><a class="btn btn-primary" href="/pedido/mod/{{#if respuesta}}{{id}}{{/if}}">Modificar</a></td>{{/if}}     <!-- BOTON MODIFICAR USUARIO-->
+                    <td><a class="btn btn-primary" href="/pedido/mod/{{id}}">Modificar</a></td>     <!-- BOTON MODIFICAR USUARIO-->
                 </tr>
                {{/each}}
             </tbody>

@@ -1473,7 +1473,7 @@ router.post('/pedido/crear_existente',authMiddleware, async(req,res)=>{
             })
         }
         else{
-            await validar_repuerto_id(conect_sql,esquema.repuesto,(respuesta)=>{
+            await validar_repuerto_id(conect_sql,parseInt(repuesto),(respuesta)=>{
                 let esquema={
                     nombre:"",
                     modelo:"",
@@ -1482,9 +1482,9 @@ router.post('/pedido/crear_existente',authMiddleware, async(req,res)=>{
                 }
                 
                 if (respuesta) {
-                    buscar_repuestos_marca_modelo_por_id(conect_sql,parseInt(repuesto),(respuesta2)=>{
-                        esquema.nombre=respuesta2.nombre
-                        esquema.modelo=respuesta2.modelo
+                    mostrar_repuesto_id(conect_sql,parseInt(repuesto),(respuesta2)=>{ // cambiar funcionmo
+                        esquema.nombre=respuesta2[0].nombre
+                        esquema.modelo=respuesta2[0].modelo
 
                         let notificacion={
                             de:req.session.user,
@@ -1617,7 +1617,7 @@ router.get('/pedido/lista',authMiddleware,async(req,res)=>{
     }
 })
 
-router.get('/pedido/mod/:id',authMiddleware,(req,res)=>{
+router.get('/pedido/mod/:id',authMiddleware,async(req,res)=>{
     if (req.session.puesto=="GERENTE") {
         let id=req.params.id
         let error=[]
@@ -1640,8 +1640,10 @@ router.get('/pedido/mod/:id',authMiddleware,(req,res)=>{
             res.redirect('/pedido/lista')
         }
         else{
-            select_from_where_id("pedidos","id",parseInt(id),(respuesta)=>{
-                res.render("layouts/pedido",{respuesta})
+            await select_from_where_id("pedidos","id",parseInt(id),(respuesta1)=>{
+                let x=respuesta1[0]
+                console.log("pedido para modificar", x)
+                res.render("layouts/pedido",{x})
             })
         }
     } 
@@ -1675,13 +1677,14 @@ router.post('/pedido/mod',authMiddleware, async(req,res)=>{
         }
 
         if(error_orden.length>0){
-
+            req.flash("exito_msg","Erro al ingresar el pedido")
+            res.redirect("/pedido/lista")
         }
         else{
             await validar_pedido_id(parseInt(repuesto),(respuesta)=>{
                 if(respuesta){
                     let datos={
-                        estodo:estado
+                        estado:estado
                     }
                     try {
                         update_pedidos("pedidos",parseInt(repuesto),datos)
