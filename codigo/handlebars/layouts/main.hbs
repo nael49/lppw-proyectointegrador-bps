@@ -58,13 +58,16 @@
                         {{/if}}
                         {{#if userLogged.tecnico}}
                             <li class="nav-item">
-                                <a class="nav-link active" aria-current="page" href="/tecnico">lista Ordenes</a>
+                                <a class="nav-link" aria-current="page" href="/tecnico">lista Ordenes</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="/tecnico/misordenes">Mis ordenes</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="/tecnico/misordenes/finalizadas">Mis ordenes Finalizadas</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="/pedido/crear">Pedir un Nuevo Repuesto</a>
                             </li>
                             <li class="nav-item">
                             <a class="nav-link" href="/logout">Cerrar Sesion</a>
@@ -89,16 +92,30 @@
                             <li class="nav-item">
                                 <a class="nav-link" href="/stock/crear_repuesto">Crear Repuestos </a>
                             </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="" role="button" aria-expanded="false">Crear pedido</a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="/pedido/crear">Nuevo repuesto</a></li>
+                                    <li><a class="dropdown-item" href="/pedido/crear_existente">Repuesto Existente</a></li>
+                                </ul>
+                            </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="/logout">Cerrar Sesion</a>
-                            </li>
+                            </li> 
                         {{/if}}
                         {{#if userLogged.gerente}}
                             <li class="nav-item">
                                 <a class="nav-link active" aria-current="page" href="/gerente">Inicio</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link active" aria-current="page" href="/informes">Informes</a>
+                                <a class="nav-link active" aria-current="page" href="/pedido/lista">Pedidos</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="" role="button" aria-expanded="false">Informes</a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="/tecnico">Asignar tecnico</a></li>
+                                    <li><a class="dropdown-item" href="/lista_ordenes">Ver todas las ordenes de trabajo</a></li>
+                                </ul>
                             </li>
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="/tecnico" role="button" aria-expanded="false">Tecnico</a>

@@ -1435,73 +1435,83 @@ router.get('/informes/ventas',authMiddleware, (req,res)=>{  //terminar !!!!!!!!!
 })
 
 router.get('/pedido/crear_existente',authMiddleware, async(req,res)=>{
-    await mostrar_repuestos_marca_modelo_para_pedidos((respuesta)=>{
-        res.render("layouts/crear_pedido_stock_existente",{respuesta})
-    })
+    if(req.session.puesto=="ADMINISTRADOR_DE_DEPOSITO"){
+        await mostrar_repuestos_marca_modelo_para_pedidos((respuesta)=>{
+            res.render("layouts/crear_pedido_stock_existente",{respuesta})
+        })
+    }else{
+        
+    }
 })
 
 router.post('/pedido/crear_existente',authMiddleware, async(req,res)=>{
-    const{repuesto,cantidad}=req.body
-    let error_orden=[]
-    if(!repuesto || !cantidad){
-        error_orden.push({text:"No ingreso datos"})
-    }
-    if (repuesto) {
-        if (isNaN(repuesto)){
-            error_orden.push({text:"Eroor en repuesto elegido"})
+    if(req.session.puesto=="ADMINISTRADOR_DE_DEPOSITO"){
+        const{repuesto,cantidad}=req.body
+        let error_orden=[]
+        if(!repuesto || !cantidad){
+            error_orden.push({text:"No ingreso datos"})
         }
-    }
-    if (cantidad) {
-        if (isNaN(cantidad)){
-            error_orden.push({text:"la cantidad debe ser numerica"})
+        if (repuesto) {
+            if (isNaN(repuesto)){
+                error_orden.push({text:"Eroor en repuesto elegido"})
+            }
         }
-        if (parseInt(cantidad)<1 || parseInt(cantidad)>9999){
-            error_orden.push({text:"la cantidad minima es 1 y la maxima de 9999"})
+        if (cantidad) {
+            if (isNaN(cantidad)){
+                error_orden.push({text:"la cantidad debe ser numerica"})
+            }
+            if (parseInt(cantidad)<1 || parseInt(cantidad)>9999){
+                error_orden.push({text:"la cantidad minima es 1 y la maxima de 9999"})
+            }
+            if (parseInt(cantidad) != parseFloat(cantidad)){
+                error_orden.push({text:"La cantidad debe ser un numero entero"})
+            }
         }
-        if (parseInt(cantidad) != parseFloat(cantidad)){
-            error_orden.push({text:"La cantidad debe ser un numero entero"})
+        if(error_orden.length>0){
+            await mostrar_repuestos_marca_modelo_para_pedidos((respuesta)=>{
+                res.render("layouts/crear_pedido_stock_existente",{respuesta,error_orden})
+            })
         }
-    }
-    if(error_orden.length>0){
-        await mostrar_repuestos_marca_modelo_para_pedidos((respuesta)=>{
-            res.render("layouts/crear_pedido_stock_existente",{respuesta,error_orden})
-        })
+        else{
+            await validar_repuerto_id(conect_sql,esquema.repuesto,(respuesta)=>{
+                let esquema={
+                    nombre:"",
+                    modelo:"",
+                    cantidad:parseInt(cantidad),
+                    estado:"espera"
+                }
+                
+                if (respuesta) {
+                    buscar_repuestos_marca_modelo_por_id(conect_sql,parseInt(repuesto),(respuesta2)=>{
+                        esquema.nombre=respuesta2.nombre
+                        esquema.modelo=respuesta2.modelo
+
+                        let notificacion={
+                            de:req.session.user,
+                            para:"GERENTE",
+                            tipo:"Se a Creado un Nuevo Pedido: "+esquema.nombre+" -- Modelo: "+esquema.modelo,
+                            leido:0
+                        }
+                        
+                        insert(conect_sql,"pedidos",esquema)
+                        insert(conect_sql,"notificaciones",notificacion)
+                        req.flash("exito_msg","Pedido creado con exito")
+                        res.redirect("/stock")
+                    })
+                } 
+                else {
+                    mostrar_repuestos_marca_modelo_para_pedidos((respuesta)=>{
+                        error_orden.push({text:"No existe el id del repuesto"})
+                        res.render("layouts/crear_pedido_stock_existente",{respuesta,error_orden})
+                    })
+                }  
+            })
+        }
     }
     else{
-        await validar_repuerto_id(conect_sql,esquema.repuesto,(respuesta)=>{
-            let esquema={
-                nombre:"",
-                modelo:"",
-                cantidad:parseInt(cantidad),
-                estado:"espera"
-            }
-            
-            if (respuesta) {
-                buscar_repuestos_marca_modelo_por_id(conect_sql,parseInt(repuesto),(respuesta2)=>{
-                    esquema.nombre=respuesta2.nombre
-                    esquema.modelo=respuesta2.modelo
-
-                    let notificacion={
-                        de:req.session.user,
-                        para:"GERENTE",
-                        tipo:"Se a Creado un Nuevo Pedido: "+esquema.nombre+" -- Modelo: "+esquema.modelo,
-                        leido:0
-                    }
-                    
-                    insert(conect_sql,"pedidos",esquema)
-                    insert(conect_sql,"notificaciones",notificacion)
-                    req.flash("exito_msg","Pedido creado con exito")
-                    res.redirect("/stock")
-                })
-            } 
-            else {
-                mostrar_repuestos_marca_modelo_para_pedidos((respuesta)=>{
-                    error_orden.push({text:"No existe el id del repuesto"})
-                    res.render("layouts/crear_pedido_stock_existente",{respuesta,error_orden})
-                })
-            }  
-        })
+        res.redirect("/sigin")
     }
+    
 })
 
 router.get('/pedido/crear',authMiddleware,(req,res)=>{
@@ -1515,7 +1525,7 @@ router.get('/pedido/crear',authMiddleware,(req,res)=>{
 })
 
 router.post('/pedido/crear',authMiddleware, async(req,res)=>{
-    console.log(req.session.puesto)
+
     if(req.session.puesto=="TECNICO" || req.session.puesto=="ADMINISTRADOR_DE_DEPOSITO"){
         const{cantidad,nombre,modelo}=req.body
         let error_orden=[]
@@ -1699,6 +1709,18 @@ router.post('/pedido/mod',authMiddleware, async(req,res)=>{
     
 })
 
+router.get('/informe/lista_tecnicos',authMiddleware, async(req,res)=>{
+    if (req.session.puesto=="GERENTE") {
+        await select_from_where_id("usuarios_general","puesto","TECNICO",(respuesta)=>{
+            res.render("layouts/lista_tecnicos_informe",{respuesta})
+        })
+    }
+    else{
+        res.redirect("/sigin")
+    }
+})
+
+
 
 //------------------------------------GRAFICOS ------------------------------------
 
@@ -1750,7 +1772,7 @@ router.post('/cantidad',authMiddleware, async(req,res)=>{
     
 })
 
-router.post('/ordenar_pagos', async(req,res)=>{
+router.post('/ordenar_pagos',authMiddleware, async(req,res)=>{
     const {id}=req.body
     console.log(id)
     if(id){

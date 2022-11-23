@@ -386,7 +386,14 @@ function select_from_where_condicion(tabla,columna,condicion,dato,callback){
 }
 
 function select_from_where_id(tabla,columna,id,callback){
-  let query=`SELECT * FROM ${tabla} WHERE ${columna}=${id}`; 
+  let query
+  if(isNaN(id)){
+    query=`SELECT * FROM ${tabla} WHERE ${columna}="${id}"`; 
+  }
+  else{
+    query=`SELECT * FROM ${tabla} WHERE ${columna}=${id}`
+  }
+  
   conect_sql.query(query, function(err,data){
     if(err) throw err;
     console.log("select * from: ", data)
