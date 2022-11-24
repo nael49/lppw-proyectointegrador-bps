@@ -131,8 +131,6 @@ function ingresar_stock (coneccion,datos,operacion){ //trae la cantidad y suma o
 }
 
 function modificar_repuesto_id(coneccion,datos,callback){ //trae la cantidad y suma o resta dependiento la "operacion"
-  console.log(datos)
-
   let query_sumar=`UPDATE repuestos SET descripcion="${datos.descripcion}" ,nombre="${datos.nombre}",precio=${datos.precio},distribuidor="${datos.distribuidor}" WHERE id_repuesto=${datos.id}`; 
   coneccion.query(query_sumar, function(err,data){
     if(err) throw err;
@@ -143,7 +141,6 @@ function modificar_repuesto_id(coneccion,datos,callback){ //trae la cantidad y s
 
 
 function crear_repuesto(coneccion,datos,marca,modelo){ 
-  console.log(datos)
     let query=`INSERT INTO repuestos( nombre, distribuidor, cantidad, precio, descripcion,fk_marca,fk_modelo) VALUES ('${datos.nombre}','${datos.distribuidor}',${datos.cantidad},${datos.precio},'${datos.descripcion}','${marca}','${modelo}')`;
     coneccion.query(query)
 }
@@ -211,6 +208,14 @@ function mostrar_ordenes_para_retirar(coneccion,callback){
 function mostrar_mis_ordenes(coneccion,datos,callback){
   let query=`SELECT  id_orden,fecha_creacion,fk_cliente,fk_recepcionista,descripcion_falla ,estados.nombre FROM orden_trabajo  JOIN estados ON orden_trabajo.estado =estados.id_estados WHERE fk_tecnico=${datos} AND estado != 5 AND estado != 6` ; //cambiar datos
   coneccion.query(query, function(err,data){
+    if(err) throw err;
+    callback(data)
+  })
+}
+
+function mostrar_mis_ordenes_finalizadas(id,callback){
+  let query=`SELECT  id_orden,fecha_creacion,fk_cliente,fk_recepcionista,descripcion_falla ,estados.nombre FROM orden_trabajo  JOIN estados ON orden_trabajo.estado =estados.id_estados WHERE fk_tecnico=${id} AND estado = 5` ; 
+  conect_sql.query(query, function(err,data){
     if(err) throw err;
     callback(data)
   })
@@ -287,7 +292,6 @@ function crear_modelo(coneccion,datos){ //revisa por id (int) si el repuesto exi
   
   coneccion.query(query, function(err,data){
     if(err) throw err;
-    console.log("modelos: ", data)
   })
 }
 
@@ -296,7 +300,6 @@ function buscar_modelo_nombre(coneccion,dato,callback){ //revisa por id (int) si
   let dato_bbdd
   coneccion.query(query, function(err,data){
     if(err) throw err;
-    console.log("modelo: ", data)
     callback(data)
   })
 }
@@ -306,7 +309,6 @@ function validar_modelo_nombre(coneccion,datos,callback){  //si existe la orden 
   
   coneccion.query(query_validar, function(err,rows){
     if(err) throw err;
-    console.log("datos de validar si existe: ", rows)
     if(rows[0].id_modelo==0){ //retorna false si no existe
       callback(false)
     }
@@ -340,7 +342,6 @@ function buscar_marca_nombre(coneccion,dato,callback){ //revisa por id (int) si 
   
   coneccion.query(query, function(err,data){
     if(err) throw err;
-    console.log("marca: ", data)
     callback(data)
   })
 }
@@ -350,7 +351,6 @@ function crear_marca(coneccion,datos){ //revisa por id (int) si el repuesto exis
   
   coneccion.query(query, function(err,data){
     if(err) throw err;
-    console.log("marca: ", data)
   })
 }
 
@@ -412,7 +412,6 @@ function select_repuesto_orden_id_orden(coneccion,id,callback){
 
 function repuesto_orden_exite_el_repuesto(coneccion,datos,callback){
   let query=`SELECT COUNT(cantidad) AS cantidad FROM repuestos_orden WHERE fk_orden=${datos.id_orden} AND fk_repuesto= ${datos.id_repuesto}`
-  console.log("query: "+query)
   coneccion.query( query,function(err,data){
     if(err) throw err;
     if(data[0].cantidad==0){
@@ -429,7 +428,6 @@ function repuesto_orden_exite_el_repuesto(coneccion,datos,callback){
 function graficos_tipo_equipo_mes(coneccion,callback){
   let query= `SELECT tipo_equipo.tipo_equipo AS TIPO, COUNT(id_orden) as CANTIDAD FROM orden_trabajo JOIN tipo_equipo ON orden_trabajo.fk_tipo_equipo=tipo_equipo.id_tipo WHERE hora_inicio BETWEEN DATE_SUB(NOW(), INTERVAL 4 MONTH) AND NOW() GROUP BY fk_tipo_equipo DESC`
   coneccion.query(query,function(err,data){
-    console.log(data)
     callback(data)
   })
 }
@@ -438,7 +436,6 @@ function graficos_tipo_equipo_mes(coneccion,callback){
 function graficos_ingresos_por_año(coneccion,callback){
   let query= `SELECT MONTH(hora_fin) MES, SUM(pago) TOTAL FROM orden_trabajo WHERE YEAR(hora_fin) = YEAR(NOW()) GROUP BY Mes DESC;`
   coneccion.query(query,function(err,data){
-    console.log(data)
     callback(data)
   })
 }
@@ -446,7 +443,6 @@ function graficos_ingresos_por_año(coneccion,callback){
 function repuestos_mas_usados(coneccion,callback){
   let query= `SELECT repuestos.nombre,modelo.modelo, COUNT(fk_orden) AS CANTIDAD FROM repuestos_orden JOIN repuestos ON repuestos.id_repuesto= repuestos_orden.fk_repuesto JOIN modelo on modelo.id_modelo=repuestos.fk_modelo GROUP BY fk_repuesto  ASC LIMIT 5`
   coneccion.query(query,function(err,data){
-    console.log(data)
     callback(data)
   })
 }
@@ -524,5 +520,5 @@ validar_modelo_nombre,select_from,insert,mostrar_cliente_id,update_cliente,valid
 deshabilitar_usuario,mostrar_ordenes_para_retirar,mostrar_repuestos_marca_modelo,traer_id_estado,mostrar_repuestos_con_marca_modelo_stock,buscar_repuestos_marca_modelo_por_id,
 select_repuesto_orden_id_orden,graficos_tipo_equipo_mes,graficos_ingresos_por_año,repuestos_mas_usados,mostrar_todas_las_ordenes,mostrar_notificaciones,marcar_como_leido,
 repuesto_orden_exite_el_repuesto,informe_tecnico_id,informe_pagos,select_from_where_condicion,select_from_where_id,mostrar_repuestos_marca_modelo_para_pedidos,validar_pedido_id,
-update_pedidos
+update_pedidos,mostrar_mis_ordenes_finalizadas
 }

@@ -1,6 +1,6 @@
 
 <div class="container rounded bg-light mt-4">
-  <h3 class="mx-auto titulos" >Equipos listos para retirar</h3><br>
+  <h3 class="mx-auto titulos" >{{#if dato}}Todas las Ordenes Finalizadas{{else}}Equipos listos para retirar{{/if}}</h3><br>
     <table class="table table-hover">
         <thead>
           <tr>
@@ -8,7 +8,7 @@
             <th scope="col">fecha de ingreso</th>
             <th scope="col">fecha de Retiro</th>
             <th scope="col">Recepcionista </th>
-            <th scope="col">Tecnico Asignado</th>
+            {{#if dato}}{{else}} <th scope="col">Tecnico Asignado</th>{{/if}}
             <th scope="col">Tipo Equipo</th>
             <th scope="col">Descripcion de Falla</th>
             <th scope="col">DNI Cliente</th>
@@ -16,19 +16,34 @@
           </tr>
         </thead>
         <tbody >
-          {{#each respuesta}}
-            <tr>
-                <td >{{id_orden}}</td>
-                <td >{{fecha_creacion}}</td>
-                <td >{{fecha_retiro}}</td>
-                <td >{{fk_recepcionista}}</td>
-                <td >{{fk_tecnico}}</td>
-                <td>{{tipo_equipo}}</td>
-                <td>{{descripcion_falla}}</td>
-                <td >{{fk_cliente}}</td> 
-                <td >{{estado}}</td>
-            </tr>
-          {{/each}}
+          {{#if dato}}
+            {{#each respuesta}}
+              <tr>
+                  <td >{{id_orden}}</td>
+                  <td >{{fecha_creacion}}</td>
+                  <td >{{fecha_retiro}}</td>
+                  <td >{{fk_recepcionista}}</td>
+                  <td>{{tipo_equipo}}</td>
+                  <td>{{descripcion_falla}}</td>
+                  <td >{{fk_cliente}}</td> 
+                  <td >{{estado}}</td>
+              </tr>
+            {{/each}}
+          {{else}}
+              {{#each respuesta}}
+                <tr>
+                    <td >{{id_orden}}</td>
+                    <td >{{fecha_creacion}}</td>
+                    <td >{{fecha_retiro}}</td>
+                    <td >{{fk_recepcionista}}</td>
+                    <td >{{fk_tecnico}}</td>
+                    <td>{{tipo_equipo}}</td>
+                    <td>{{descripcion_falla}}</td>
+                    <td >{{fk_cliente}}</td> 
+                    <td >{{estado}}</td>
+                </tr>
+              {{/each}}
+          {{/if}}
         </tbody>
     </table>
 </div>

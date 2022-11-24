@@ -9,7 +9,7 @@ function aranque(){
 
 function ordenar(){
     const valor=document.getElementById('ordenamiento').value
-    console.log(valor)
+
     var tbody =document.getElementById('tbody')
     tbody.innerText=""
     var thead =document.getElementById('thead')
@@ -24,10 +24,11 @@ function ordenar(){
     .then(datos=>cambiar(datos))
 
     var cambiar =(tipos) =>{
-        console.log(tipos)
-        
+
+        var mes=["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"]
         if(parseInt(valor)==1){
             var lista=["MES","DIA","PAGO"]
+            
             cabezera(lista)
 
             for (let index = 0; index < tipos.length; index++) {
@@ -39,7 +40,8 @@ function ordenar(){
                 y2.classList.add("text-center")
                 y3.classList.add("text-center")
 
-                y1.innerHTML=tipos[index].MES
+
+                y1.innerHTML=mes[(tipos[index].MES)-1]
                 z.appendChild(y1)
 
                 y2.innerHTML=tipos[index].DIA
@@ -66,7 +68,7 @@ function ordenar(){
                 y1.innerHTML=tipos[index].AÑO
                 z.appendChild(y1)
 
-                y2.innerHTML=tipos[index].MES
+                y2.innerHTML=mes[(tipos[index].MES)-1]
                 z.appendChild(y2)
 
                 y3.innerHTML=tipos[index].PAGO

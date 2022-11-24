@@ -11,7 +11,8 @@ mostrar_cliente_id, validar_cliente_id, update_cliente, validar_usuario_id, most
 mostrar_ordenes_para_retirar, mostrar_repuestos_marca_modelo, mostrar_repuestos_con_marca_modelo_stock,buscar_repuestos_marca_modelo_por_id,graficos_tipo_equipo_mes,
 graficos_ingresos_por_año,repuestos_mas_usados, mostrar_todas_las_ordenes, select_repuesto_orden_id_orden, mostrar_notificaciones, marcar_como_leido, contar_repuerto_id, 
 repuesto_orden_exite_el_repuesto, informe_tecnico_id, informe_pagos, mostrar_repuestos_marca_modelo_para_pedidos, select_from_where_id, validar_pedido_id, 
-update_pedidos} = require('../modelo_datos_bbdd/operaciones')
+update_pedidos,
+mostrar_mis_ordenes_finalizadas} = require('../modelo_datos_bbdd/operaciones')
 
 
 router.get('/gerente',authMiddleware,(req,res)=>{
@@ -816,6 +817,22 @@ router.post('/tecnico/orden/:id',authMiddleware,async(req,res)=>{ //------------
         //se altero el estado
     }
 })
+
+router.get('/tecnico/misordenes/finalizadas',authMiddleware,async (req,res)=>{
+    if(req.session.puesto=="TECNICO"){  
+       let id=req.session.user
+       console.log(id)
+        await mostrar_mis_ordenes_finalizadas(id,(respuesta)=>{
+            console.log("datos traidos del tecnico")
+            console.log(respuesta)
+            res.render("layouts/todas_las_ordenes",{respuesta,dato:1})
+        })
+    }
+    else{
+        res.redirect("/sigin")
+    }
+})
+
 
 router.get('/admin',authMiddleware,async (req,res)=>{
     if (req.session.puesto=="ADMIN") {
